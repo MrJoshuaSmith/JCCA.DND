@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mr. Smith's Magical Emporium</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=MedievalSharp&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --arcane: #1a0a2e;
+    --arcane-mid: #2d1054;
+    --arcane-light: #3d1878;
+    --arcane-border: #6b3fa0;
+    --void: #0d0618;
+    --crystal: #c8a8f8;
+    --crystal-bright: #e8d8ff;
+    --crystal-dim: #8a68c8;
+    --azure: #4080d8;
+    --azure-bright: #80b8ff;
+    --silver: #d0c8e8;
+    --silver-dim: #9890b8;
+    --gold-magic: #f0c848;
+    --gold-dim: #a88020;
+    --teal-magic: #40d8c8;
+    --red-sale: #ff4488;
+    --red-sale-dim: #c03060;
+    --glow-purple: rgba(168,100,255,0.35);
+    --glow-blue: rgba(64,128,255,0.25);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--void);
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% 0%, #2d1054 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 20% 80%, #0a1840 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 80% 60%, #1a0838 0%, transparent 50%);
+    min-height: 100vh;
+    font-family: 'Crimson Pro', Georgia, serif;
+    color: var(--silver);
+    overflow-x: hidden;
+  }
+
+  /* === STARS === */
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: white;
+    animation: twinkle var(--d, 3s) var(--delay, 0s) infinite alternate ease-in-out;
+  }
+  @keyframes twinkle { from { opacity: 0.1; } to { opacity: 0.9; } }
+
+  /* === FLOATING PARTICLES === */
+  .particle {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    animation: float var(--dur, 8s) var(--dly, 0s) infinite ease-in-out;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) translateX(0); opacity: 0.4; }
+    33% { transform: translateY(-30px) translateX(15px); opacity: 0.8; }
+    66% { transform: translateY(-15px) translateX(-10px); opacity: 0.6; }
+  }
+
+  /* === EVERYTHING ABOVE THE FIXED BG === */
+  .page-content { position: relative; z-index: 1; }
+
+  /* === HEADER === */
+  .emporium-header {
+    text-align: center;
+    padding: 2.5rem 1rem 1.5rem;
+    position: relative;
+  }
+  .marquee-wrapper {
+    background: linear-gradient(90deg, transparent, #3d1878, #6b3fa0, #3d1878, transparent);
+    border-top: 1px solid var(--arcane-border);
+    border-bottom: 1px solid var(--arcane-border);
+    padding: 0.4rem 0;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .marquee-inner {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marquee 18s linear infinite;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--gold-magic);
+  }
+  @keyframes marquee { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
+
+  .smith-title {
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: clamp(1.8rem, 6vw, 3.4rem);
+    color: var(--crystal-bright);
+    text-shadow:
+      0 0 20px var(--glow-purple),
+      0 0 40px rgba(168,100,255,0.2);
+    letter-spacing: 0.05em;
+    line-height: 1.1;
+  }
+  .smith-title span {
+    color: var(--gold-magic);
+    text-shadow: 0 0 20px rgba(240,200,72,0.4);
+  }
+  .smith-subtitle {
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--crystal-dim);
+    margin-top: 0.5rem;
+  }
+
+  /* === BLINK / FLASH BADGE (the 90s chaos) === */
+  .flash-badge {
+    display: inline-block;
+    background: var(--red-sale);
+    color: white;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    padding: 0.3rem 0.9rem;
+    border-radius: 3px;
+    animation: blink-sale 0.9s step-start infinite;
+    border: 2px solid #ff88bb;
+    margin: 0 0.3rem;
+    vertical-align: middle;
+  }
+  @keyframes blink-sale {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .flash-text {
+    animation: flash-glow 1.2s ease-in-out infinite alternate;
+    color: var(--gold-magic);
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+  }
+  @keyframes flash-glow {
+    from { color: var(--gold-magic); text-shadow: none; }
+    to { color: #fff8c0; text-shadow: 0 0 12px rgba(240,200,72,0.7); }
+  }
+
+  .spin-star {
+    display: inline-block;
+    animation: spin 4s linear infinite;
+    color: var(--gold-magic);
+  }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  /* === WEEK RESET BANNER === */
+  .week-banner {
+    max-width: 900px;
+    margin: 0 auto 1.8rem;
+    padding: 0 1rem;
+  }
+  .week-inner {
+    background: linear-gradient(135deg, #1a0a2e, #2d1054);
+    border: 1px solid var(--arcane-border);
+    border-radius: 6px;
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .week-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    color: var(--crystal-dim);
+  }
+  .week-refresh {
+    font-size: 0.88rem;
+    color: var(--teal-magic);
+  }
+  .stock-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    font-family: 'Cinzel', serif;
+    padding: 0.2rem 0.7rem;
+    border-radius: 20px;
+    border: 1px solid;
+  }
+  .stock-ok { border-color: var(--teal-magic); color: var(--teal-magic); }
+  .stock-low { border-color: var(--gold-magic); color: var(--gold-magic); animation: pulse-low 2s ease-in-out infinite; }
+  .stock-sold { border-color: var(--red-sale); color: var(--red-sale); }
+  @keyframes pulse-low {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* === MAIN LAYOUT === */
+  .shop-layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1rem 3rem;
+  }
+
+  /* === PARCHMENT (arcane version) === */
+  .arcane-card {
+    background: linear-gradient(160deg, #1e0c38, #150828);
+    border: 1px solid var(--arcane-border);
+    border-radius: 6px;
+    padding: 2rem 2.2rem;
+    position: relative;
+    box-shadow:
+      0 0 30px rgba(107,63,160,0.15),
+      inset 0 0 60px rgba(168,100,255,0.04);
+  }
+  .arcane-card::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(107,63,160,0.2);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+  /* corner runes */
+  .arcane-card::after {
+    content: '✦';
+    position: absolute;
+    top: 8px; right: 12px;
+    font-size: 0.7rem;
+    color: rgba(107,63,160,0.5);
+  }
+
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--crystal-bright);
+    border-bottom: 1px solid var(--arcane-border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .rune-ornament {
+    color: var(--arcane-border);
+    font-size: 0.9rem;
+    letter-spacing: 0.4em;
+    text-align: center;
+    margin: 1.5rem 0 0.5rem;
+  }
+
+  /* === SUPER DEALS === */
+  .deals-section {
+    margin-bottom: 2rem;
+  }
+  .deals-header {
+    text-align: center;
+    margin-bottom: 1.2rem;
+    position: relative;
+  }
+  .deals-header-text {
+    font-family: 'Cinzel', serif;
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--red-sale);
+    text-shadow: 0 0 20px rgba(255,68,136,0.4);
+    letter-spacing: 0.08em;
+    display: inline-block;
+    animation: deal-pulse 2s ease-in-out infinite alternate;
+  }
+  @keyframes deal-pulse {
+    from { text-shadow: 0 0 10px rgba(255,68,136,0.3); }
+    to { text-shadow: 0 0 30px rgba(255,68,136,0.7), 0 0 60px rgba(255,68,136,0.2); }
+  }
+  .deals-subtext {
+    font-style: italic;
+    color: var(--crystal-dim);
+    font-size: 0.95rem;
+    margin-top: 0.3rem;
+  }
+
+  .deals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .deal-card {
+    background: linear-gradient(160deg, #2a0848, #1a0530);
+    border: 2px solid var(--red-sale-dim);
+    border-radius: 6px;
+    padding: 1.4rem 1.4rem 1.2rem;
+    position: relative;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .deal-card:hover {
+    border-color: var(--red-sale);
+    box-shadow: 0 0 20px rgba(255,68,136,0.2);
+  }
+  .sale-ribbon {
+    position: absolute;
+    top: -1px;
+    right: 14px;
+    background: var(--red-sale);
+    color: white;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 0.4rem 0.8rem 0.6rem;
+    border-radius: 0 0 6px 6px;
+    line-height: 1;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(255,68,136,0.35);
+  }
+  .sale-ribbon small {
+    display: block;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    margin-top: 2px;
+    opacity: 0.9;
+  }
+  .deal-item-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--crystal-bright);
+    margin-bottom: 0.4rem;
+    padding-right: 3.5rem;
+  }
+  .deal-desc {
+    font-size: 0.9rem;
+    color: var(--silver-dim);
+    line-height: 1.6;
+    margin-bottom: 0.8rem;
+  }
+  .deal-pricing {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+  }
+  .deal-was {
+    font-size: 0.88rem;
+    color: var(--silver-dim);
+    text-decoration: line-through;
+    text-decoration-color: var(--red-sale-dim);
+  }
+  .deal-now {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--gold-magic);
+    text-shadow: 0 0 8px rgba(240,200,72,0.3);
+  }
+  .deal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.8rem;
+    padding-top: 0.7rem;
+    border-top: 1px solid rgba(107,63,160,0.3);
+  }
+
+  /* === REGULAR ITEMS TABLE === */
+  .items-section {
+    margin-top: 2rem;
+  }
+  .shop-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+  }
+  .shop-table thead th {
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--crystal-dim);
+    background: rgba(107,63,160,0.15);
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--arcane-border);
+    text-align: left;
+  }
+  .shop-table tbody tr {
+    border-bottom: 1px solid rgba(107,63,160,0.15);
+    transition: background 0.15s;
+  }
+  .shop-table tbody tr:hover { background: rgba(107,63,160,0.12); }
+  .shop-table tbody td {
+    padding: 0.5rem 0.8rem;
+    color: var(--silver);
+    vertical-align: top;
+  }
+  .cost { color: var(--gold-magic); font-weight: 600; font-family: 'Cinzel', serif; white-space: nowrap; }
+  .item-rarity {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-family: 'Cinzel', serif;
+    padding: 2px 8px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .rarity-uncommon { border-color: #60c870; color: #60c870; }
+  .rarity-common   { border-color: var(--silver-dim); color: var(--silver-dim); }
+  .rarity-rare     { border-color: var(--azure-bright); color: var(--azure-bright); }
+  .stock-num {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .s-ok  { color: var(--teal-magic); }
+  .s-low { color: var(--gold-magic); animation: pulse-low 2s infinite; }
+  .s-out { color: var(--silver-dim); }
+  .sub-header td {
+    font-family: 'Cinzel', serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--crystal-dim);
+    background: rgba(107,63,160,0.1);
+    padding: 0.4rem 0.8rem;
+    border-top: 1px solid rgba(107,63,160,0.25);
+    border-bottom: 1px solid rgba(107,63,160,0.25);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  /* === LOGIN TEASER === */
+  .login-banner {
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #0d0618, #1a0838);
+    border: 1px solid var(--arcane-border);
+    border-radius: 6px;
+    padding: 1.5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .login-banner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(107,63,160,0.12), transparent);
+    animation: shimmer 4s linear infinite;
+  }
+  @keyframes shimmer { to { left: 150%; } }
+  .login-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--crystal-bright);
+    margin-bottom: 0.4rem;
+  }
+  .login-sub {
+    font-size: 0.92rem;
+    color: var(--silver-dim);
+    margin-bottom: 1rem;
+  }
+  .btn-login {
+    display: inline-block;
+    background: transparent;
+    border: 1px solid var(--crystal-dim);
+    color: var(--crystal-bright);
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 0.55rem 1.6rem;
+    border-radius: 4px;
+    cursor: not-allowed;
+    opacity: 0.6;
+    margin: 0 0.3rem;
+    transition: all 0.2s;
+  }
+  .btn-login:hover { opacity: 0.8; border-color: var(--crystal-bright); }
+  .btn-register {
+    display: inline-block;
+    background: rgba(107,63,160,0.25);
+    border: 1px solid var(--arcane-border);
+    color: var(--crystal);
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 0.55rem 1.6rem;
+    border-radius: 4px;
+    cursor: not-allowed;
+    opacity: 0.6;
+    margin: 0 0.3rem;
+    transition: all 0.2s;
+  }
+  .coming-soon {
+    display: inline-block;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: var(--arcane-border);
+    font-family: 'Cinzel', serif;
+    margin-top: 0.6rem;
+  }
+
+  /* === BOTTOM TICKER === */
+  .bottom-ticker {
+    margin-top: 2.5rem;
+    background: rgba(107,63,160,0.1);
+    border-top: 1px solid rgba(107,63,160,0.3);
+    border-bottom: 1px solid rgba(107,63,160,0.3);
+    padding: 0.5rem 0;
+    overflow: hidden;
+  }
+  .ticker-inner {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marquee 24s linear infinite;
+    font-size: 0.82rem;
+    color: var(--crystal-dim);
+    letter-spacing: 0.05em;
+  }
+  .ticker-item {
+    margin: 0 2rem;
+  }
+  .ticker-item::before {
+    content: '✦';
+    color: var(--arcane-border);
+    margin-right: 0.8rem;
+  }
+
+  /* === FOOTER ORNAMENT === */
+  .footer-orb {
+    text-align: center;
+    padding: 2rem 0 1rem;
+    color: rgba(107,63,160,0.4);
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+  }
+
+  /* === TABLE SCROLL === */
+  .table-scroll { overflow-x: auto; }
+
+  @media (max-width: 700px) {
+    .arcane-card { padding: 1.2rem 1rem; }
+    .week-inner { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Stars background -->
+<div class="stars" id="stars"></div>
+
+<div class="page-content">
+
+  <!-- MARQUEE TOP -->
+  <div class="marquee-wrapper">
+    <span class="marquee-inner">
+      ✦ &nbsp; LIMITED STOCK — RESTOCKS EVERY MONDAY &nbsp; ✦ &nbsp; WHILE SUPPLIES LAST &nbsp; ✦ &nbsp; NO REFUNDS ON CURSED ITEMS &nbsp; ✦ &nbsp; MR. SMITH ACCEPTS NO LIABILITY FOR MAGICAL MISHAPS &nbsp; ✦ &nbsp; ALL SALES SUBJECT TO ARCANE LAW &nbsp; ✦ &nbsp; ENQUIRE WITHIN FOR CUSTOM ORDERS &nbsp; ✦ &nbsp;
+    </span>
+  </div>
+
+  <!-- HEADER -->
+  <div class="emporium-header">
+    <div style="margin-bottom: 0.6rem;">
+      <span class="flash-badge">⚡ LIMITED TIME</span>
+      <span class="flash-text" style="font-size:0.9rem; letter-spacing:0.12em;"> THIS WEEK ONLY </span>
+      <span class="flash-badge">⚡ LIMITED TIME</span>
+    </div>
+    <h1 class="smith-title">Mr. <span>Smith's</span><br>Magical Emporium</h1>
+    <p class="smith-subtitle">Purveyors of Fine Arcana &amp; Curious Enchantments since 842 DR</p>
+    <div style="margin-top:1rem; font-size:0.85rem; color: var(--crystal-dim);">
+      <span class="spin-star">✦</span>
+      &nbsp; Rotating weekly selection &nbsp;
+      <span class="spin-star" style="animation-delay:-2s">✦</span>
+    </div>
+  </div>
+
+  <!-- WEEK BANNER -->
+  <div class="week-banner">
+    <div class="week-inner">
+      <div>
+        <div class="week-label">📅 &nbsp; Current Weekly Rotation</div>
+        <div class="week-refresh" style="font-size:0.82rem; margin-top:0.2rem;">Resets next Monday — get it before it's gone</div>
+      </div>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <span class="stock-pill stock-ok">● 6 items available</span>
+        <span class="stock-pill stock-low">⚠ 3 running low</span>
+        <span class="stock-pill stock-sold">✕ 1 sold out</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="shop-layout">
+
+    <!-- ======= SUPER DEALS ======= -->
+    <div class="deals-section">
+      <div class="deals-header">
+        <div style="font-size:1.2rem; color:var(--arcane-border); letter-spacing:0.5em; margin-bottom:0.3rem;">✦ ✦ ✦</div>
+        <div class="deals-header-text">⚡ THIS WEEK'S SUPER DEALS ⚡</div>
+        <div class="deals-subtext">Three arcane treasures, specially discounted — quantities extremely limited</div>
+      </div>
+
+      <div class="deals-grid">
+
+        <!-- DEAL 1 -->
+        <div class="deal-card">
+          <div class="sale-ribbon">30%<small>OFF</small></div>
+          <div class="deal-item-name">Cloak of Elvenkind</div>
+          <div class="deal-desc">This fine cloak, woven from threads of moonlit silver, grants advantage on Dexterity (Stealth) checks. Attunement required.</div>
+          <div class="deal-pricing">
+            <span class="deal-was">200 gp</span>
+            <span class="deal-now">140 gp</span>
+          </div>
+          <div class="deal-footer">
+            <span class="item-rarity rarity-uncommon">Uncommon</span>
+            <span class="stock-pill stock-low" style="font-size:0.75rem; padding:0.15rem 0.6rem;">⚠ Only 2 left!</span>
+          </div>
+        </div>
+
+        <!-- DEAL 2 -->
+        <div class="deal-card">
+          <div class="sale-ribbon">25%<small>OFF</small></div>
+          <div class="deal-item-name">Bag of Holding</div>
+          <div class="deal-desc">An extradimensional space within the bag holds up to 500 lbs without weighing more than 15 lbs. A staple of any serious adventurer. No weight rating.</div>
+          <div class="deal-pricing">
+            <span class="deal-was">400 gp</span>
+            <span class="deal-now">300 gp</span>
+          </div>
+          <div class="deal-footer">
+            <span class="item-rarity rarity-uncommon">Uncommon</span>
+            <span class="stock-pill stock-ok" style="font-size:0.75rem; padding:0.15rem 0.6rem;">● 3 in stock</span>
+          </div>
+        </div>
+
+        <!-- DEAL 3 -->
+        <div class="deal-card">
+          <div class="sale-ribbon">40%<small>OFF</small></div>
+          <div class="deal-item-name">Wand of Magic Missiles</div>
+          <div class="deal-desc">This wand has 7 charges. You may expend 1–3 charges to cast <em>Magic Missile</em>. Regains 1d6+1 charges at dawn. Expires when last charge is consumed.</div>
+          <div class="deal-pricing">
+            <span class="deal-was">500 gp</span>
+            <span class="deal-now">300 gp</span>
+          </div>
+          <div class="deal-footer">
+            <span class="item-rarity rarity-uncommon">Uncommon</span>
+            <span class="stock-pill stock-low" style="font-size:0.75rem; padding:0.15rem 0.6rem;">⚠ Last one!</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======= REGULAR STOCK ======= -->
+    <div class="items-section arcane-card">
+      <div class="section-title">
+        <span style="font-size:1rem; color:var(--arcane-border);">✦</span>
+        This Week's Magical Stock
+      </div>
+
+      <div class="table-scroll">
+      <table class="shop-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Description</th>
+            <th>Rarity</th>
+            <th>Cost</th>
+            <th>Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="sub-header"><td colspan="5">Potions &amp; Consumables</td></tr>
+          <tr>
+            <td>Potion of Healing</td>
+            <td style="color:var(--silver-dim); font-size:0.88rem;">Restores 2d4+2 HP when consumed</td>
+            <td><span class="item-rarity rarity-common">Common</span></td>
+            <td class="cost">50 gp</td>
+            <td><span class="stock-num s-ok">5</span></td>
+          </tr>
+          <tr>
+            <td>Potion of Greater Healing</td>
+            <td style="color:var(--silver-dim); font-size:0.88rem;">Restores 4d4+4 HP when consumed</td>
+            <td><span class="item-rarity rarity-uncommon">Uncommon</span></td>
+            <td class="cost">150 gp</td>
+            <td><span class="stock-num s-low">2</span></td>
+          </tr>
+          <tr>
+            <td>Potion of Climbing</td>
+            <td style="color:var(--silver-dim); font-size:0.88rem;">Grants a climb speed equal to your walking speed for 1 hour</td>
+            <td><span class="item-rarity rarity-common">Common</span></td>
+            <td class="cost">75 gp</td>
+            <td><span class="stock-num s-ok">4</span></td>
+          </tr>
+          <tr>
+            <td>Philtre of Love</td>
+            <td style="color:var(--silver-dim); font-size:0.88rem;">Target becomes charmed; views the next creature they see as their true love. Duration: 1 hour</td>
+            <td><span class="item-rarity rarity-uncommon">Uncommon</span></td>
+            <td class="cost">90 gp</td>
+            <td><span class="stock-num s-out" style="text-decoration:line-through;">0</span></td>
+          </tr>
+
+          <tr class="sub-header"><td colspan="5">Scrolls</td></tr>
+          <tr>
+            <td>Spell Scroll: Detect Magic</td>
+            <td style="color:var(--silver-dim); font-size:0.88rem;">Single-use scroll of the <em>Detect Magic</em> spell (cantrip-equivalent)</td>
+            <td><span class="item-rarity rarity-common">Common</span></td>
+            <td class="cost">60 gp</td>
+            <td><span class="stock-num s-ok">3</span></td>
+          </tr>
+          <tr>
+            <td>Spell Scroll: Feather Fall</td>
+            <td style="color:var(--silver-dim); font-size:0.88rem;">Single-use scroll of the <em>Feather Fall</em> spell (1st level)</td>
+            <td><span class="item-rarity rarity-common">Common</span></td>
+            <td class="cost">75 gp</td>
+            <td><span class="stock-num s-low">1</span></td>
+          </tr>
+
+          <tr class="sub-header"><td colspan="5">Magical Trinkets &amp; Curiosities</td></tr>
+          <tr>
+            <td>Sending Stones (pair)</td>
+            <td style="color:var(--silver-dim); font-size:0.88rem;">Allows two attuned users to communicate telepathically up to 25 words, once per day</td>
+            <td><span class="item-rarity rarity-uncommon">Uncommon</span></td>
+            <td class="cost">200 gp</td>
+            <td><span class="stock-num s-ok">2</span></td>
+          </tr>
+          <tr>
+            <td>Immovable Rod</td>
+            <td style="color:var(--silver-dim); font-size:0.88rem;">Becomes fixed in space when a button is pressed. Holds up to 8,000 lbs. Weight Rating 1.</td>
+            <td><span class="item-rarity rarity-uncommon">Uncommon</span></td>
+            <td class="cost">500 gp</td>
+            <td><span class="stock-num s-low">1</span></td>
+          </tr>
+          <tr>
+            <td>Lantern of Revealing</td>
+            <td style="color:var(--silver-dim); font-size:0.88rem;">Sheds light in a 30-ft radius. Invisible creatures within the light are revealed.</td>
+            <td><span class="item-rarity rarity-uncommon">Uncommon</span></td>
+            <td class="cost">250 gp</td>
+            <td><span class="stock-num s-ok">2</span></td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="rune-ornament">✦ · · · ✦ · · · ✦</div>
+    </div>
+
+    <!-- ======= LOGIN TEASER ======= -->
+    <div class="login-banner">
+      <div class="login-title">🔮 &nbsp; Adventurer's Account Portal &nbsp; 🔮</div>
+      <div class="login-sub">Log in to reserve items, view your inventory, and manage purchases — coming soon</div>
+      <div>
+        <span class="btn-login">Log In</span>
+        <span class="btn-register">Register</span>
+      </div>
+      <div><span class="coming-soon">⚠ BACKEND UNDER CONSTRUCTION — CHECK BACK SOON</span></div>
+    </div>
+
+  </div><!-- end shop-layout -->
+
+  <!-- BOTTOM TICKER -->
+  <div class="bottom-ticker">
+    <span class="ticker-inner">
+      <span class="ticker-item">Stock rotates every Monday at the start of session</span>
+      <span class="ticker-item">Mr. Smith reserves the right to refuse service to anyone bearing an active curse</span>
+      <span class="ticker-item">Purchasing a magic item requires DM approval before use</span>
+      <span class="ticker-item">Items marked "Low Stock" cannot be reserved — first come, first served</span>
+      <span class="ticker-item">Sold-out items may return in future weeks</span>
+      <span class="ticker-item">All magical items require attunement unless otherwise stated</span>
+      <span class="ticker-item">Mr. Smith's Emporium: Established 842 DR &nbsp; · &nbsp; Satisfaction Guaranteed*</span>
+      <span class="ticker-item" style="color:var(--arcane-border); font-size:0.72rem;">*Guarantee void in antimagic fields, demiplane incursions, and during the Blood Moon festival</span>
+    </span>
+  </div>
+
+  <div class="footer-orb">✦ · · · ARCANE COMMERCE · · · ✦</div>
+
+</div><!-- end page-content -->
+
+<script>
+(function() {
+  const starsEl = document.getElementById('stars');
+  const count = 80;
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2 + 0.5;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      top:${Math.random()*100}%;
+      left:${Math.random()*100}%;
+      --d:${(Math.random()*3+2).toFixed(1)}s;
+      --delay:-${(Math.random()*5).toFixed(1)}s;
+      opacity:${Math.random()*0.5+0.1};
+    `;
+    starsEl.appendChild(s);
+  }
+
+  const colors = ['#c8a8f8','#80b8ff','#40d8c8','#f0c848','#ffffff'];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 3 + 1;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      background:${color};
+      top:${Math.random()*100}%;
+      left:${Math.random()*100}%;
+      --dur:${(Math.random()*6+6).toFixed(1)}s;
+      --dly:-${(Math.random()*8).toFixed(1)}s;
+      opacity:0.5;
+      box-shadow: 0 0 ${size*3}px ${color};
+    `;
+    document.body.appendChild(p);
+  }
+})();
+</script>
+</body>
+</html>
