@@ -1,1 +1,110 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Adventurer's Emporium — D&D Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void:#0d0618;--arcane:#1a0a2e;--arcane-border:#6b3fa0;--crystal:#c8a8f8;
+    --crystal-bright:#e8d8ff;--crystal-dim:#8a68c8;--gold-magic:#f0c848;
+    --gold-dim:#a88020;--silver:#d0c8e8;--silver-dim:#9890b8;--teal-magic:#40d8c8;--red-sale:#ff4488;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--void);background-image:radial-gradient(ellipse 80% 50% at 50% 0%,#2d1054 0%,transparent 70%),radial-gradient(ellipse 40% 30% at 10% 90%,#0a1840 0%,transparent 60%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--silver);overflow-x:hidden;}
+  #stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+  .star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--d,3s) var(--dl,0s) infinite alternate ease-in-out;}
+  @keyframes twinkle{from{opacity:.08;}to{opacity:.9;}}
+  .page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
+  .hero{text-align:center;padding:4rem 1rem 3rem;}
+  .hero-ornament{font-size:.85rem;letter-spacing:.6em;color:rgba(107,63,160,.6);margin-bottom:1rem;animation:fade-in 1s ease both;}
+  .hero-title{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(2rem,7vw,4rem);color:var(--crystal-bright);text-shadow:0 0 40px rgba(168,100,255,.25);line-height:1.1;animation:fade-in .8s ease .1s both;}
+  .hero-title span{color:var(--gold-magic);}
+  .hero-sub{font-style:italic;font-size:1.15rem;color:var(--crystal-dim);margin-top:.6rem;animation:fade-in .8s ease .2s both;}
+  .hero-divider{display:flex;align-items:center;justify-content:center;gap:1rem;margin:1.8rem auto;max-width:400px;animation:fade-in .8s ease .3s both;}
+  .hero-divider-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--arcane-border),transparent);}
+  .hero-divider-gem{color:var(--gold-magic);font-size:.8rem;letter-spacing:.3em;}
+  @keyframes fade-in{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+  .notice-bar{max-width:1000px;margin:0 auto 1.5rem;padding:0 1.5rem;animation:fade-in .8s ease .35s both;}
+  .notice-inner{background:rgba(64,216,200,.07);border:1px solid rgba(64,216,200,.25);border-radius:5px;padding:.7rem 1.2rem;font-size:.85rem;color:var(--teal-magic);display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+  .cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem;max-width:1000px;margin:0 auto;padding:0 1.5rem 4rem;}
+  .nav-card{background:linear-gradient(160deg,#1e0c38,#150828);border:1px solid var(--arcane-border);border-radius:8px;padding:2rem 1.8rem;text-decoration:none;display:flex;flex-direction:column;align-items:flex-start;position:relative;overflow:hidden;transition:border-color .25s,box-shadow .25s,transform .2s;animation:fade-in .8s ease var(--delay,.4s) both;}
+  .nav-card::before{content:'';position:absolute;inset:5px;border:1px solid rgba(107,63,160,.15);border-radius:5px;pointer-events:none;}
+  .nav-card::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(107,63,160,.08),transparent);transition:left .5s ease;}
+  .nav-card:hover{border-color:var(--crystal-dim);box-shadow:0 0 24px rgba(107,63,160,.2);transform:translateY(-2px);}
+  .nav-card:hover::after{left:150%;}
+  .nav-card.gold-card{border-color:rgba(240,200,72,.4);}
+  .nav-card.gold-card:hover{border-color:var(--gold-magic);box-shadow:0 0 24px rgba(240,200,72,.15);}
+  .nav-card.parchment-card{background:linear-gradient(160deg,#f9f0d8,#e8dfc0);border-color:#c8952a;}
+  .nav-card.parchment-card:hover{border-color:#8a6010;box-shadow:0 4px 20px rgba(42,31,14,.25);}
+  .nav-card.parchment-card::before{border-color:rgba(200,149,42,.2);}
+  .card-icon{font-size:2rem;margin-bottom:1rem;display:block;}
+  .card-title{font-family:'Cinzel',serif;font-size:1.1rem;font-weight:600;color:var(--crystal-bright);margin-bottom:.5rem;}
+  .parchment-card .card-title{color:#2a1f0e;}
+  .card-desc{font-size:.92rem;color:var(--silver-dim);line-height:1.65;flex:1;margin-bottom:1.2rem;}
+  .parchment-card .card-desc{color:#5a4a2e;}
+  .card-arrow{font-family:'Cinzel',serif;font-size:.75rem;font-weight:600;letter-spacing:.1em;color:var(--crystal-dim);display:flex;align-items:center;gap:.4rem;transition:gap .2s,color .2s;}
+  .parchment-card .card-arrow{color:#8a6010;}
+  .nav-card:hover .card-arrow{gap:.7rem;color:var(--crystal-bright);}
+  .parchment-card:hover .card-arrow{color:#2a1f0e;}
+  .new-badge{position:absolute;top:14px;right:14px;background:var(--red-sale);color:white;font-family:'Cinzel',serif;font-size:.65rem;font-weight:600;letter-spacing:.1em;padding:3px 10px;border-radius:3px;animation:blink-sale 1s step-start infinite;}
+  @keyframes blink-sale{0%,100%{opacity:1;}50%{opacity:0;}}
+  .weekly-badge{position:absolute;top:14px;right:14px;background:rgba(107,63,160,.3);border:1px solid var(--arcane-border);color:var(--crystal-dim);font-family:'Cinzel',serif;font-size:.65rem;font-weight:600;letter-spacing:.08em;padding:3px 10px;border-radius:3px;}
+  .footer{text-align:center;padding:1rem;color:rgba(107,63,160,.35);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.25em;margin-top:auto;}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<div class="page">
+  <div class="hero">
+    <div class="hero-ornament">✦ · · · ✦ · · · ✦</div>
+    <h1 class="hero-title">The Adventurer's<br><span>Emporium</span></h1>
+    <p class="hero-sub">Your one-stop outfitter for brave souls and foolhardy heroes</p>
+    <div class="hero-divider">
+      <div class="hero-divider-line"></div>
+      <div class="hero-divider-gem">✦ D&D CLUB ✦</div>
+      <div class="hero-divider-line"></div>
+    </div>
+  </div>
+  <div class="notice-bar">
+    <div class="notice-inner">● &nbsp; Sign in with your school Microsoft account to access the Player Portal and make purchases</div>
+  </div>
+  <div class="cards-grid">
+    <a href="shop_portal.html" class="nav-card gold-card" style="--delay:0.4s">
+      <div class="new-badge">SIGN IN</div>
+      <span class="card-icon">🔮</span>
+      <div class="card-title">Player Portal</div>
+      <div class="card-desc">Sign in with your school account to browse the shop, manage your character's inventory, check your gold balance, and make purchases.</div>
+      <div class="card-arrow">Enter the portal <span>→</span></div>
+    </a>
+    <a href="magical_emporium.html" class="nav-card" style="--delay:0.5s">
+      <div class="weekly-badge">WEEKLY</div>
+      <span class="card-icon">✨</span>
+      <div class="card-title">Mr. Smith's Magical Emporium</div>
+      <div class="card-desc">Browse this week's limited magical stock — potions, scrolls, and rare curiosities. Stock resets every Monday. Limited quantities available.</div>
+      <div class="card-arrow">Browse the emporium <span>→</span></div>
+    </a>
+    <a href="dnd_club_shop.html" class="nav-card parchment-card" style="--delay:0.6s">
+      <span class="card-icon">📜</span>
+      <div class="card-title">Adventurer's Shop</div>
+      <div class="card-desc">Browse the full catalogue of weapons, armour, and adventuring gear. Standard items are always in stock. Currency and weight rules explained here too.</div>
+      <div class="card-arrow">Browse the shop <span>→</span></div>
+    </a>
+  </div>
+  <div class="footer">✦ · · · ESTABLISHED 842 DR · · · ✦</div>
+</div>
+<script>
+(function(){
+  const el=document.getElementById('stars');
+  for(let i=0;i<90;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const size=Math.random()*2+0.4;
+    s.style.cssText=`width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;--dl:-${(Math.random()*6).toFixed(1)}s;opacity:${(Math.random()*.4+.08).toFixed(2)}`;
+    el.appendChild(s);
+  }
+})();
+</script>
+</body>
+</html>
