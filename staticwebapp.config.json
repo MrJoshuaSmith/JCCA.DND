@@ -15,6 +15,18 @@
     {
       "route": "/shop_portal.html",
       "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/dm_tools.html",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/reward_generator.html",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/claim_reward.html",
+      "allowedRoles": ["authenticated"]
     }
   ],
   "responseOverrides": {
