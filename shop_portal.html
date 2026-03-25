@@ -710,7 +710,7 @@ async function verifyPassword(password, stored) {
 // ================================================================
 
 let loggedInUsername = null;  // player's username (Firestore doc ID in Users)
-let playerRecord     = null;  // Players doc
+let playerRecord     = null;  // Users doc (combined auth + player data)
 let activeChar       = null;  // Characters doc (currently active)
 let allChars         = [];    // all Characters docs for this player
 let pendingBuy       = null;
@@ -814,15 +814,10 @@ async function doLogin() {
 async function loadPlayerSession(username) {
   loggedInUsername = username;
 
-  // Get user record to find playerId
+  // Users doc IS the player record — one collection, no join needed
   const userDoc = await db.collection('Users').doc(username).get();
   if (!userDoc.exists) throw new Error('User doc missing');
-  const userData = userDoc.data();
-
-  // Get player record
-  const playerDoc = await db.collection('Players').doc(userData.playerId).get();
-  if (!playerDoc.exists) throw new Error('Player doc missing');
-  playerRecord = { id: playerDoc.id, ...playerDoc.data() };
+  playerRecord = { id: userDoc.id, ...userDoc.data() };
 
   await loadApp();
 }
@@ -853,12 +848,12 @@ async function loadApp() {
   show('screen-app');
   document.getElementById('acct-username-display').textContent = loggedInUsername;
 
-  // Load characters
-  allChars = await getCharactersForPlayer(playerRecord.id);
+  // Load characters — playerId is the username (Users doc ID)
+  allChars = await getCharactersForPlayer(loggedInUsername);
   const activeChars = allChars.filter(c => c.status === 'Active');
 
   if (activeChars.length === 0) {
-    const pending = await getPendingRequest(playerRecord.id);
+    const pending = await getPendingRequest(loggedInUsername);
     if (pending) document.getElementById('pending-notice').style.display = 'block';
     updateTopBar(null);
   } else {
@@ -887,15 +882,9 @@ function updateTopBar(char) {
 //  FIRESTORE — DATA LAYER
 // ================================================================
 
-// — Users —
-async function getUserDoc(username) {
-  const doc = await db.collection('Users').doc(username).get();
-  return doc.exists ? { id: doc.id, ...doc.data() } : null;
-}
-
-// — Players —
+// — Users (combined player + auth record) —
 async function updatePlayer(data) {
-  await db.collection('Players').doc(playerRecord.id).update(data);
+  await db.collection('Users').doc(loggedInUsername).update(data);
   Object.assign(playerRecord, data);
 }
 
@@ -1334,12 +1323,12 @@ async function confirmSell() {
 async function loadCharactersTab() {
   const wrap  = document.getElementById('char-list-wrap');
   wrap.innerHTML = '<div class="spinner"></div>';
-  const pending = await getPendingRequest(playerRecord.id);
+  const pending = await getPendingRequest(loggedInUsername);
 
   document.getElementById('pending-char-hint').style.display = pending ? 'block' : 'none';
   document.getElementById('btn-new-char-req').disabled = !!pending;
 
-  allChars = await getCharactersForPlayer(playerRecord.id);
+  allChars = await getCharactersForPlayer(loggedInUsername);
 
   if (!allChars.length && !pending) {
     wrap.innerHTML = `<p class="inv-empty">No characters yet. Submit a request below!</p>`;
@@ -1445,7 +1434,7 @@ async function submitCharRequest() {
   btn.textContent = 'Submitting...';
 
   try {
-    await submitCharacterRequest(playerRecord.id, { name, cls, race, background: bg });
+    await submitCharacterRequest(loggedInUsername, { name, cls, race, background: bg });
     closeModal('modal-new-char');
     toast(`Request for "${name}" submitted — your DM will review it soon.`, 'success');
     loadCharactersTab();
