@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Adventurer's Emporium — Player Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+<!-- Firebase (compat SDK — works directly in browser) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+
+
+<style>
+:root {
+  --arcane:         #1a0a2e;
+  --arcane-mid:     #2d1054;
+  --arcane-light:   #3d1878;
+  --arcane-border:  #6b3fa0;
+  --void:           #0d0618;
+  --crystal:        #c8a8f8;
+  --crystal-bright: #e8d8ff;
+  --crystal-dim:    #8a68c8;
+  --azure:          #4080d8;
+  --azure-bright:   #80b8ff;
+  --silver:         #d0c8e8;
+  --silver-dim:     #9890b8;
+  --gold-magic:     #f0c848;
+  --gold-dim:       #a88020;
+  --teal-magic:     #40d8c8;
+  --red-sale:       #ff4488;
+  --green-ok:       #60c870;
+  --bg-card:        rgba(29,12,56,0.95);
+  --bg-input:       rgba(13,6,24,0.8);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--void);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% 0%, #2d1054 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 10% 90%, #0a1840 0%, transparent 60%);
+  min-height: 100vh;
+  font-family: 'Crimson Pro', Georgia, serif;
+  color: var(--silver);
+  overflow-x: hidden;
+}
+
+/* ── STARS ── */
+#stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.star { position: absolute; border-radius: 50%; background: white;
+  animation: twinkle var(--d,3s) var(--dl,0s) infinite alternate ease-in-out; }
+@keyframes twinkle { from { opacity: .1; } to { opacity: .85; } }
+
+/* ── LAYOUT ── */
+.page { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── TOP BAR ── */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.7rem 1.5rem;
+  background: rgba(13,6,24,0.85);
+  border-bottom: 1px solid rgba(107,63,160,0.35);
+  backdrop-filter: blur(8px);
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-brand {
+  font-family: 'Cinzel', serif; font-size: 0.95rem; font-weight: 600;
+  color: var(--crystal-bright); letter-spacing: 0.06em;
+}
+.topbar-brand span { color: var(--gold-magic); }
+.topbar-right { display: flex; align-items: center; gap: 1rem; }
+.char-badge {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: rgba(107,63,160,0.18); border: 1px solid rgba(107,63,160,0.4);
+  border-radius: 20px; padding: 0.3rem 0.9rem; cursor: pointer;
+  transition: all 0.2s; font-size: 0.85rem;
+}
+.char-badge:hover { background: rgba(107,63,160,0.32); border-color: var(--crystal-dim); }
+.char-name { color: var(--crystal-bright); font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 600; }
+.char-gold { color: var(--gold-magic); font-size: 0.82rem; font-weight: 600; }
+.signout-btn {
+  background: transparent; border: 1px solid rgba(107,63,160,0.4);
+  color: var(--silver-dim); font-family: 'Cinzel', serif; font-size: 0.72rem;
+  letter-spacing: 0.08em; padding: 0.3rem 0.8rem; border-radius: 4px;
+  cursor: pointer; transition: all 0.2s;
+}
+.signout-btn:hover { border-color: var(--crystal-dim); color: var(--crystal); }
+
+/* ── MAIN CONTENT ── */
+.main { flex: 1; max-width: 1100px; width: 100%; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+/* ── NAV TABS ── */
+.nav-tabs { display: flex; gap: 0.3rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.nav-tab {
+  font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.07em; padding: 0.5rem 1.2rem;
+  background: rgba(107,63,160,0.1); border: 1px solid rgba(107,63,160,0.3);
+  color: var(--crystal-dim); border-radius: 4px 4px 0 0; cursor: pointer;
+  transition: all 0.2s;
+}
+.nav-tab:hover { background: rgba(107,63,160,0.22); color: var(--crystal); }
+.nav-tab.active {
+  background: rgba(29,12,56,0.95); border-color: var(--arcane-border);
+  border-bottom-color: rgba(29,12,56,0.95); color: var(--crystal-bright);
+  position: relative; top: 1px;
+}
+.tab-border { border-top: 1px solid var(--arcane-border); margin-top: -1px; margin-bottom: 1.5rem; }
+
+/* ── CARDS ── */
+.arcane-card {
+  background: var(--bg-card);
+  border: 1px solid var(--arcane-border);
+  border-radius: 6px; padding: 1.8rem 2rem;
+  position: relative;
+}
+.arcane-card::before {
+  content: ''; position: absolute; inset: 4px;
+  border: 1px solid rgba(107,63,160,0.15); border-radius: 3px; pointer-events: none;
+}
+.section-title {
+  font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 600;
+  color: var(--crystal-bright); border-bottom: 1px solid rgba(107,63,160,0.4);
+  padding-bottom: 0.5rem; margin-bottom: 1.2rem;
+}
+
+/* ── FORMS ── */
+.form-group { margin-bottom: 1.1rem; }
+.form-label {
+  display: block; font-family: 'Cinzel', serif; font-size: 0.72rem;
+  letter-spacing: 0.1em; color: var(--crystal-dim); margin-bottom: 0.4rem;
+  text-transform: uppercase;
+}
+.form-input {
+  width: 100%; background: var(--bg-input); border: 1px solid rgba(107,63,160,0.4);
+  border-radius: 4px; padding: 0.6rem 0.9rem; color: var(--crystal-bright);
+  font-family: 'Crimson Pro', serif; font-size: 1rem;
+  transition: border-color 0.2s; outline: none;
+}
+.form-input:focus { border-color: var(--crystal-dim); }
+.form-input::placeholder { color: var(--silver-dim); opacity: 0.6; }
+.form-input:disabled { opacity: 0.5; cursor: not-allowed; }
+.form-hint { font-size: 0.82rem; color: var(--silver-dim); margin-top: 0.3rem; font-style: italic; }
+.form-error { font-size: 0.82rem; color: var(--red-sale); margin-top: 0.3rem; }
+.form-success { font-size: 0.82rem; color: var(--green-ok); margin-top: 0.3rem; }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.1em; padding: 0.6rem 1.6rem; border-radius: 4px;
+  cursor: pointer; transition: all 0.2s; border: 1px solid;
+}
+.btn-primary {
+  background: rgba(107,63,160,0.3); border-color: var(--arcane-border);
+  color: var(--crystal-bright);
+}
+.btn-primary:hover { background: rgba(107,63,160,0.5); border-color: var(--crystal-dim); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-gold {
+  background: rgba(240,200,72,0.15); border-color: var(--gold-dim);
+  color: var(--gold-magic);
+}
+.btn-gold:hover { background: rgba(240,200,72,0.28); }
+.btn-gold:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-danger {
+  background: rgba(255,68,136,0.12); border-color: #c03060;
+  color: var(--red-sale);
+}
+.btn-danger:hover { background: rgba(255,68,136,0.25); }
+.btn-sm { padding: 0.35rem 0.9rem; font-size: 0.7rem; }
+.btn-block { width: 100%; }
+
+/* ── AUTH SCREENS ── */
+.auth-wrap {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 2rem; position: relative; z-index: 1;
+}
+.auth-card {
+  background: var(--bg-card); border: 1px solid var(--arcane-border);
+  border-radius: 8px; padding: 2.5rem 2.5rem 2rem; width: 100%; max-width: 420px;
+  position: relative;
+}
+.auth-card::before {
+  content: ''; position: absolute; inset: 5px;
+  border: 1px solid rgba(107,63,160,0.18); border-radius: 5px; pointer-events: none;
+}
+.auth-logo {
+  text-align: center; margin-bottom: 1.8rem;
+}
+.auth-logo h1 {
+  font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 900;
+  color: var(--crystal-bright); line-height: 1.2;
+}
+.auth-logo h1 span { color: var(--gold-magic); }
+.auth-logo p { font-style: italic; color: var(--crystal-dim); font-size: 0.9rem; margin-top: 0.4rem; }
+
+.auth-divider {
+  text-align: center; color: var(--silver-dim); font-size: 0.75rem;
+  margin: 1.2rem 0; letter-spacing: 0.15em;
+  display: flex; align-items: center; gap: 0.8rem;
+  font-family: 'Cinzel', serif;
+}
+.auth-divider::before, .auth-divider::after {
+  content: ''; flex: 1; height: 1px; background: rgba(107,63,160,0.3);
+}
+
+/* Login button */
+.login-btn {
+  width: 100%; background: rgba(107,63,160,0.25); border: 1px solid var(--arcane-border);
+  color: var(--crystal-bright); font-family: 'Cinzel', serif; font-size: 0.82rem;
+  font-weight: 600; letter-spacing: 0.1em; padding: 0.75rem 1rem;
+  border-radius: 4px; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;
+}
+.login-btn:hover { background: rgba(107,63,160,0.45); border-color: var(--crystal-dim); }
+.login-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Change password form */
+.change-pw-wrap { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(107,63,160,0.25); }
+
+/* ── SHOP GRID ── */
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+.shop-item-card {
+  background: rgba(13,6,24,0.7); border: 1px solid rgba(107,63,160,0.3);
+  border-radius: 6px; padding: 1.1rem 1.2rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  display: flex; flex-direction: column;
+}
+.shop-item-card:hover { border-color: var(--arcane-border); box-shadow: 0 0 14px rgba(107,63,160,0.15); }
+.shop-item-card.deal-card { border-color: rgba(255,68,136,0.4); }
+.shop-item-card.deal-card:hover { border-color: var(--red-sale); box-shadow: 0 0 14px rgba(255,68,136,0.2); }
+.item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem; }
+.item-name { font-family: 'Cinzel', serif; font-size: 0.92rem; font-weight: 600; color: var(--crystal-bright); }
+.item-desc { font-size: 0.85rem; color: var(--silver-dim); line-height: 1.55; margin-bottom: 0.8rem; flex: 1; }
+.item-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; gap: 0.5rem; }
+.item-price { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600; color: var(--gold-magic); }
+.item-was { font-size: 0.8rem; color: var(--silver-dim); text-decoration: line-through; margin-left: 0.3rem; }
+.sale-pct {
+  font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 600;
+  background: rgba(255,68,136,0.2); border: 1px solid rgba(255,68,136,0.5);
+  color: var(--red-sale); padding: 2px 7px; border-radius: 3px;
+}
+.rarity-badge {
+  font-family: 'Cinzel', serif; font-size: 0.68rem; padding: 2px 7px;
+  border-radius: 3px; border: 1px solid;
+}
+.r-common    { border-color: var(--silver-dim); color: var(--silver-dim); }
+.r-uncommon  { border-color: #60c870; color: #60c870; }
+.r-rare      { border-color: var(--azure-bright); color: var(--azure-bright); }
+.stock-badge { font-size: 0.75rem; font-family: 'Cinzel', serif; }
+.s-ok  { color: var(--teal-magic); }
+.s-low { color: var(--gold-magic); animation: pulse-low 2s infinite; }
+.s-out { color: var(--silver-dim); }
+@keyframes pulse-low { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+
+/* ── INVENTORY ── */
+.inv-tabs { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.inv-tab {
+  font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.07em; padding: 0.35rem 0.9rem;
+  background: transparent; border: 1px solid rgba(107,63,160,0.3);
+  color: var(--crystal-dim); border-radius: 4px; cursor: pointer; transition: all 0.2s;
+}
+.inv-tab:hover { border-color: var(--crystal-dim); color: var(--crystal); }
+.inv-tab.active { background: rgba(107,63,160,0.25); border-color: var(--crystal-dim); color: var(--crystal-bright); }
+.inv-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.inv-table th {
+  font-family: 'Cinzel', serif; font-size: 0.68rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--crystal-dim);
+  background: rgba(107,63,160,0.12); padding: 0.5rem 0.8rem;
+  border-bottom: 1px solid rgba(107,63,160,0.3); text-align: left;
+}
+.inv-table td { padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(107,63,160,0.1); color: var(--silver); }
+.inv-table tr:hover td { background: rgba(107,63,160,0.08); }
+.inv-empty { text-align: center; padding: 2rem; color: var(--silver-dim); font-style: italic; font-size: 0.9rem; }
+
+/* ── MODALS ── */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 200;
+  align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--bg-card); border: 1px solid var(--arcane-border);
+  border-radius: 8px; padding: 1.8rem; width: 100%; max-width: 480px;
+  position: relative; max-height: 80vh; overflow-y: auto;
+}
+.modal-title {
+  font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600;
+  color: var(--crystal-bright); margin-bottom: 1.2rem;
+  border-bottom: 1px solid rgba(107,63,160,0.3); padding-bottom: 0.5rem;
+}
+.modal-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: transparent; border: none; color: var(--silver-dim);
+  font-size: 1.2rem; cursor: pointer; padding: 0.2rem 0.5rem;
+}
+.modal-close:hover { color: var(--crystal); }
+.char-list-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.7rem 0.9rem; border: 1px solid rgba(107,63,160,0.25);
+  border-radius: 5px; margin-bottom: 0.5rem; cursor: pointer;
+  transition: all 0.2s; background: rgba(13,6,24,0.5);
+}
+.char-list-item:hover { border-color: var(--arcane-border); background: rgba(107,63,160,0.12); }
+.char-list-item.active-char { border-color: var(--teal-magic); background: rgba(64,216,200,0.07); }
+.char-list-name { font-family: 'Cinzel', serif; font-size: 0.88rem; color: var(--crystal-bright); }
+.char-list-sub { font-size: 0.78rem; color: var(--silver-dim); margin-top: 0.1rem; }
+.char-list-gold { font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--gold-magic); font-weight: 600; }
+.active-pip { color: var(--teal-magic); font-size: 0.7rem; font-family: 'Cinzel', serif; letter-spacing: 0.08em; }
+
+/* ── SELECT GRID ── */
+.select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+@media (max-width: 560px) { .select-grid { grid-template-columns: 1fr; } }
+
+/* ── TOAST ── */
+.toast-wrap { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 300; display: flex; flex-direction: column; gap: 0.5rem; }
+.toast {
+  background: var(--bg-card); border: 1px solid; border-radius: 5px;
+  padding: 0.7rem 1.1rem; font-size: 0.88rem; min-width: 220px;
+  animation: toast-in 0.25s ease;
+}
+@keyframes toast-in { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: none; } }
+.toast-success { border-color: var(--green-ok); color: var(--green-ok); }
+.toast-error   { border-color: var(--red-sale);  color: var(--red-sale); }
+.toast-info    { border-color: var(--crystal-dim); color: var(--crystal); }
+
+/* ── SPINNER ── */
+.spinner {
+  width: 32px; height: 32px; border: 2px solid rgba(107,63,160,0.3);
+  border-top-color: var(--crystal-dim); border-radius: 50%;
+  animation: spin 0.8s linear infinite; margin: 2rem auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { text-align: center; color: var(--silver-dim); font-style: italic; font-size: 0.9rem; margin-top: 0.5rem; }
+
+/* ── MISC ── */
+.ornament { text-align: center; color: rgba(107,63,160,0.4); letter-spacing: 0.5em; margin: 1.5rem 0 0.5rem; font-size: 0.9rem; }
+.pending-notice {
+  background: rgba(240,200,72,0.08); border: 1px solid rgba(240,200,72,0.3);
+  border-radius: 5px; padding: 0.8rem 1.1rem; font-size: 0.88rem;
+  color: var(--gold-magic); margin-bottom: 1rem;
+}
+.info-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+.scroll-x { overflow-x: auto; }
+
+@media (max-width: 600px) {
+  .main { padding: 1rem 0.7rem 2rem; }
+  .arcane-card { padding: 1.1rem 0.9rem; }
+  .auth-card { padding: 1.8rem 1.2rem; }
+}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+
+<!-- ================================================================
+     SCREENS — only one visible at a time
+     ================================================================ -->
+
+<!-- SCREEN: Loading -->
+<div id="screen-loading" class="auth-wrap">
+  <div style="text-align:center">
+    <div class="spinner"></div>
+    <p class="loading-text">Consulting the arcane registers...</p>
+  </div>
+</div>
+
+<!-- SCREEN: Sign In (username + password) -->
+<div id="screen-signin" class="auth-wrap" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <h1>Mr. <span>Smith's</span><br>Magical Emporium</h1>
+      <p>Player Portal — sign in to begin</p>
+    </div>
+
+    <div class="auth-divider">✦ &nbsp; ADVENTURER LOGIN &nbsp; ✦</div>
+
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input class="form-input" id="login-username" type="text" maxlength="24"
+        placeholder="Your player name" autocomplete="username"
+        onkeydown="if(event.key==='Enter') document.getElementById('login-password').focus()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="login-password" type="password"
+        placeholder="Your password" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+
+    <p class="form-error" id="login-err" style="display:none; margin-bottom:0.8rem;"></p>
+
+    <button class="login-btn" id="btn-login" onclick="doLogin()">
+      Enter the Emporium →
+    </button>
+
+    <p style="text-align:center; font-size:0.78rem; color:var(--silver-dim); margin-top:1.2rem; font-style:italic;">
+      Forgotten your password? Ask your DM to reset it.
+    </p>
+  </div>
+</div>
+
+<!-- SCREEN: Main App -->
+<div id="screen-app" style="display:none">
+  <div class="page">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-brand">Mr. <span>Smith's</span> Magical Emporium</div>
+      <div class="topbar-right">
+        <div class="char-badge" onclick="openCharModal()">
+          <span style="font-size:14px;">&#9881;</span>
+          <span class="char-name" id="tb-charname">Loading...</span>
+          <span style="color:var(--silver-dim); font-size:0.75rem;">|</span>
+          <span class="char-gold" id="tb-gold">— gp</span>
+        </div>
+        <button class="signout-btn" onclick="doSignOut()">Sign Out</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- Pending character notice -->
+      <div class="pending-notice" id="pending-notice" style="display:none">
+        &#9203; You have a character request pending DM approval. You'll be notified once it's reviewed.
+      </div>
+
+      <!-- NAV TABS -->
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('shop', this)">Shop</button>
+        <button class="nav-tab" onclick="switchTab('emporium', this)">Magical Emporium</button>
+        <button class="nav-tab" onclick="switchTab('inventory', this)">Inventory</button>
+        <button class="nav-tab" onclick="switchTab('characters', this)">Characters</button>
+        <button class="nav-tab" onclick="switchTab('account', this)">Account</button>
+      </div>
+      <div class="tab-border"></div>
+
+      <!-- ── TAB: SHOP ── -->
+      <div id="tab-shop" class="tab-content">
+        <div class="arcane-card">
+          <div class="info-row">
+            <div class="section-title" style="margin:0; border:none; padding:0">Adventurer's Shop</div>
+            <span style="font-size:0.82rem; color:var(--silver-dim); font-style:italic;">Standard gear — always available</span>
+          </div>
+          <div class="inv-tabs" id="shop-cats" style="margin-bottom:1.2rem;">
+            <button class="inv-tab active" onclick="filterShop('All', this)">All</button>
+            <button class="inv-tab" onclick="filterShop('Weapons', this)">Weapons</button>
+            <button class="inv-tab" onclick="filterShop('Armour', this)">Armour</button>
+            <button class="inv-tab" onclick="filterShop('Adventuring Gear', this)">Gear</button>
+            <button class="inv-tab" onclick="filterShop('Ammunition', this)">Ammunition</button>
+            <button class="inv-tab" onclick="filterShop('Consumables', this)">Consumables</button>
+          </div>
+          <div id="shop-grid-wrap">
+            <div class="spinner"></div>
+            <p class="loading-text">Restocking the shelves...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: MAGICAL EMPORIUM ── -->
+      <div id="tab-emporium" class="tab-content" style="display:none">
+        <div class="arcane-card">
+          <div class="info-row">
+            <div class="section-title" style="margin:0; border:none; padding:0">&#10022; Magical Emporium — Weekly Rotation</div>
+            <span style="font-size:0.78rem; color:var(--crystal-dim); font-family:'Cinzel',serif; letter-spacing:0.07em;">Resets Monday</span>
+          </div>
+          <p style="font-size:0.85rem; color:var(--silver-dim); font-style:italic; margin-bottom:1.2rem;">
+            Limited stock. Magical items sold here return to the shop at full price — you'll only ever receive 50% trade value when selling back.
+          </p>
+          <div id="emporium-grid-wrap">
+            <div class="spinner"></div>
+            <p class="loading-text">Consulting the arcane catalogue...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: INVENTORY ── -->
+      <div id="tab-inventory" class="tab-content" style="display:none">
+        <div class="arcane-card">
+          <div class="info-row">
+            <div class="section-title" style="margin:0; border:none; padding:0">Inventory</div>
+            <span style="font-size:0.82rem; color:var(--silver-dim); font-style:italic;" id="inv-charname-label">Loading...</span>
+          </div>
+          <div class="inv-tabs" id="inv-cat-tabs">
+            <button class="inv-tab active" onclick="filterInv('All', this)">All</button>
+            <button class="inv-tab" onclick="filterInv('Weapons', this)">Weapons</button>
+            <button class="inv-tab" onclick="filterInv('Armour', this)">Armour</button>
+            <button class="inv-tab" onclick="filterInv('Adventuring Gear', this)">Gear</button>
+            <button class="inv-tab" onclick="filterInv('Consumables', this)">Consumables</button>
+            <button class="inv-tab" onclick="filterInv('Magical', this)">Magical</button>
+          </div>
+          <div id="inv-table-wrap" class="scroll-x">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: CHARACTERS ── -->
+      <div id="tab-characters" class="tab-content" style="display:none">
+        <div class="arcane-card">
+          <div class="section-title">Your Characters</div>
+          <div id="char-list-wrap">
+            <div class="spinner"></div>
+          </div>
+          <div class="ornament">&#10022; · · · &#10022; · · · &#10022;</div>
+          <div style="margin-top:1.2rem;">
+            <p style="font-size:0.88rem; color:var(--silver-dim); margin-bottom:0.8rem; font-style:italic;">
+              Need a new character? Submit a request — your DM will review and approve it.
+            </p>
+            <button class="btn btn-primary" id="btn-new-char-req" onclick="openNewCharModal()">
+              + Request New Character
+            </button>
+            <p class="form-hint" id="pending-char-hint" style="display:none; margin-top:0.5rem;">
+              You already have a pending request. Wait for DM approval before submitting another.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: ACCOUNT ── -->
+      <div id="tab-account" class="tab-content" style="display:none">
+        <div class="arcane-card">
+          <div class="section-title">Account Settings</div>
+          <p style="font-size:0.9rem; color:var(--silver-dim); margin-bottom:1.5rem;">
+            Signed in as: <strong style="color:var(--crystal-bright);" id="acct-username-display"></strong>
+          </p>
+
+          <div class="change-pw-wrap" style="border:none; padding:0; margin:0;">
+            <p style="font-family:'Cinzel',serif; font-size:0.75rem; letter-spacing:0.1em; color:var(--crystal-dim); margin-bottom:1rem; text-transform:uppercase;">
+              Change Password
+            </p>
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <input class="form-input" id="pw-current" type="password" placeholder="Enter current password">
+            </div>
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <input class="form-input" id="pw-new" type="password" placeholder="At least 6 characters">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm New Password</label>
+              <input class="form-input" id="pw-confirm" type="password" placeholder="Repeat new password">
+            </div>
+            <p class="form-error" id="pw-err" style="display:none; margin-bottom:0.8rem;"></p>
+            <p class="form-success" id="pw-ok" style="display:none; margin-bottom:0.8rem;"></p>
+            <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /page -->
+</div><!-- /screen-app -->
+
+<!-- ================================================================
+     MODALS
+     ================================================================ -->
+
+<!-- Character switcher modal -->
+<div class="modal-backdrop" id="modal-chars">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-chars')">&#x2715;</button>
+    <div class="modal-title">Switch Active Character</div>
+    <div id="modal-char-list"></div>
+  </div>
+</div>
+
+<!-- Buy confirm modal -->
+<div class="modal-backdrop" id="modal-buy">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-buy')">&#x2715;</button>
+    <div class="modal-title">Confirm Purchase</div>
+    <div id="modal-buy-content"></div>
+    <div style="display:flex; gap:0.6rem; margin-top:1.2rem;">
+      <button class="btn btn-primary" onclick="closeModal('modal-buy')">Cancel</button>
+      <button class="btn btn-gold" id="btn-confirm-buy" onclick="confirmBuy()">Confirm Purchase</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sell confirm modal -->
+<div class="modal-backdrop" id="modal-sell">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-sell')">&#x2715;</button>
+    <div class="modal-title">Sell Item</div>
+    <div id="modal-sell-content"></div>
+    <div style="display:flex; gap:0.6rem; margin-top:1.2rem;">
+      <button class="btn btn-primary" onclick="closeModal('modal-sell')">Cancel</button>
+      <button class="btn btn-danger" id="btn-confirm-sell" onclick="confirmSell()">Sell for 50%</button>
+    </div>
+  </div>
+</div>
+
+<!-- New character request modal -->
+<div class="modal-backdrop" id="modal-new-char">
+  <div class="modal" style="max-width:520px">
+    <button class="modal-close" onclick="closeModal('modal-new-char')">&#x2715;</button>
+    <div class="modal-title">Request New Character</div>
+    <p style="font-size:0.85rem; color:var(--silver-dim); margin-bottom:1.2rem; font-style:italic;">
+      Your DM will review and approve this request. Starting gear and gold will be assigned based on your class and background.
+    </p>
+    <div class="form-group">
+      <label class="form-label">Character Name</label>
+      <input class="form-input" id="nc-name" type="text" maxlength="40" placeholder="e.g. Lyra Shadowstep">
+    </div>
+    <div class="select-grid">
+      <div class="form-group">
+        <label class="form-label">Class</label>
+        <select class="form-input" id="nc-class">
+          <option value="">— Select class —</option>
+          <option>Barbarian</option><option>Bard</option><option>Cleric</option>
+          <option>Druid</option><option>Fighter</option><option>Monk</option>
+          <option>Paladin</option><option>Ranger</option><option>Rogue</option>
+          <option>Sorcerer</option><option>Warlock</option><option>Wizard</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Race</label>
+        <select class="form-input" id="nc-race">
+          <option value="">— Select race —</option>
+          <option>Human</option><option>Elf</option><option>Dwarf</option>
+          <option>Halfling</option><option>Gnome</option><option>Half-Elf</option>
+          <option>Half-Orc</option><option>Tiefling</option><option>Dragonborn</option>
+          <option>Kobold</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Background</label>
+      <select class="form-input" id="nc-background">
+        <option value="">— Select background —</option>
+        <option>Acolyte</option><option>Charlatan</option><option>Criminal</option>
+        <option>Entertainer</option><option>Folk Hero</option><option>Guild Artisan</option>
+        <option>Hermit</option><option>Noble</option><option>Outlander</option>
+        <option>Sage</option><option>Sailor</option><option>Soldier</option><option>Urchin</option>
+      </select>
+    </div>
+    <p id="nc-err" class="form-error" style="display:none; margin-bottom:0.8rem;"></p>
+    <button class="btn btn-gold btn-block" onclick="submitCharRequest()">Submit Request to DM</button>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toasts"></div>
+
+<!-- ================================================================
+     JAVASCRIPT
+     ================================================================ -->
+<script>
+// ================================================================
+//  FIREBASE CONFIG
+// ================================================================
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyAWpUnUirhcI3nhW9WF_7aqDInOCvIbsIY",
+  authDomain:        "jcca-dnd.firebaseapp.com",
+  databaseURL:       "https://jcca-dnd-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "jcca-dnd",
+  storageBucket:     "jcca-dnd.firebasestorage.app",
+  messagingSenderId: "128758977152",
+  appId:             "1:128758977152:web:f43ef158eedf82614ccc65",
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ================================================================
+//  APP CONFIG
+// ================================================================
+
+const CONFIG = {
+  goldCap: 1000,
+};
+
+// ── Web Crypto password hashing (no external library needed) ──
+const HASH_ITERATIONS = 200000;
+
+async function hashPassword(password) {
+  const enc  = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key  = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: HASH_ITERATIONS, hash: 'SHA-256' }, key, 256
+  );
+  const toB64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+  return toB64(salt.buffer) + ':' + toB64(bits);
+}
+
+async function verifyPassword(password, stored) {
+  const enc = new TextEncoder();
+  const [saltB64, hashB64] = stored.split(':');
+  const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const salt = fromB64(saltB64);
+  const key  = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: HASH_ITERATIONS, hash: 'SHA-256' }, key, 256
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(bits))) === hashB64;
+}
+// ─────────────────────────────────────────────────────────────────
+
+// ================================================================
+//  APP STATE
+// ================================================================
+
+let loggedInUsername = null;  // player's username (Firestore doc ID in Users)
+let playerRecord     = null;  // Players doc
+let activeChar       = null;  // Characters doc (currently active)
+let allChars         = [];    // all Characters docs for this player
+let pendingBuy       = null;
+let pendingSell      = null;
+let shopFilter       = 'All';
+let invFilter        = 'All';
+let shopItems        = [];
+let emporiumItems    = [];
+let inventoryItems   = [];
+
+// ================================================================
+//  BOOT
+// ================================================================
+
+async function boot() {
+  makeStars();
+
+  // Silently sign in anonymously — students never see this
+  try {
+    await auth.signInAnonymously();
+  } catch (e) {
+    console.error('Firebase anon auth failed:', e);
+    showErr('screen-loading', 'Could not connect to the server. Please check your internet connection.');
+    return;
+  }
+
+  // Check if already logged in this session
+  const savedUsername = sessionStorage.getItem('dnd_username');
+  if (savedUsername) {
+    try {
+      await loadPlayerSession(savedUsername);
+      return;
+    } catch (e) {
+      sessionStorage.removeItem('dnd_username');
+    }
+  }
+
+  show('screen-signin');
+}
+
+// ================================================================
+//  LOGIN
+// ================================================================
+
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl    = document.getElementById('login-err');
+  const btn      = document.getElementById('btn-login');
+
+  errEl.style.display = 'none';
+
+  if (!username || !password) {
+    errEl.textContent = 'Please enter your username and password.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Checking credentials...';
+
+  try {
+    // Fetch user credential doc from Firestore
+    const userDoc = await db.collection('Users').doc(username).get();
+
+    if (!userDoc.exists) {
+      errEl.textContent = 'Username not found. Check your spelling or ask your DM.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Enter the Emporium →';
+      return;
+    }
+
+    const userData = userDoc.data();
+
+    // Verify password against stored hash
+    const match = await verifyPassword(password, userData.passwordHash);
+
+    if (!match) {
+      errEl.textContent = 'Incorrect password. Try again or ask your DM to reset it.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Enter the Emporium →';
+      return;
+    }
+
+    // Store session and load app
+    sessionStorage.setItem('dnd_username', username);
+    loggedInUsername = username;
+    await loadPlayerSession(username);
+
+  } catch (e) {
+    console.error(e);
+    errEl.textContent = 'Login failed — please try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Enter the Emporium →';
+  }
+}
+
+async function loadPlayerSession(username) {
+  loggedInUsername = username;
+
+  // Get user record to find playerId
+  const userDoc = await db.collection('Users').doc(username).get();
+  if (!userDoc.exists) throw new Error('User doc missing');
+  const userData = userDoc.data();
+
+  // Get player record
+  const playerDoc = await db.collection('Players').doc(userData.playerId).get();
+  if (!playerDoc.exists) throw new Error('Player doc missing');
+  playerRecord = { id: playerDoc.id, ...playerDoc.data() };
+
+  await loadApp();
+}
+
+// ================================================================
+//  SIGN OUT
+// ================================================================
+
+function doSignOut() {
+  sessionStorage.removeItem('dnd_username');
+  loggedInUsername = null;
+  playerRecord     = null;
+  activeChar       = null;
+  allChars         = [];
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-err').style.display = 'none';
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').textContent = 'Enter the Emporium →';
+  show('screen-signin');
+}
+
+// ================================================================
+//  LOAD APP
+// ================================================================
+
+async function loadApp() {
+  show('screen-app');
+  document.getElementById('acct-username-display').textContent = loggedInUsername;
+
+  // Load characters
+  allChars = await getCharactersForPlayer(playerRecord.id);
+  const activeChars = allChars.filter(c => c.status === 'Active');
+
+  if (activeChars.length === 0) {
+    const pending = await getPendingRequest(playerRecord.id);
+    if (pending) document.getElementById('pending-notice').style.display = 'block';
+    updateTopBar(null);
+  } else {
+    const savedId = playerRecord.activeCharacterId;
+    activeChar = activeChars.find(c => c.id === savedId) || activeChars[0];
+    updateTopBar(activeChar);
+    loadInventory();
+  }
+
+  loadShopTab();
+  loadEmporiumTab();
+  loadCharactersTab();
+}
+
+function updateTopBar(char) {
+  if (!char) {
+    document.getElementById('tb-charname').textContent = 'No character';
+    document.getElementById('tb-gold').textContent = '— gp';
+    return;
+  }
+  document.getElementById('tb-charname').textContent = char.characterName || 'Unknown';
+  document.getElementById('tb-gold').textContent = (char.gold ?? 0) + ' gp';
+}
+
+// ================================================================
+//  FIRESTORE — DATA LAYER
+// ================================================================
+
+// — Users —
+async function getUserDoc(username) {
+  const doc = await db.collection('Users').doc(username).get();
+  return doc.exists ? { id: doc.id, ...doc.data() } : null;
+}
+
+// — Players —
+async function updatePlayer(data) {
+  await db.collection('Players').doc(playerRecord.id).update(data);
+  Object.assign(playerRecord, data);
+}
+
+// — Characters —
+async function getCharactersForPlayer(playerId) {
+  const snap = await db.collection('Characters')
+    .where('playerId', '==', playerId).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function updateCharacter(charId, data) {
+  await db.collection('Characters').doc(charId).update(data);
+  // Update local cache
+  const idx = allChars.findIndex(c => c.id === charId);
+  if (idx !== -1) Object.assign(allChars[idx], data);
+  if (activeChar && activeChar.id === charId) Object.assign(activeChar, data);
+}
+
+async function setActiveCharacter(charId) {
+  await updatePlayer({ activeCharacterId: charId });
+}
+
+async function updateCharGold(charId, newGold) {
+  const capped = Math.min(Math.max(0, Math.round(newGold)), CONFIG.goldCap);
+  await updateCharacter(charId, { gold: capped });
+  return capped;
+}
+
+// — Inventory —
+async function getInventory(charId) {
+  const snap = await db.collection('Inventory')
+    .where('characterId', '==', charId).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function addInventoryItem(charId, item, source) {
+  // Check for existing stack (same item name)
+  const snap = await db.collection('Inventory')
+    .where('characterId', '==', charId)
+    .where('itemName', '==', item.itemName).get();
+
+  if (!snap.empty) {
+    const existing = snap.docs[0];
+    await existing.ref.update({ quantity: (existing.data().quantity || 1) + 1 });
+  } else {
+    await db.collection('Inventory').add({
+      characterId:  charId,
+      itemName:     item.itemName,
+      itemId:       item.id || '',
+      quantity:     1,
+      isMagical:    item.isMagical || false,
+      category:     item.category || 'Adventuring Gear',
+      basePrice:    item.basePrice || 0,
+      source:       source,
+      acquiredDate: new Date().toISOString(),
+    });
+  }
+}
+
+async function removeInventoryItem(invItemId, quantity) {
+  const ref = db.collection('Inventory').doc(invItemId);
+  if ((quantity || 1) <= 1) {
+    await ref.delete();
+  } else {
+    await ref.update({ quantity: quantity - 1 });
+  }
+}
+
+// — Item Pool (standard shop, unlimited stock) —
+async function getItemPool(category) {
+  let query = db.collection('ItemPool').where('isMagical', '==', false);
+  if (category && category !== 'All') {
+    query = query.where('category', '==', category);
+  }
+  const snap = await query.limit(200).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// — Shop Stock (magical emporium, limited) —
+async function getShopStock() {
+  const snap = await db.collection('ShopStock')
+    .where('isActive', '==', true)
+    .where('isMagical', '==', true).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function decrementStock(stockId, currentQty) {
+  const newQty = currentQty - 1;
+  await db.collection('ShopStock').doc(stockId).update({
+    stockQuantity: newQty,
+    isActive: newQty > 0,
+  });
+}
+
+// — Character Requests —
+async function getPendingRequest(playerId) {
+  const snap = await db.collection('CharacterRequests')
+    .where('playerId', '==', playerId)
+    .where('status', '==', 'Pending').get();
+  return snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() };
+}
+
+async function submitCharacterRequest(playerId, details) {
+  return db.collection('CharacterRequests').add({
+    playerId,
+    requestedCharacterName: details.name,
+    class:       details.cls,
+    race:        details.race,
+    background:  details.background,
+    requestDate: new Date().toISOString(),
+    status:      'Pending',
+    dmNotes:     '',
+  });
+}
+
+// ================================================================
+//  SHOP TAB
+// ================================================================
+
+async function loadShopTab() {
+  const wrap = document.getElementById('shop-grid-wrap');
+  wrap.innerHTML = '<div class="spinner"></div><p class="loading-text">Restocking the shelves...</p>';
+  try {
+    shopItems = await getItemPool(shopFilter === 'All' ? null : shopFilter);
+    renderShopGrid(wrap, shopItems, false);
+  } catch(e) {
+    console.error(e);
+    wrap.innerHTML = `<p style="color:var(--red-sale);font-size:.9rem;">Failed to load shop. Please refresh.</p>`;
+  }
+}
+
+function filterShop(cat, btn) {
+  shopFilter = cat;
+  document.querySelectorAll('#shop-cats .inv-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  loadShopTab();
+}
+
+function renderShopGrid(wrap, items, isMagical) {
+  if (!items.length) {
+    wrap.innerHTML = `<p class="inv-empty">No items available in this category.</p>`;
+    return;
+  }
+
+  const cards = items.map(item => {
+    const onSale    = item.isOnSale && item.salePercent > 0;
+    const price     = onSale ? item.salePrice : (item.basePrice || item.price || 0);
+    const outOfStock = isMagical && (item.stockQuantity <= 0);
+    const lowStock   = isMagical && item.stockQuantity > 0 && item.stockQuantity <= 2;
+    const rarity     = (item.rarity || 'Common').toLowerCase();
+
+    // Encode item data safely for onclick
+    const payload = JSON.stringify({
+      id: item.id, itemName: item.itemName, description: item.description,
+      basePrice: item.basePrice || 0, price: item.price || 0,
+      isOnSale: !!item.isOnSale, salePrice: item.salePrice || 0,
+      originalPrice: item.originalPrice || 0, salePercent: item.salePercent || 0,
+      isMagical: !!item.isMagical, rarity: item.rarity || 'Common',
+      category: item.category || '', stockQuantity: item.stockQuantity || 0,
+    });
+
+    return `
+    <div class="shop-item-card ${onSale ? 'deal-card' : ''}">
+      <div class="item-header">
+        <div class="item-name">${esc(item.itemName)}</div>
+        <span class="rarity-badge r-${rarity}">${esc(item.rarity || 'Common')}</span>
+      </div>
+      <p class="item-desc">${esc(item.description || '')}</p>
+      <div class="item-footer">
+        <div>
+          <span class="item-price">${price} gp</span>
+          ${onSale ? `<span class="item-was">${item.originalPrice} gp</span>
+            <span class="sale-pct">-${item.salePercent}%</span>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          ${isMagical ? `<span class="stock-badge ${outOfStock?'s-out':lowStock?'s-low':'s-ok'}">
+            ${outOfStock ? 'Sold out' : lowStock ? `${item.stockQuantity} left` : `${item.stockQuantity} in stock`}
+          </span>` : ''}
+          <button class="btn btn-gold btn-sm"
+            ${outOfStock ? 'disabled' : ''}
+            onclick='openBuyModal(${JSON.stringify(payload)})'>
+            Buy
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = `<div class="shop-grid">${cards}</div>`;
+}
+
+// ================================================================
+//  EMPORIUM TAB
+// ================================================================
+
+async function loadEmporiumTab() {
+  const wrap = document.getElementById('emporium-grid-wrap');
+  wrap.innerHTML = '<div class="spinner"></div><p class="loading-text">Consulting the arcane catalogue...</p>';
+  try {
+    emporiumItems = await getShopStock();
+    renderShopGrid(wrap, emporiumItems, true);
+  } catch(e) {
+    console.error(e);
+    wrap.innerHTML = `<p style="color:var(--red-sale);font-size:.9rem;">Failed to load emporium. Please refresh.</p>`;
+  }
+}
+
+// ================================================================
+//  BUY FLOW
+// ================================================================
+
+function openBuyModal(itemJSON) {
+  if (!activeChar) { toast('You need an active character to make purchases.', 'error'); return; }
+  const item   = typeof itemJSON === 'string' ? JSON.parse(itemJSON) : itemJSON;
+  pendingBuy   = item;
+  const price  = item.isOnSale ? item.salePrice : (item.basePrice || item.price || 0);
+  const gold   = activeChar.gold ?? 0;
+  const canAfford = gold >= price;
+  const newGold   = gold - price;
+
+  document.getElementById('modal-buy-content').innerHTML = `
+    <div style="background:rgba(107,63,160,0.1);border:1px solid rgba(107,63,160,0.3);border-radius:5px;padding:1rem;margin-bottom:1rem;">
+      <p style="font-family:'Cinzel',serif;font-size:1rem;color:var(--crystal-bright);margin-bottom:.4rem;">${esc(item.itemName)}</p>
+      <p style="font-size:.85rem;color:var(--silver-dim);">${esc(item.description || '')}</p>
+    </div>
+    <table style="width:100%;font-size:.9rem;margin-bottom:.5rem;">
+      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Cost</td>
+          <td style="text-align:right;color:var(--gold-magic);font-family:'Cinzel',serif;font-weight:600;">${price} gp</td></tr>
+      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Your gold</td>
+          <td style="text-align:right;color:var(--crystal-bright);">${gold} gp</td></tr>
+      <tr style="border-top:1px solid rgba(107,63,160,.3);">
+          <td style="color:var(--silver-dim);padding:.4rem 0;">After purchase</td>
+          <td style="text-align:right;color:${canAfford?'var(--teal-magic)':'var(--red-sale)'};">
+            ${canAfford ? Math.max(0, newGold) + ' gp' : 'Not enough gold'}</td></tr>
+    </table>
+    ${!canAfford ? `<p class="form-error">You don't have enough gold for this purchase.</p>` : ''}
+  `;
+
+  document.getElementById('btn-confirm-buy').disabled = !canAfford;
+  document.getElementById('btn-confirm-buy').textContent = 'Confirm Purchase';
+  openModal('modal-buy');
+}
+
+async function confirmBuy() {
+  if (!pendingBuy || !activeChar) return;
+  const btn   = document.getElementById('btn-confirm-buy');
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+
+  const item  = pendingBuy;
+  const price = item.isOnSale ? item.salePrice : (item.basePrice || item.price || 0);
+  const gold  = activeChar.gold ?? 0;
+
+  try {
+    // Deduct gold
+    const newGold = await updateCharGold(activeChar.id, gold - price);
+
+    // Add to inventory
+    const source = item.isMagical ? 'Emporium' : 'Shop';
+    await addInventoryItem(activeChar.id, item, source);
+
+    // Decrement emporium stock
+    if (item.isMagical) {
+      await decrementStock(item.id, item.stockQuantity);
+    }
+
+    updateTopBar(activeChar);
+    closeModal('modal-buy');
+    toast(`${item.itemName} purchased! -${price} gp`, 'success');
+    loadInventory();
+    if (item.isMagical) loadEmporiumTab();
+
+  } catch(e) {
+    console.error(e);
+    toast('Purchase failed. Please try again.', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Confirm Purchase';
+  }
+  pendingBuy = null;
+}
+
+// ================================================================
+//  INVENTORY TAB
+// ================================================================
+
+async function loadInventory() {
+  const wrap = document.getElementById('inv-table-wrap');
+  if (!activeChar) {
+    wrap.innerHTML = `<p class="inv-empty">No active character selected.</p>`;
+    return;
+  }
+  document.getElementById('inv-charname-label').textContent =
+    `${activeChar.characterName} · ${activeChar.class || ''}`;
+  wrap.innerHTML = '<div class="spinner"></div>';
+
+  try {
+    inventoryItems = await getInventory(activeChar.id);
+    renderInventory();
+  } catch(e) {
+    console.error(e);
+    wrap.innerHTML = `<p style="color:var(--red-sale);font-size:.9rem;">Failed to load inventory.</p>`;
+  }
+}
+
+function filterInv(cat, btn) {
+  invFilter = cat;
+  document.querySelectorAll('#inv-cat-tabs .inv-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderInventory();
+}
+
+function renderInventory() {
+  const wrap = document.getElementById('inv-table-wrap');
+  let items = inventoryItems;
+
+  if (invFilter !== 'All') {
+    if (invFilter === 'Magical') {
+      items = items.filter(i => i.isMagical);
+    } else {
+      items = items.filter(i => i.category === invFilter);
+    }
+  }
+
+  if (!items.length) {
+    wrap.innerHTML = `<p class="inv-empty">Nothing here yet — visit the shop to stock up!</p>`;
+    return;
+  }
+
+  const rows = items.map(item => {
+    const sellVal = Math.floor((item.basePrice || 0) / 2);
+    const payload  = JSON.stringify({ id: item.id, itemName: item.itemName,
+      basePrice: item.basePrice || 0, quantity: item.quantity || 1, isMagical: !!item.isMagical });
+    return `
+    <tr>
+      <td style="font-family:'Cinzel',serif;font-size:.85rem;color:var(--crystal-bright);">${esc(item.itemName)}</td>
+      <td style="text-align:center;">${item.quantity || 1}</td>
+      <td>
+        <span class="rarity-badge r-common" style="font-size:.68rem;">${esc(item.category || '—')}</span>
+        ${item.isMagical ? `<span class="rarity-badge r-uncommon" style="font-size:.68rem;margin-left:3px;">Magical</span>` : ''}
+      </td>
+      <td style="color:var(--gold-magic);font-size:.82rem;">${sellVal} gp</td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick='openSellModal(${JSON.stringify(payload)})'>
+          Sell
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <table class="inv-table">
+      <thead><tr>
+        <th>Item</th><th style="text-align:center;">Qty</th>
+        <th>Category</th><th>Sell value</th><th></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ================================================================
+//  SELL FLOW
+// ================================================================
+
+function openSellModal(itemJSON) {
+  const item    = typeof itemJSON === 'string' ? JSON.parse(itemJSON) : itemJSON;
+  pendingSell   = item;
+  const sellVal = Math.floor((item.basePrice || 0) / 2);
+  const gold    = activeChar.gold ?? 0;
+  const newGold = Math.min(gold + sellVal, CONFIG.goldCap);
+  const capped  = (gold + sellVal) > CONFIG.goldCap;
+
+  document.getElementById('modal-sell-content').innerHTML = `
+    <div style="background:rgba(255,68,136,.08);border:1px solid rgba(255,68,136,.25);border-radius:5px;padding:1rem;margin-bottom:1rem;">
+      <p style="font-family:'Cinzel',serif;font-size:.95rem;color:var(--crystal-bright);margin-bottom:.3rem;">${esc(item.itemName)}</p>
+      <p style="font-size:.82rem;color:var(--silver-dim);">Trade value: <strong style="color:var(--gold-magic)">${sellVal} gp</strong> (50% of base price)</p>
+      ${item.isMagical ? `<p style="font-size:.78rem;color:var(--crystal-dim);margin-top:.4rem;font-style:italic;">This is a magical item — it will be returned to Mr. Smith's stock at full price.</p>` : ''}
+    </div>
+    <table style="width:100%;font-size:.9rem;">
+      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Your gold</td>
+          <td style="text-align:right;color:var(--crystal-bright);">${gold} gp</td></tr>
+      <tr style="border-top:1px solid rgba(107,63,160,.3);">
+          <td style="color:var(--silver-dim);padding:.4rem 0;">After sale</td>
+          <td style="text-align:right;color:var(--teal-magic);">${newGold} gp ${capped?'<span style="font-size:.75rem;color:var(--gold-magic)">(capped at 1,000)</span>':''}</td></tr>
+    </table>
+  `;
+
+  document.getElementById('btn-confirm-sell').disabled = false;
+  openModal('modal-sell');
+}
+
+async function confirmSell() {
+  if (!pendingSell || !activeChar) return;
+  const btn   = document.getElementById('btn-confirm-sell');
+  btn.disabled = true;
+
+  const item    = pendingSell;
+  const sellVal = Math.floor((item.basePrice || 0) / 2);
+  const gold    = activeChar.gold ?? 0;
+  const newGold = Math.min(gold + sellVal, CONFIG.goldCap);
+
+  try {
+    await updateCharGold(activeChar.id, newGold);
+    await removeInventoryItem(item.id, item.quantity || 1);
+
+    // If magical — return to ShopStock for DM to review
+    if (item.isMagical) {
+      await db.collection('ShopStock').add({
+        itemName:        item.itemName,
+        itemId:          item.itemId || item.id || '',
+        stockQuantity:   1,
+        isActive:        false,
+        isMagical:       true,
+        pendingDMReview: true,
+        notes: `Sold back by ${loggedInUsername} (${activeChar.characterName}) on ${new Date().toLocaleDateString('en-AU')}`,
+      });
+    }
+
+    updateTopBar(activeChar);
+    closeModal('modal-sell');
+    toast(`Sold ${item.itemName} for ${sellVal} gp`, 'success');
+    loadInventory();
+
+  } catch(e) {
+    console.error(e);
+    toast('Sale failed. Please try again.', 'error');
+  }
+
+  btn.disabled = false;
+  pendingSell = null;
+}
+
+// ================================================================
+//  CHARACTERS TAB
+// ================================================================
+
+async function loadCharactersTab() {
+  const wrap  = document.getElementById('char-list-wrap');
+  wrap.innerHTML = '<div class="spinner"></div>';
+  const pending = await getPendingRequest(playerRecord.id);
+
+  document.getElementById('pending-char-hint').style.display = pending ? 'block' : 'none';
+  document.getElementById('btn-new-char-req').disabled = !!pending;
+
+  allChars = await getCharactersForPlayer(playerRecord.id);
+
+  if (!allChars.length && !pending) {
+    wrap.innerHTML = `<p class="inv-empty">No characters yet. Submit a request below!</p>`;
+    return;
+  }
+
+  const rows = allChars.map(c => {
+    const isActive = activeChar && c.id === activeChar.id;
+    return `
+    <div class="char-list-item ${isActive ? 'active-char' : ''}" onclick="switchActiveChar('${c.id}')">
+      <div>
+        <div class="char-list-name">${esc(c.characterName)}</div>
+        <div class="char-list-sub">${esc(c.race || '')} ${esc(c.class || '')} · Level ${c.level || 1} · XP: ${c.xp || 0}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="char-list-gold">${c.gold ?? 0} gp</div>
+        ${isActive ? `<div class="active-pip" style="margin-top:.2rem;">&#9679; ACTIVE</div>` : ''}
+        ${c.status === 'Pending' ? `<div style="font-size:.72rem;color:var(--gold-magic);margin-top:.2rem;">&#9203; Pending</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = rows;
+
+  if (pending) {
+    wrap.innerHTML += `
+    <div style="margin-top:.8rem;background:rgba(240,200,72,.07);border:1px solid rgba(240,200,72,.3);border-radius:5px;padding:.8rem 1rem;font-size:.85rem;color:var(--gold-magic);">
+      &#9203; Pending request: <strong>${esc(pending.requestedCharacterName)}</strong>
+      (${esc(pending.class)}, ${esc(pending.race)}) — awaiting DM approval
+    </div>`;
+  }
+}
+
+async function switchActiveChar(charId) {
+  const char = allChars.find(c => c.id === charId);
+  if (!char || char.status !== 'Active') return;
+  activeChar = char;
+  await setActiveCharacter(charId);
+  updateTopBar(activeChar);
+  loadInventory();
+  loadCharactersTab();
+  toast(`Switched to ${char.characterName}`, 'info');
+}
+
+// ================================================================
+//  CHARACTER SWITCHER MODAL (topbar)
+// ================================================================
+
+function openCharModal() {
+  const list       = document.getElementById('modal-char-list');
+  const activeChars = allChars.filter(c => c.status === 'Active');
+
+  if (!activeChars.length) {
+    list.innerHTML = `<p class="inv-empty">No active characters. Request one in the Characters tab.</p>`;
+  } else {
+    list.innerHTML = activeChars.map(c => {
+      const isActive = activeChar && c.id === activeChar.id;
+      return `
+      <div class="char-list-item ${isActive ? 'active-char' : ''}"
+           onclick="switchActiveChar('${c.id}');closeModal('modal-chars')">
+        <div>
+          <div class="char-list-name">${esc(c.characterName)}</div>
+          <div class="char-list-sub">${esc(c.race || '')} ${esc(c.class || '')} · Lv ${c.level || 1}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="char-list-gold">${c.gold ?? 0} gp</div>
+          ${isActive ? `<div class="active-pip">&#9679; ACTIVE</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  openModal('modal-chars');
+}
+
+// ================================================================
+//  NEW CHARACTER REQUEST MODAL
+// ================================================================
+
+function openNewCharModal() {
+  ['nc-name','nc-class','nc-race','nc-background'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('nc-err').style.display = 'none';
+  openModal('modal-new-char');
+}
+
+async function submitCharRequest() {
+  const name = document.getElementById('nc-name').value.trim();
+  const cls  = document.getElementById('nc-class').value;
+  const race = document.getElementById('nc-race').value;
+  const bg   = document.getElementById('nc-background').value;
+  const err  = document.getElementById('nc-err');
+
+  if (!name || !cls || !race || !bg) {
+    err.textContent = 'Please fill in all fields.';
+    err.style.display = 'block';
+    return;
+  }
+
+  err.style.display = 'none';
+  const btn = document.querySelector('#modal-new-char .btn-gold');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  try {
+    await submitCharacterRequest(playerRecord.id, { name, cls, race, background: bg });
+    closeModal('modal-new-char');
+    toast(`Request for "${name}" submitted — your DM will review it soon.`, 'success');
+    loadCharactersTab();
+  } catch(e) {
+    console.error(e);
+    err.textContent = 'Submission failed. Please try again.';
+    err.style.display = 'block';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Submit Request to DM';
+}
+
+// ================================================================
+//  ACCOUNT — CHANGE PASSWORD
+// ================================================================
+
+async function changePassword() {
+  const current  = document.getElementById('pw-current').value;
+  const newPw    = document.getElementById('pw-new').value;
+  const confirm  = document.getElementById('pw-confirm').value;
+  const errEl    = document.getElementById('pw-err');
+  const okEl     = document.getElementById('pw-ok');
+
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
+  if (!current || !newPw || !confirm) {
+    errEl.textContent = 'Please fill in all three fields.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (newPw.length < 6) {
+    errEl.textContent = 'New password must be at least 6 characters.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (newPw !== confirm) {
+    errEl.textContent = 'New passwords do not match.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    // Verify current password
+    const userDoc = await db.collection('Users').doc(loggedInUsername).get();
+    const match   = await verifyPassword(current, userDoc.data().passwordHash);
+    if (!match) {
+      errEl.textContent = 'Current password is incorrect.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    // Hash and save new password
+    const newHash = await hashPassword(newPw);
+    await db.collection('Users').doc(loggedInUsername).update({ passwordHash: newHash });
+
+    okEl.textContent = 'Password updated successfully!';
+    okEl.style.display = 'block';
+    document.getElementById('pw-current').value = '';
+    document.getElementById('pw-new').value = '';
+    document.getElementById('pw-confirm').value = '';
+    toast('Password changed successfully.', 'success');
+
+  } catch(e) {
+    console.error(e);
+    errEl.textContent = 'Failed to update password. Please try again.';
+    errEl.style.display = 'block';
+  }
+}
+
+// ================================================================
+//  TAB SWITCHING
+// ================================================================
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${name}`).style.display = 'block';
+  if (btn) btn.classList.add('active');
+
+  if (name === 'inventory')  loadInventory();
+  if (name === 'emporium')   loadEmporiumTab();
+  if (name === 'characters') loadCharactersTab();
+}
+
+// ================================================================
+//  MODALS
+// ================================================================
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close modals on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+  backdrop.addEventListener('click', e => {
+    if (e.target === backdrop) backdrop.classList.remove('open');
+  });
+});
+
+// ================================================================
+//  TOASTS
+// ================================================================
+
+function toast(msg, type = 'info') {
+  const wrap = document.getElementById('toasts');
+  const el   = document.createElement('div');
+  el.className  = `toast toast-${type}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// ================================================================
+//  UTILS
+// ================================================================
+
+function show(id) {
+  ['screen-loading','screen-signin','screen-app'].forEach(s => {
+    const el = document.getElementById(s);
+    if (!el) return;
+    if (s === 'screen-app') {
+      el.style.display = s === id ? 'block' : 'none';
+    } else {
+      el.style.display = s === id ? 'flex' : 'none';
+    }
+  });
+}
+
+function showErr(screenId, msg) {
+  const el = document.getElementById(screenId);
+  if (el) el.innerHTML = `
+    <div style="text-align:center;color:var(--red-sale);padding:2rem;">
+      <p style="font-family:'Cinzel',serif;margin-bottom:.5rem;">Connection Error</p>
+      <p style="font-size:.85rem;color:var(--silver-dim);">${msg}</p>
+    </div>`;
+}
+
+function esc(str) {
+  return String(str || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function makeStars() {
+  const el = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const s    = document.createElement('div');
+    s.className = 'star';
+    const size  = Math.random() * 2 + 0.4;
+    s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;--dl:-${(Math.random()*5).toFixed(1)}s;opacity:${(Math.random()*0.4+0.1).toFixed(2)}`;
+    el.appendChild(s);
+  }
+}
+
+// ================================================================
+//  BOOT
+// ================================================================
+
+boot().catch(e => {
+  console.error(e);
+  showErr('screen-loading', 'Something went wrong. Please refresh the page.');
+});
+</script>
+</body>
+</html>
