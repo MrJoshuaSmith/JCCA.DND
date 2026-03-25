@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Request an Account — The Adventurer's Emporium</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root {
+  --void:#0d0618; --arcane:#1a0a2e; --arcane-border:#6b3fa0;
+  --crystal:#c8a8f8; --crystal-bright:#e8d8ff; --crystal-dim:#8a68c8;
+  --gold:#f0c848; --gold-dim:#a88020; --silver:#d0c8e8; --silver-dim:#9890b8;
+  --teal:#40d8c8; --red:#ff4488; --green:#60c870;
+  --bg-card:rgba(29,12,56,0.95); --bg-input:rgba(13,6,24,0.8);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--void);background-image:radial-gradient(ellipse 80% 50% at 50% 0%,#2d1054 0%,transparent 70%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--silver);display:flex;align-items:center;justify-content:center;padding:2rem 1rem;}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--d,3s) var(--dl,0s) infinite alternate ease-in-out;}
+@keyframes twinkle{from{opacity:.08;}to{opacity:.85;}}
+.wrap{position:relative;z-index:1;width:100%;max-width:460px;}
+.auth-card{background:var(--bg-card);border:1px solid var(--arcane-border);border-radius:8px;padding:2.5rem 2.5rem 2rem;position:relative;}
+.auth-card::before{content:'';position:absolute;inset:5px;border:1px solid rgba(107,63,160,0.18);border-radius:5px;pointer-events:none;}
+.logo{text-align:center;margin-bottom:1.8rem;}
+.logo h1{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:900;color:var(--crystal-bright);line-height:1.2;}
+.logo h1 span{color:var(--gold);}
+.logo p{font-style:italic;color:var(--crystal-dim);font-size:0.9rem;margin-top:0.4rem;}
+.divider{display:flex;align-items:center;gap:0.8rem;margin:1.2rem 0;font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:0.15em;color:var(--silver-dim);}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(107,63,160,0.3);}
+.form-group{margin-bottom:1rem;}
+.form-label{display:block;font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.1em;color:var(--crystal-dim);margin-bottom:0.35rem;text-transform:uppercase;}
+.form-input{width:100%;background:var(--bg-input);border:1px solid rgba(107,63,160,0.4);border-radius:4px;padding:0.6rem 0.9rem;color:var(--crystal-bright);font-family:'Crimson Pro',serif;font-size:1rem;transition:border-color 0.2s;outline:none;}
+.form-input:focus{border-color:var(--crystal-dim);}
+.form-input::placeholder{color:var(--silver-dim);opacity:0.6;}
+.form-hint{font-size:0.78rem;color:var(--silver-dim);margin-top:0.3rem;font-style:italic;}
+.form-error{font-size:0.78rem;color:var(--red);margin-top:0.3rem;}
+.form-success{font-size:0.78rem;color:var(--green);margin-top:0.3rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;}
+@media(max-width:480px){.two-col{grid-template-columns:1fr;}}
+.btn{font-family:'Cinzel',serif;font-size:0.78rem;font-weight:600;letter-spacing:0.1em;padding:0.65rem 1.6rem;border-radius:4px;cursor:pointer;transition:all 0.2s;border:1px solid;width:100%;margin-top:0.4rem;}
+.btn-primary{background:rgba(107,63,160,0.3);border-color:var(--arcane-border);color:var(--crystal-bright);}
+.btn-primary:hover{background:rgba(107,63,160,0.5);border-color:var(--crystal-dim);}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+.back-link{display:block;text-align:center;margin-top:1.2rem;font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:0.08em;color:var(--crystal-dim);text-decoration:none;transition:color 0.2s;}
+.back-link:hover{color:var(--crystal);}
+/* Success screen */
+.success-screen{display:none;text-align:center;padding:1rem 0;}
+.success-icon{font-size:3rem;margin-bottom:1rem;}
+.success-title{font-family:'Cinzel',serif;font-size:1.2rem;font-weight:600;color:var(--crystal-bright);margin-bottom:0.6rem;}
+.success-body{font-size:0.9rem;color:var(--silver-dim);line-height:1.7;}
+.strength-bar{height:4px;border-radius:2px;background:rgba(107,63,160,0.2);margin-top:0.4rem;overflow:hidden;}
+.strength-fill{height:100%;border-radius:2px;transition:width 0.3s,background 0.3s;}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<div class="wrap">
+  <div class="auth-card">
+
+    <!-- Registration form -->
+    <div id="form-screen">
+      <div class="logo">
+        <h1>The Adventurer's<br><span>Emporium</span></h1>
+        <p>Request a player account</p>
+      </div>
+
+      <div class="divider">&#10022; &nbsp; NEW ADVENTURER &nbsp; &#10022;</div>
+
+      <div class="two-col">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input class="form-input" id="reg-firstname" type="text" maxlength="40" placeholder="e.g. Alex" autocomplete="given-name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Surname</label>
+          <input class="form-input" id="reg-surname" type="text" maxlength="40" placeholder="e.g. Smith" autocomplete="family-name">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">School Email Address</label>
+        <input class="form-input" id="reg-email" type="email" maxlength="120" placeholder="Your school email address" autocomplete="email" oninput="validateEmail()">
+        <p class="form-error" id="email-err" style="display:none;"></p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="reg-password" type="password" maxlength="64" placeholder="Choose a password" oninput="checkStrength()">
+        <div class="strength-bar"><div class="strength-fill" id="strength-fill" style="width:0%"></div></div>
+        <p class="form-hint" id="strength-label">At least 6 characters</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <input class="form-input" id="reg-password2" type="password" maxlength="64" placeholder="Repeat your password" onkeydown="if(event.key==='Enter')submitRequest()">
+      </div>
+
+      <p class="form-error" id="submit-err" style="display:none; margin-bottom:0.6rem;"></p>
+
+      <button class="btn btn-primary" id="btn-submit" onclick="submitRequest()">
+        Submit Request
+      </button>
+    </div>
+
+    <!-- Success screen -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">&#9733;</div>
+      <div class="success-title">Request Submitted!</div>
+      <p class="success-body">
+        Your account request has been sent to the DM for approval.<br><br>
+        Once approved you will be able to sign in at the Player Portal with the password you chose.
+      </p>
+    </div>
+
+    <a href="index.html" class="back-link">&#8592; Back to the Emporium</a>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey:            "AIzaSyAWpUnUirhcI3nhW9WF_7aqDInOCvIbsIY",
+  authDomain:        "jcca-dnd.firebaseapp.com",
+  projectId:         "jcca-dnd",
+  storageBucket:     "jcca-dnd.firebasestorage.app",
+  messagingSenderId: "128758977152",
+  appId:             "1:128758977152:web:f43ef158eedf82614ccc65",
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+const VALID_DOMAIN = '@student.education.wa.edu.au';
+const HASH_ITERATIONS = 200000;
+
+async function hashPassword(password) {
+  const enc  = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key  = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name:'PBKDF2', salt, iterations:HASH_ITERATIONS, hash:'SHA-256' }, key, 256);
+  const toB64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+  return toB64(salt.buffer) + ':' + toB64(bits);
+}
+
+function validateEmail() {
+  const val = document.getElementById('reg-email').value.trim().toLowerCase();
+  const err = document.getElementById('email-err');
+  if (!val) { err.style.display = 'none'; return true; }
+  // Only check it ends with the valid domain — don't hint at what the domain is
+  if (!val.endsWith(VALID_DOMAIN)) {
+    err.textContent = 'Please use your school email address.';
+    err.style.display = 'block';
+    return false;
+  }
+  err.style.display = 'none';
+  return true;
+}
+
+function checkStrength() {
+  const pw  = document.getElementById('reg-password').value;
+  const fill = document.getElementById('strength-fill');
+  const label = document.getElementById('strength-label');
+  let score = 0;
+  if (pw.length >= 6)  score++;
+  if (pw.length >= 10) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^a-zA-Z0-9]/.test(pw)) score++;
+  const pct = (score / 5) * 100;
+  const colours = ['#ff4488','#ff4488','#f0c848','#f0c848','#60c870'];
+  const labels  = ['Too short','Weak','Fair','Good','Strong'];
+  fill.style.width = pct + '%';
+  fill.style.background = colours[Math.max(0, score-1)] || '#ff4488';
+  label.textContent = pw.length === 0 ? 'At least 6 characters' : (labels[Math.max(0,score-1)] || 'Too short');
+}
+
+// Parse name from email — strip trailing numbers from surname
+function parseEmailName(email) {
+  const local = email.split('@')[0]; // e.g. alex.smith2
+  const parts = local.split('.');
+  if (parts.length < 2) return { first: '', last: '' };
+  const first   = parts[0].replace(/[^a-zA-Z]/g, '');
+  const lastRaw = parts.slice(1).join(' ');
+  // Strip trailing digits unless needed for disambiguation — we'll let the user confirm
+  const last = lastRaw.replace(/\d+$/, '').replace(/[^a-zA-Z ]/g, '').trim();
+  return {
+    first: first.charAt(0).toUpperCase() + first.slice(1),
+    last:  last.charAt(0).toUpperCase()  + last.slice(1),
+  };
+}
+
+document.getElementById('reg-email').addEventListener('blur', function() {
+  const val = this.value.trim().toLowerCase();
+  if (val.endsWith(VALID_DOMAIN)) {
+    const names = parseEmailName(val);
+    const fn = document.getElementById('reg-firstname');
+    const sn = document.getElementById('reg-surname');
+    if (!fn.value && names.first) fn.value = names.first;
+    if (!sn.value && names.last)  sn.value = names.last;
+  }
+});
+
+async function submitRequest() {
+  const firstName = document.getElementById('reg-firstname').value.trim();
+  const surname   = document.getElementById('reg-surname').value.trim();
+  const email     = document.getElementById('reg-email').value.trim().toLowerCase();
+  const password  = document.getElementById('reg-password').value;
+  const password2 = document.getElementById('reg-password2').value;
+  const errEl     = document.getElementById('submit-err');
+  const btn       = document.getElementById('btn-submit');
+
+  errEl.style.display = 'none';
+
+  if (!firstName || !surname) {
+    errEl.textContent = 'Please enter your first name and surname.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!validateEmail()) return;
+  if (!email) {
+    errEl.textContent = 'Please enter your school email address.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (password.length < 6) {
+    errEl.textContent = 'Password must be at least 6 characters.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (password !== password2) {
+    errEl.textContent = 'Passwords do not match.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  try {
+    await auth.signInAnonymously();
+
+    // Check if email already has a pending request or an account
+    const existingReq = await db.collection('RegistrationRequests')
+      .where('email', '==', email)
+      .where('status', '==', 'Pending').get();
+
+    if (!existingReq.empty) {
+      errEl.textContent = 'A request for this email is already pending DM approval.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Submit Request';
+      return;
+    }
+
+    // Check if account already exists for this email
+    const existingUser = await db.collection('Users')
+      .where('email', '==', email).get();
+    if (!existingUser.empty) {
+      errEl.textContent = 'An account already exists for this email. Try signing in.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Submit Request';
+      return;
+    }
+
+    // Hash password and store request
+    const hash = await hashPassword(password);
+    await db.collection('RegistrationRequests').add({
+      firstName,
+      surname,
+      email,
+      passwordHash: hash,
+      status:      'Pending',
+      requestedAt: new Date().toISOString(),
+    });
+
+    document.getElementById('form-screen').style.display   = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+
+  } catch (e) {
+    console.error(e);
+    errEl.textContent = 'Submission failed. Please check your connection and try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Submit Request';
+  }
+}
+
+// Stars
+(function(){
+  const el = document.getElementById('stars');
+  for (let i = 0; i < 70; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() * 2 + 0.4;
+    s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;--dl:-${(Math.random()*5).toFixed(1)}s;opacity:${(Math.random()*0.4+0.08).toFixed(2)}`;
+    el.appendChild(s);
+  }
+})();
+</script>
+</body>
+</html>

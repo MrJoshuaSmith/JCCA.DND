@@ -352,6 +352,105 @@ body {
   .arcane-card { padding: 1.1rem 0.9rem; }
   .auth-card { padding: 1.8rem 1.2rem; }
 }
+
+/* ── CHARACTER CREATION WIZARD ── */
+.wizard-wrap {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 2rem 1rem; position: relative; z-index: 1;
+}
+.wizard-card {
+  background: var(--bg-card); border: 1px solid var(--arcane-border);
+  border-radius: 8px; padding: 2rem 2.5rem; width: 100%; max-width: 560px; position: relative;
+}
+.wizard-card::before {
+  content: ''; position: absolute; inset: 5px;
+  border: 1px solid rgba(107,63,160,0.18); border-radius: 5px; pointer-events: none;
+}
+.wizard-step { display: none; }
+.wizard-step.active { display: block; }
+.wizard-progress {
+  display: flex; gap: 0.4rem; margin-bottom: 1.8rem; align-items: center;
+}
+.wizard-dot {
+  width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 600;
+  border: 1px solid rgba(107,63,160,0.4); color: var(--silver-dim); transition: all 0.3s;
+}
+.wizard-dot.active { background: rgba(107,63,160,0.35); border-color: var(--crystal-dim); color: var(--crystal-bright); }
+.wizard-dot.done   { background: rgba(64,216,200,0.2); border-color: var(--teal-magic); color: var(--teal-magic); }
+.wizard-line { flex: 1; height: 1px; background: rgba(107,63,160,0.25); }
+.wizard-title {
+  font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 600;
+  color: var(--crystal-bright); margin-bottom: 0.4rem;
+}
+.wizard-sub { font-size: 0.88rem; color: var(--silver-dim); font-style: italic; margin-bottom: 1.4rem; }
+.class-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.6rem;
+  margin-bottom: 1.2rem;
+}
+.class-btn {
+  background: rgba(13,6,24,0.6); border: 1px solid rgba(107,63,160,0.3);
+  border-radius: 5px; padding: 0.7rem 0.5rem; cursor: pointer; transition: all 0.2s;
+  text-align: center;
+}
+.class-btn:hover { border-color: var(--arcane-border); background: rgba(107,63,160,0.15); }
+.class-btn.selected { border-color: var(--crystal-dim); background: rgba(107,63,160,0.3); }
+.class-btn-name { font-family: 'Cinzel', serif; font-size: 0.72rem; font-weight: 600; color: var(--crystal-bright); }
+.class-btn-gold { font-size: 0.68rem; color: var(--gold-magic); margin-top: 0.2rem; }
+.equip-option {
+  border: 1px solid rgba(107,63,160,0.3); border-radius: 6px; padding: 1rem 1.2rem;
+  cursor: pointer; transition: all 0.2s; margin-bottom: 0.8rem; background: rgba(13,6,24,0.5);
+}
+.equip-option:hover { border-color: var(--arcane-border); }
+.equip-option.selected { border-color: var(--crystal-dim); background: rgba(107,63,160,0.2); }
+.equip-option-title { font-family: 'Cinzel', serif; font-size: 0.85rem; font-weight: 600; color: var(--crystal-bright); margin-bottom: 0.3rem; }
+.equip-option-desc { font-size: 0.82rem; color: var(--silver-dim); line-height: 1.55; }
+.recommended-tag { font-family: 'Cinzel', serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.1em; padding: 2px 7px; border-radius: 3px; border: 1px solid var(--teal-magic); color: var(--teal-magic); margin-left: 0.5rem; }
+.item-pill { display: inline-block; background: rgba(107,63,160,0.15); border: 1px solid rgba(107,63,160,0.3); border-radius: 3px; padding: 2px 7px; font-size: 0.72rem; color: var(--crystal); margin: 2px; }
+
+/* ── CHEST CLAIM OVERLAY ── */
+#chest-overlay {
+  display: none; position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0); align-items: center; justify-content: center;
+  flex-direction: column; transition: background 0.5s;
+}
+#chest-overlay.show { display: flex; }
+#chest-overlay.dark { background: rgba(0,0,0,0.92); }
+.chest-stage { text-align: center; max-width: 420px; width: 100%; padding: 1rem; }
+.chest-counter { font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 0.15em; color: var(--crystal-dim); margin-bottom: 1rem; }
+.chest-type-label {
+  font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.1em;
+  padding: 3px 12px; border-radius: 3px; border: 1px solid; display: inline-block; margin-bottom: 0.8rem;
+}
+.chest-type-standard { border-color: var(--arcane-border); color: var(--crystal-dim); }
+.chest-type-dm       { border-color: var(--gold-dim);     color: var(--gold-magic); }
+.chest-svg-wrap { position: relative; display: inline-block; cursor: pointer; margin-bottom: 0.5rem; }
+.chest-svg { animation: chest-float 2.5s ease-in-out infinite; display: block; }
+@keyframes chest-float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
+.chest-svg.shaking { animation: chest-shake 0.1s ease-in-out infinite; }
+@keyframes chest-shake { 0%{transform:rotate(-6deg) scale(1.05);} 50%{transform:rotate(6deg) scale(1.08);} 100%{transform:rotate(-6deg) scale(1.05);} }
+.chest-glow { width:70px;height:6px;background:radial-gradient(ellipse,rgba(240,200,72,0.5) 0%,transparent 70%);margin:0 auto;border-radius:50%; }
+.chest-prompt { font-family:'Cinzel',serif;font-size:0.78rem;letter-spacing:0.12em;color:var(--crystal-dim);margin-top:0.6rem;animation:pulse-glow 1.8s ease-in-out infinite; }
+@keyframes pulse-glow{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.chest-session-label { font-size:0.82rem;color:var(--silver-dim);font-style:italic;margin-bottom:1.2rem; }
+/* Particles */
+#chest-particles { position:fixed;inset:0;pointer-events:none;z-index:10000; }
+.particle { position:absolute;border-radius:50%;pointer-events:none;animation:particle-burst var(--dur,0.8s) ease-out forwards; }
+@keyframes particle-burst { from{transform:translate(0,0) scale(1);opacity:1;} to{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0;} }
+/* Reward reveal */
+.reward-reveal { animation: reveal-in 0.4s ease both; }
+@keyframes reveal-in { from{opacity:0;transform:translateY(20px) scale(0.95);}to{opacity:1;transform:none;} }
+.reward-card {
+  background: var(--bg-card); border: 1px solid var(--arcane-border); border-radius: 8px;
+  padding: 1.5rem; margin-bottom: 0.8rem; text-align: left;
+}
+.reward-stats { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 1rem; font-family: 'Cinzel', serif; }
+.reward-stat-val { font-size: 1.4rem; font-weight: 600; }
+.reward-stat-lbl { font-size: 0.65rem; letter-spacing: 0.1em; color: var(--silver-dim); text-transform: uppercase; }
+.reward-items-title { font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 0.1em; color: var(--crystal-dim); text-transform: uppercase; margin-bottom: 0.6rem; }
+.reward-item-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; border-bottom: 1px solid rgba(107,63,160,0.12); }
+.reward-item-row:last-child { border-bottom: none; }
+.reward-item-name { font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--crystal-bright); }
 </style>
 </head>
 <body>
@@ -403,6 +502,100 @@ body {
     </p>
   </div>
 </div>
+
+<!-- SCREEN: Character Creation Wizard -->
+<div id="screen-char-create" class="wizard-wrap" style="display:none">
+  <div class="wizard-card">
+    <div class="wizard-progress">
+      <div class="wizard-dot active" id="wd-1">1</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-2">2</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-3">3</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-4">4</div>
+    </div>
+
+    <!-- Step 1: Class -->
+    <div class="wizard-step active" id="wstep-1">
+      <div class="wizard-title">Choose Your Class</div>
+      <div class="wizard-sub">Your class determines your abilities, starting equipment, and role in the party.</div>
+      <div class="class-grid" id="class-grid"></div>
+      <p class="form-error" id="w1-err" style="display:none; margin-bottom:0.6rem;"></p>
+      <button class="btn btn-primary btn-block" onclick="wizardNext(1)">Continue →</button>
+    </div>
+
+    <!-- Step 2: Race & Background -->
+    <div class="wizard-step" id="wstep-2">
+      <div class="wizard-title">Race &amp; Background</div>
+      <div class="wizard-sub">Your heritage and history shape who you are before your adventure begins.</div>
+      <div class="form-group">
+        <label class="form-label">Race</label>
+        <select class="form-input" id="w-race"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Background</label>
+        <select class="form-input" id="w-background"></select>
+        <p class="form-hint" id="bg-gold-hint"></p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Character Name</label>
+        <input class="form-input" id="w-charname" type="text" maxlength="40" placeholder="e.g. Lyra Shadowstep">
+        <p class="form-hint">This is the name other players will see.</p>
+      </div>
+      <p class="form-error" id="w2-err" style="display:none; margin-bottom:0.6rem;"></p>
+      <div style="display:flex;gap:0.6rem;">
+        <button class="btn btn-primary" onclick="wizardBack(2)">← Back</button>
+        <button class="btn btn-gold btn-block" onclick="wizardNext(2)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Equipment choice -->
+    <div class="wizard-step" id="wstep-3">
+      <div class="wizard-title">Starting Equipment</div>
+      <div class="wizard-sub">Choose how you equip your character for their first adventure.</div>
+
+      <div class="equip-option" id="equip-opt-package" onclick="selectEquip('package')">
+        <div class="equip-option-title">
+          Class Equipment Package
+          <span class="recommended-tag">RECOMMENDED</span>
+        </div>
+        <div class="equip-option-desc" id="equip-package-desc">Loading items...</div>
+      </div>
+
+      <div class="equip-option" id="equip-opt-gold" onclick="selectEquip('gold')">
+        <div class="equip-option-title">Starting Gold</div>
+        <div class="equip-option-desc" id="equip-gold-desc">Loading...</div>
+      </div>
+
+      <p class="form-error" id="w3-err" style="display:none; margin-bottom:0.6rem;"></p>
+      <div style="display:flex;gap:0.6rem;margin-top:0.4rem;">
+        <button class="btn btn-primary" onclick="wizardBack(3)">← Back</button>
+        <button class="btn btn-gold btn-block" onclick="wizardNext(3)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Review & Confirm -->
+    <div class="wizard-step" id="wstep-4">
+      <div class="wizard-title">Ready to Begin?</div>
+      <div class="wizard-sub">Review your character before entering the Emporium.</div>
+      <div id="wizard-review" style="background:rgba(107,63,160,0.1);border:1px solid rgba(107,63,160,0.3);border-radius:6px;padding:1.2rem;margin-bottom:1.2rem;"></div>
+      <p class="form-error" id="w4-err" style="display:none; margin-bottom:0.6rem;"></p>
+      <div style="display:flex;gap:0.6rem;">
+        <button class="btn btn-primary" onclick="wizardBack(4)">← Back</button>
+        <button class="btn btn-gold btn-block" id="btn-create-char" onclick="createCharacter()">
+          Create Character &amp; Enter
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHEST CLAIM OVERLAY -->
+<div id="chest-overlay">
+  <div class="chest-stage" id="chest-stage"></div>
+</div>
+<canvas id="chest-particles" style="position:fixed;inset:0;pointer-events:none;z-index:10000;width:100%;height:100%;"></canvas>
 
 <!-- SCREEN: Main App -->
 <div id="screen-app" style="display:none">
@@ -845,24 +1038,50 @@ function doSignOut() {
 // ================================================================
 
 async function loadApp() {
-  show('screen-app');
   document.getElementById('acct-username-display').textContent = loggedInUsername;
 
-  // Load characters — playerId is the username (Users doc ID)
+  // Load characters
   allChars = await getCharactersForPlayer(loggedInUsername);
   const activeChars = allChars.filter(c => c.status === 'Active');
 
+  // First time login — no characters at all → must create one
+  if (allChars.length === 0) {
+    showCharacterCreationWizard();
+    return;
+  }
+
+  // Has characters but none active → pending request
   if (activeChars.length === 0) {
+    show('screen-app');
     const pending = await getPendingRequest(loggedInUsername);
     if (pending) document.getElementById('pending-notice').style.display = 'block';
     updateTopBar(null);
-  } else {
-    const savedId = playerRecord.activeCharacterId;
-    activeChar = activeChars.find(c => c.id === savedId) || activeChars[0];
-    updateTopBar(activeChar);
-    loadInventory();
+    loadShopTab();
+    loadEmporiumTab();
+    loadCharactersTab();
+    return;
   }
 
+  // Set active character
+  const savedId = playerRecord.activeCharacterId;
+  activeChar = activeChars.find(c => c.id === savedId) || activeChars[0];
+
+  // Check for pending chests before showing the app
+  const pendingChests = await getPendingChests(loggedInUsername);
+  if (pendingChests.length > 0) {
+    show('screen-app');
+    updateTopBar(activeChar);
+    loadShopTab();
+    loadEmporiumTab();
+    loadCharactersTab();
+    loadInventory();
+    await showChestOverlay(pendingChests);
+    return;
+  }
+
+  show('screen-app');
+  updateTopBar(activeChar);
+  loadInventory();
   loadShopTab();
   loadEmporiumTab();
   loadCharactersTab();
@@ -998,6 +1217,39 @@ async function submitCharacterRequest(playerId, details) {
     status:      'Pending',
     dmNotes:     '',
   });
+}
+
+// — Pending Chests —
+async function getPendingChests(username) {
+  const snap = await db.collection('PendingChests')
+    .where('playerId', '==', username)
+    .where('claimed', '==', false).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function claimChest(chestId, chest) {
+  const batch = db.batch();
+  // Mark chest claimed
+  batch.update(db.collection('PendingChests').doc(chestId), { claimed: true, claimedAt: new Date().toISOString() });
+  // Add XP and gold to active character
+  if (activeChar) {
+    const newXp   = (activeChar.xp   || 0) + (chest.xp   || 0);
+    const newGold = Math.min((activeChar.gold || 0) + (chest.gold || 0), CONFIG.goldCap);
+    batch.update(db.collection('Characters').doc(activeChar.id), { xp: newXp, gold: newGold });
+    activeChar.xp   = newXp;
+    activeChar.gold = newGold;
+  }
+  await batch.commit();
+  // Add items to inventory
+  if (chest.items && chest.items.length && activeChar) {
+    for (const item of chest.items) {
+      await addInventoryItem(activeChar.id, {
+        itemName: item.name, basePrice: 0, isMagical: item.rarity !== 'Common',
+        category: item.category || 'Adventuring Gear',
+      }, 'Chest Reward');
+    }
+  }
+  updateTopBar(activeChar);
 }
 
 // ================================================================
@@ -1553,7 +1805,7 @@ function toast(msg, type = 'info') {
 // ================================================================
 
 function show(id) {
-  ['screen-loading','screen-signin','screen-app'].forEach(s => {
+  ['screen-loading','screen-signin','screen-char-create','screen-app'].forEach(s => {
     const el = document.getElementById(s);
     if (!el) return;
     if (s === 'screen-app') {
@@ -1587,6 +1839,303 @@ function makeStars() {
     s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;--dl:-${(Math.random()*5).toFixed(1)}s;opacity:${(Math.random()*0.4+0.1).toFixed(2)}`;
     el.appendChild(s);
   }
+}
+
+// ================================================================
+//  D&D 5E DATA
+// ================================================================
+
+const DND5E = {
+  classes: ['Barbarian','Bard','Cleric','Druid','Fighter','Monk','Paladin','Ranger','Rogue','Sorcerer','Warlock','Wizard'],
+  races:   ['Dragonborn','Drow (Dark Elf)','Forest Gnome','Half-Elf','Half-Orc','High Elf','Hill Dwarf','Human','Kobold','Lightfoot Halfling','Mountain Dwarf','Rock Gnome','Stout Halfling','Tiefling','Wood Elf'],
+  backgrounds: ['Acolyte','Charlatan','Criminal','Entertainer','Folk Hero','Guild Artisan','Hermit','Noble','Outlander','Sage','Sailor','Soldier','Urchin'],
+  startingGold: { Barbarian:50,Bard:125,Cleric:125,Druid:50,Fighter:175,Monk:25,Paladin:175,Ranger:125,Rogue:100,Sorcerer:75,Warlock:100,Wizard:100 },
+  backgroundGold: { Acolyte:15,Charlatan:15,Criminal:15,Entertainer:15,'Folk Hero':10,'Guild Artisan':15,Hermit:5,Noble:25,Outlander:10,Sage:10,Sailor:10,Soldier:10,Urchin:10 },
+  classEquipment: {
+    Barbarian:  [{item:'Greataxe',qty:1},{item:'Handaxe',qty:2},{item:"Explorer's Pack",qty:1},{item:'Javelin',qty:4}],
+    Bard:       [{item:'Rapier',qty:1},{item:"Diplomat's Pack",qty:1},{item:'Lute',qty:1},{item:'Leather armour',qty:1},{item:'Dagger',qty:1}],
+    Cleric:     [{item:'Mace',qty:1},{item:'Scale mail',qty:1},{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:"Priest's Pack",qty:1},{item:'Shield',qty:1},{item:'Holy symbol (amulet)',qty:1}],
+    Druid:      [{item:'Shield',qty:1},{item:'Scimitar',qty:1},{item:'Leather armour',qty:1},{item:"Explorer's Pack",qty:1},{item:'Druidic focus (wooden staff)',qty:1}],
+    Fighter:    [{item:'Chain mail',qty:1},{item:'Longsword',qty:1},{item:'Shield',qty:1},{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:"Dungeoneer's Pack",qty:1}],
+    Monk:       [{item:'Shortsword',qty:1},{item:"Dungeoneer's Pack",qty:1},{item:'Dart',qty:10}],
+    Paladin:    [{item:'Longsword',qty:1},{item:'Shield',qty:1},{item:'Javelin',qty:5},{item:"Priest's Pack",qty:1},{item:'Chain mail',qty:1},{item:'Holy symbol (amulet)',qty:1}],
+    Ranger:     [{item:'Scale mail',qty:1},{item:'Shortsword',qty:2},{item:"Dungeoneer's Pack",qty:1},{item:'Longbow',qty:1},{item:'Quiver',qty:1},{item:'Arrows (20)',qty:1}],
+    Rogue:      [{item:'Rapier',qty:1},{item:'Shortbow',qty:1},{item:'Quiver',qty:1},{item:'Arrows (20)',qty:1},{item:"Burglar's Pack",qty:1},{item:'Leather armour',qty:1},{item:'Dagger',qty:2},{item:"Thieves' tools",qty:1}],
+    Sorcerer:   [{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:'Component pouch',qty:1},{item:"Dungeoneer's Pack",qty:1},{item:'Dagger',qty:2}],
+    Warlock:    [{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:'Component pouch',qty:1},{item:"Scholar's Pack",qty:1},{item:'Leather armour',qty:1},{item:'Dagger',qty:2},{item:'Shortsword',qty:1}],
+    Wizard:     [{item:'Quarterstaff',qty:1},{item:'Spellbook',qty:1},{item:'Component pouch',qty:1},{item:"Scholar's Pack",qty:1},{item:'Dagger',qty:1}],
+  },
+  backgroundEquipment: {
+    Acolyte:        [{item:'Holy symbol (amulet)',qty:1},{item:'Robes',qty:1},{item:'Clothes (common)',qty:1}],
+    Charlatan:      [{item:'Clothes (fine)',qty:1},{item:'Kit (disguise)',qty:1}],
+    Criminal:       [{item:'Crowbar',qty:1},{item:'Clothes (common)',qty:1}],
+    Entertainer:    [{item:'Clothes (costume)',qty:1}],
+    'Folk Hero':    [{item:'Shovel',qty:1},{item:'Pot (iron)',qty:1},{item:'Clothes (common)',qty:1}],
+    'Guild Artisan':[{item:"Clothes (traveler's)",qty:1}],
+    Hermit:         [{item:'Blanket',qty:1},{item:'Clothes (common)',qty:1},{item:'Kit (herbalism)',qty:1}],
+    Noble:          [{item:'Clothes (fine)',qty:1},{item:'Signet ring',qty:1}],
+    Outlander:      [{item:'Hunting trap',qty:1},{item:"Clothes (traveler's)",qty:1}],
+    Sage:           [{item:'Ink (1 oz bottle)',qty:1},{item:'Ink pen',qty:1},{item:'Clothes (common)',qty:1}],
+    Sailor:         [{item:'Rope (silk 50 feet)',qty:1},{item:'Clothes (common)',qty:1}],
+    Soldier:        [{item:'Clothes (common)',qty:1}],
+    Urchin:         [{item:'Clothes (common)',qty:1}],
+  },
+};
+
+// ================================================================
+//  CHARACTER CREATION WIZARD
+// ================================================================
+
+let wizardData = { class:null, race:null, background:null, charName:'', equipChoice:null };
+
+function showCharacterCreationWizard() {
+  wizardData = { class:null, race:null, background:null, charName:'', equipChoice:null };
+  buildClassGrid(); buildRaceSelect(); buildBackgroundSelect();
+  setWizardStep(1);
+  show('screen-char-create');
+}
+
+function buildClassGrid() {
+  document.getElementById('class-grid').innerHTML = DND5E.classes.map(cls =>
+    `<div class="class-btn" id="class-btn-${cls}" onclick="selectClass('${cls}')">
+      <div class="class-btn-name">${cls}</div>
+      <div class="class-btn-gold">${DND5E.startingGold[cls]} gp</div>
+    </div>`).join('');
+}
+
+function selectClass(cls) {
+  wizardData.class = cls;
+  document.querySelectorAll('.class-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById(`class-btn-${cls}`).classList.add('selected');
+  document.getElementById('w1-err').style.display = 'none';
+}
+
+function buildRaceSelect() {
+  document.getElementById('w-race').innerHTML = '<option value="">— Choose your race —</option>' +
+    DND5E.races.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+}
+
+function buildBackgroundSelect() {
+  const sel = document.getElementById('w-background');
+  sel.innerHTML = '<option value="">— Choose your background —</option>' +
+    DND5E.backgrounds.map(b => `<option value="${esc(b)}">${esc(b)}</option>`).join('');
+  sel.addEventListener('change', () => {
+    const bg = sel.value;
+    const hint = document.getElementById('bg-gold-hint');
+    hint.textContent = bg ? `+${DND5E.backgroundGold[bg]||0} gp starting gold from background` : '';
+  });
+}
+
+function setWizardStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById(`wstep-${i}`).classList.toggle('active', i === n);
+    const dot = document.getElementById(`wd-${i}`);
+    dot.classList.toggle('active', i === n);
+    dot.classList.toggle('done', i < n);
+    if (i < n) dot.textContent = '✓';
+    else if (i > n) dot.textContent = i;
+  }
+}
+
+function wizardNext(step) {
+  if (step === 1) {
+    if (!wizardData.class) { showWizErr(1,'Please select a class.'); return; }
+    setWizardStep(2);
+  } else if (step === 2) {
+    const race = document.getElementById('w-race').value;
+    const bg   = document.getElementById('w-background').value;
+    const name = document.getElementById('w-charname').value.trim();
+    if (!race||!bg||!name) { showWizErr(2,'Please fill in all fields.'); return; }
+    wizardData.race=race; wizardData.background=bg; wizardData.charName=name;
+    document.getElementById('w2-err').style.display='none';
+    buildEquipmentStep(); setWizardStep(3);
+  } else if (step === 3) {
+    if (!wizardData.equipChoice) { showWizErr(3,'Please choose an equipment option.'); return; }
+    buildReviewStep(); setWizardStep(4);
+  }
+}
+
+function wizardBack(step) { setWizardStep(step-1); }
+
+function showWizErr(step, msg) {
+  const el = document.getElementById(`w${step}-err`);
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function buildEquipmentStep() {
+  const cls=wizardData.class, bg=wizardData.background;
+  const items=[...(DND5E.classEquipment[cls]||[]),...(DND5E.backgroundEquipment[bg]||[])];
+  const bgGold=DND5E.backgroundGold[bg]||0;
+  const totalGold=DND5E.startingGold[cls]+bgGold;
+  const pills=items.map(i=>`<span class="item-pill">${i.qty>1?i.qty+'× ':''}${esc(i.item)}</span>`).join('');
+  document.getElementById('equip-package-desc').innerHTML=
+    `Class and background starting gear:<br><div style="margin-top:.4rem;">${pills}</div><p style="font-size:.75rem;color:var(--silver-dim);margin-top:.4rem;font-style:italic;">+${bgGold} gp from background</p>`;
+  document.getElementById('equip-gold-desc').innerHTML=
+    `Receive <strong style="color:var(--gold-magic)">${totalGold} gp</strong> to spend in the shop. For experienced players only.`;
+  wizardData.equipChoice=null;
+  document.getElementById('equip-opt-package').classList.remove('selected');
+  document.getElementById('equip-opt-gold').classList.remove('selected');
+}
+
+function selectEquip(choice) {
+  if (choice==='gold' && !confirm('Starting gold is only recommended for experienced D&D players who know what items they need.\n\nAre you sure?')) return;
+  wizardData.equipChoice=choice;
+  document.getElementById('equip-opt-package').classList.toggle('selected',choice==='package');
+  document.getElementById('equip-opt-gold').classList.toggle('selected',choice==='gold');
+  document.getElementById('w3-err').style.display='none';
+}
+
+function buildReviewStep() {
+  const {class:cls,race,background:bg,charName,equipChoice}=wizardData;
+  const bgGold=DND5E.backgroundGold[bg]||0;
+  const startGold=equipChoice==='gold'?DND5E.startingGold[cls]+bgGold:bgGold;
+  document.getElementById('wizard-review').innerHTML=`
+    <table style="width:100%;font-size:.88rem;">
+      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Name</td><td style="text-align:right;font-family:'Cinzel',serif;color:var(--crystal-bright);">${esc(charName)}</td></tr>
+      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Class</td><td style="text-align:right;color:var(--crystal);">${esc(cls)}</td></tr>
+      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Race</td><td style="text-align:right;color:var(--crystal);">${esc(race)}</td></tr>
+      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Background</td><td style="text-align:right;color:var(--crystal);">${esc(bg)}</td></tr>
+      <tr style="border-top:1px solid rgba(107,63,160,0.2);">
+        <td style="color:var(--silver-dim);padding:.4rem 0;">Starting Gold</td>
+        <td style="text-align:right;color:var(--gold-magic);font-family:'Cinzel',serif;font-weight:600;">${startGold} gp</td></tr>
+      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Equipment</td>
+        <td style="text-align:right;color:var(--teal-magic);">${equipChoice==='package'?'Class package + background gear':'Starting gold only'}</td></tr>
+    </table>`;
+}
+
+async function createCharacter() {
+  const btn=document.getElementById('btn-create-char');
+  const err=document.getElementById('w4-err');
+  btn.disabled=true; btn.textContent='Creating...';
+  err.style.display='none';
+  const {class:cls,race,background:bg,charName,equipChoice}=wizardData;
+  const bgGold=DND5E.backgroundGold[bg]||0;
+  const startGold=equipChoice==='gold'?DND5E.startingGold[cls]+bgGold:bgGold;
+  try {
+    const charRef=await db.collection('Characters').add({
+      characterName:charName, playerId:loggedInUsername, class:cls, race, background:bg,
+      level:1, xp:0, gold:startGold, status:'Active', createdAt:new Date().toISOString(),
+      sheet:{ abilityScores:{str:null,dex:null,con:null,int:null,wis:null,cha:null}, hp:null, maxHp:null, ac:null, savingThrows:{}, skills:{}, spells:[], features:[] },
+    });
+    await updatePlayer({activeCharacterId:charRef.id});
+    activeChar={id:charRef.id,characterName:charName,playerId:loggedInUsername,class:cls,race,background:bg,level:1,xp:0,gold:startGold,status:'Active'};
+    allChars=[activeChar];
+    if (equipChoice==='package') {
+      const allItems=[...(DND5E.classEquipment[cls]||[]),...(DND5E.backgroundEquipment[bg]||[])];
+      for (const entry of allItems) {
+        await db.collection('Inventory').add({
+          characterId:charRef.id, itemName:entry.item, itemId:'', quantity:entry.qty||1,
+          isMagical:false, category:'Starting Gear', basePrice:0,
+          source:'Starting Equipment', acquiredDate:new Date().toISOString(),
+        });
+      }
+    }
+    toast(`${charName} is ready for adventure!`,'success');
+    show('screen-app');
+    updateTopBar(activeChar);
+    loadInventory(); loadShopTab(); loadEmporiumTab(); loadCharactersTab();
+  } catch(e) {
+    console.error(e);
+    err.textContent='Failed to create character. Please try again.';
+    err.style.display='block';
+    btn.disabled=false; btn.textContent='Create Character & Enter';
+  }
+}
+
+// ================================================================
+//  CHEST CLAIM OVERLAY
+// ================================================================
+
+async function showChestOverlay(chests) {
+  const overlay=document.getElementById('chest-overlay');
+  overlay.classList.add('show');
+  setTimeout(()=>overlay.classList.add('dark'),50);
+  for (let i=0;i<chests.length;i++) await showSingleChest(chests[i],i+1,chests.length);
+  overlay.classList.remove('dark');
+  setTimeout(()=>overlay.classList.remove('show'),400);
+  loadInventory();
+}
+
+function showSingleChest(chest,num,total) {
+  return new Promise(resolve=>{
+    const stage=document.getElementById('chest-stage');
+    const isDM=chest.chestType==='dm';
+    const colour=isDM?'#f0c848':'#c8a8f8';
+    const typeClass=isDM?'chest-type-dm':'chest-type-standard';
+    stage.innerHTML=`
+      <div class="chest-counter">${num} of ${total}</div>
+      <span class="chest-type-label ${typeClass}">${isDM?'DM Chest':'Standard Chest'}</span>
+      <div class="chest-session-label">${esc(chest.notes||'Session Reward')}</div>
+      <div class="chest-svg-wrap" id="chest-clickable" onclick="openChest()">
+        <svg class="chest-svg" id="chest-svg" width="160" height="130" viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="55" width="140" height="65" rx="6" fill="#3d2008" stroke="${colour}" stroke-width="2"/>
+          <rect x="10" y="48" width="140" height="28" rx="6" fill="#5a3010" stroke="${colour}" stroke-width="2" id="chest-lid"/>
+          <rect x="60" y="82" width="40" height="22" rx="4" fill="#8a6020" stroke="${colour}" stroke-width="1.5"/>
+          <circle cx="80" cy="93" r="6" fill="${colour}" opacity="0.9"/>
+          <line x1="30" y1="76" x2="130" y2="76" stroke="${colour}" stroke-width="1" opacity="0.4"/>
+        </svg>
+        <div class="chest-glow"></div>
+      </div>
+      <div class="chest-prompt" id="chest-prompt">&#9654; Click to open</div>`;
+    let clicks=0;
+    window.openChest=function(){
+      clicks++;
+      if (clicks===1) {
+        document.getElementById('chest-svg').classList.add('shaking');
+        document.getElementById('chest-prompt').textContent='Keep clicking!';
+      }
+      if (clicks>=3) revealChest();
+    };
+    function revealChest(){
+      document.getElementById('chest-svg').classList.remove('shaking');
+      spawnParticles(colour);
+      claimChest(chest.id,chest).catch(console.error);
+      setTimeout(()=>{
+        const items=chest.items||[];
+        stage.innerHTML=`
+          <div class="reward-reveal">
+            <div class="chest-counter">${num} of ${total}</div>
+            <div class="reward-card">
+              <div class="reward-stats">
+                ${chest.xp  ?`<div><div class="reward-stat-val" style="color:var(--teal-magic)">+${chest.xp} XP</div><div class="reward-stat-lbl">Experience</div></div>`:''}
+                ${chest.gold?`<div><div class="reward-stat-val" style="color:var(--gold-magic)">+${chest.gold} gp</div><div class="reward-stat-lbl">Gold</div></div>`:''}
+              </div>
+              ${items.length?`<div class="reward-items-title">Items Found</div>${items.map(it=>`
+                <div class="reward-item-row">
+                  <span class="rarity-badge r-${(it.rarity||'common').toLowerCase()}" style="font-size:.65rem;">${esc(it.rarity||'Common')}</span>
+                  <span class="reward-item-name">${esc(it.name)}</span>
+                </div>`).join('')}`:''}
+            </div>
+            <button class="btn btn-gold" onclick="window.resolveChest()" style="margin-top:.5rem;">
+              ${num<total?'Next Chest →':'Collect &amp; Continue'}
+            </button>
+          </div>`;
+        window.resolveChest=()=>resolve();
+      },500);
+    }
+  });
+}
+
+function spawnParticles(colour) {
+  const canvas=document.getElementById('chest-particles');
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const cx=canvas.width/2, cy=canvas.height/2;
+  const colours=[colour,'#ffffff','#f0c848','#40d8c8'];
+  const ps=Array.from({length:80},()=>{
+    const a=Math.random()*Math.PI*2, sp=Math.random()*9+3;
+    return{x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-Math.random()*4,
+      size:Math.random()*8+3,colour:colours[Math.floor(Math.random()*colours.length)],life:1,decay:Math.random()*.02+.01};
+  });
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let alive=false;
+    for(const p of ps){p.x+=p.vx;p.y+=p.vy;p.vy+=.2;p.life-=p.decay;
+      if(p.life>0){alive=true;ctx.globalAlpha=p.life;ctx.fillStyle=p.colour;ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();}}
+    ctx.globalAlpha=1;
+    if(alive)requestAnimationFrame(animate);else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  animate();
 }
 
 // ================================================================
