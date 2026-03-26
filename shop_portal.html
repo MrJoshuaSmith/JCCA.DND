@@ -15,25 +15,28 @@
 
 <style>
 :root {
-  --arcane:         #1a0a2e;
-  --arcane-mid:     #2d1054;
-  --arcane-light:   #3d1878;
-  --arcane-border:  #6b3fa0;
-  --void:           #0d0618;
-  --crystal:        #c8a8f8;
-  --crystal-bright: #e8d8ff;
-  --crystal-dim:    #8a68c8;
-  --azure:          #4080d8;
-  --azure-bright:   #80b8ff;
-  --silver:         #d0c8e8;
-  --silver-dim:     #9890b8;
-  --gold-magic:     #f0c848;
-  --gold-dim:       #a88020;
-  --teal-magic:     #40d8c8;
-  --red-sale:       #ff4488;
-  --green-ok:       #60c870;
-  --bg-card:        rgba(29,12,56,0.95);
-  --bg-input:       rgba(13,6,24,0.8);
+  /* D&D dark theme — brown/black base, crimson accents, aged gold */
+  --arcane:         #1a1006;
+  --arcane-mid:     #261a0a;
+  --arcane-light:   #3a2510;
+  --arcane-border:  rgba(180,110,40,.45);
+  --void:           #0e0b09;
+  --crystal:        #e0d8c8;
+  --crystal-bright: #f0e8d8;
+  --crystal-dim:    #b0a898;
+  --azure:          #c8952a;
+  --azure-bright:   #e8b040;
+  --silver:         #e0d8c8;
+  --silver-dim:     #a09080;
+  --gold-magic:     #c8952a;
+  --gold-dim:       #7a5818;
+  --teal-magic:     #c8a050;
+  --red-sale:       #c41e1e;
+  --green-ok:       #5a8a30;
+  --bg-card:        rgba(26,15,8,.97);
+  --bg-input:       rgba(13,8,4,.85);
+  --red:            #c41e1e;
+  --red-d:          #8b1010;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,8 +44,8 @@
 body {
   background: var(--void);
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% 0%, #2d1054 0%, transparent 70%),
-    radial-gradient(ellipse 50% 40% at 10% 90%, #0a1840 0%, transparent 60%);
+    radial-gradient(ellipse 80% 50% at 50% 0%, #1f0f08 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 10% 90%, #180a08 0%, transparent 60%);
   min-height: 100vh;
   font-family: 'Crimson Pro', Georgia, serif;
   color: var(--silver);
@@ -63,7 +66,7 @@ body {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0.7rem 1.5rem;
   background: rgba(13,6,24,0.85);
-  border-bottom: 1px solid rgba(107,63,160,0.35);
+  border-bottom: 1px solid rgba(180,110,40,0.35);
   backdrop-filter: blur(8px);
   position: sticky; top: 0; z-index: 100;
 }
@@ -75,15 +78,15 @@ body {
 .topbar-right { display: flex; align-items: center; gap: 1rem; }
 .char-badge {
   display: flex; align-items: center; gap: 0.6rem;
-  background: rgba(107,63,160,0.18); border: 1px solid rgba(107,63,160,0.4);
+  background: rgba(180,110,40,0.18); border: 1px solid rgba(180,110,40,0.4);
   border-radius: 20px; padding: 0.3rem 0.9rem; cursor: pointer;
   transition: all 0.2s; font-size: 0.85rem;
 }
-.char-badge:hover { background: rgba(107,63,160,0.32); border-color: var(--crystal-dim); }
+.char-badge:hover { background: rgba(180,110,40,0.32); border-color: var(--crystal-dim); }
 .char-name { color: var(--crystal-bright); font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 600; }
 .char-gold { color: var(--gold-magic); font-size: 0.82rem; font-weight: 600; }
 .signout-btn {
-  background: transparent; border: 1px solid rgba(107,63,160,0.4);
+  background: transparent; border: 1px solid rgba(180,110,40,0.4);
   color: var(--silver-dim); font-family: 'Cinzel', serif; font-size: 0.72rem;
   letter-spacing: 0.08em; padding: 0.3rem 0.8rem; border-radius: 4px;
   cursor: pointer; transition: all 0.2s;
@@ -98,14 +101,14 @@ body {
 .nav-tab {
   font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 600;
   letter-spacing: 0.07em; padding: 0.5rem 1.2rem;
-  background: rgba(107,63,160,0.1); border: 1px solid rgba(107,63,160,0.3);
+  background: rgba(180,110,40,0.1); border: 1px solid rgba(180,110,40,0.3);
   color: var(--crystal-dim); border-radius: 4px 4px 0 0; cursor: pointer;
   transition: all 0.2s;
 }
-.nav-tab:hover { background: rgba(107,63,160,0.22); color: var(--crystal); }
+.nav-tab:hover { background: rgba(180,110,40,0.22); color: var(--crystal); }
 .nav-tab.active {
-  background: rgba(29,12,56,0.95); border-color: var(--arcane-border);
-  border-bottom-color: rgba(29,12,56,0.95); color: var(--crystal-bright);
+  background: rgba(26,15,8,0.95); border-color: var(--arcane-border);
+  border-bottom-color: rgba(26,15,8,0.95); color: var(--crystal-bright);
   position: relative; top: 1px;
 }
 .tab-border { border-top: 1px solid var(--arcane-border); margin-top: -1px; margin-bottom: 1.5rem; }
@@ -119,11 +122,11 @@ body {
 }
 .arcane-card::before {
   content: ''; position: absolute; inset: 4px;
-  border: 1px solid rgba(107,63,160,0.15); border-radius: 3px; pointer-events: none;
+  border: 1px solid rgba(180,110,40,0.15); border-radius: 3px; pointer-events: none;
 }
 .section-title {
   font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 600;
-  color: var(--crystal-bright); border-bottom: 1px solid rgba(107,63,160,0.4);
+  color: var(--crystal-bright); border-bottom: 1px solid rgba(180,110,40,0.4);
   padding-bottom: 0.5rem; margin-bottom: 1.2rem;
 }
 
@@ -135,7 +138,7 @@ body {
   text-transform: uppercase;
 }
 .form-input {
-  width: 100%; background: var(--bg-input); border: 1px solid rgba(107,63,160,0.4);
+  width: 100%; background: var(--bg-input); border: 1px solid rgba(180,110,40,0.4);
   border-radius: 4px; padding: 0.6rem 0.9rem; color: var(--crystal-bright);
   font-family: 'Crimson Pro', serif; font-size: 1rem;
   transition: border-color 0.2s; outline: none;
@@ -154,10 +157,10 @@ body {
   cursor: pointer; transition: all 0.2s; border: 1px solid;
 }
 .btn-primary {
-  background: rgba(107,63,160,0.3); border-color: var(--arcane-border);
+  background: rgba(180,110,40,0.3); border-color: var(--arcane-border);
   color: var(--crystal-bright);
 }
-.btn-primary:hover { background: rgba(107,63,160,0.5); border-color: var(--crystal-dim); }
+.btn-primary:hover { background: rgba(180,110,40,0.5); border-color: var(--crystal-dim); }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-gold {
   background: rgba(240,200,72,0.15); border-color: var(--gold-dim);
@@ -185,7 +188,7 @@ body {
 }
 .auth-card::before {
   content: ''; position: absolute; inset: 5px;
-  border: 1px solid rgba(107,63,160,0.18); border-radius: 5px; pointer-events: none;
+  border: 1px solid rgba(180,110,40,0.18); border-radius: 5px; pointer-events: none;
 }
 .auth-logo {
   text-align: center; margin-bottom: 1.8rem;
@@ -204,31 +207,31 @@ body {
   font-family: 'Cinzel', serif;
 }
 .auth-divider::before, .auth-divider::after {
-  content: ''; flex: 1; height: 1px; background: rgba(107,63,160,0.3);
+  content: ''; flex: 1; height: 1px; background: rgba(180,110,40,0.3);
 }
 
 /* Login button */
 .login-btn {
-  width: 100%; background: rgba(107,63,160,0.25); border: 1px solid var(--arcane-border);
+  width: 100%; background: rgba(180,110,40,0.25); border: 1px solid var(--arcane-border);
   color: var(--crystal-bright); font-family: 'Cinzel', serif; font-size: 0.82rem;
   font-weight: 600; letter-spacing: 0.1em; padding: 0.75rem 1rem;
   border-radius: 4px; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;
 }
-.login-btn:hover { background: rgba(107,63,160,0.45); border-color: var(--crystal-dim); }
+.login-btn:hover { background: rgba(180,110,40,0.45); border-color: var(--crystal-dim); }
 .login-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* Change password form */
-.change-pw-wrap { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(107,63,160,0.25); }
+.change-pw-wrap { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(180,110,40,0.25); }
 
 /* ── SHOP GRID ── */
 .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
 .shop-item-card {
-  background: rgba(13,6,24,0.7); border: 1px solid rgba(107,63,160,0.3);
+  background: rgba(13,6,24,0.7); border: 1px solid rgba(180,110,40,0.3);
   border-radius: 6px; padding: 1.1rem 1.2rem;
   transition: border-color 0.2s, box-shadow 0.2s;
   display: flex; flex-direction: column;
 }
-.shop-item-card:hover { border-color: var(--arcane-border); box-shadow: 0 0 14px rgba(107,63,160,0.15); }
+.shop-item-card:hover { border-color: var(--arcane-border); box-shadow: 0 0 14px rgba(180,110,40,0.15); }
 .shop-item-card.deal-card { border-color: rgba(255,68,136,0.4); }
 .shop-item-card.deal-card:hover { border-color: var(--red-sale); box-shadow: 0 0 14px rgba(255,68,136,0.2); }
 .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem; }
@@ -260,20 +263,20 @@ body {
 .inv-tab {
   font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 600;
   letter-spacing: 0.07em; padding: 0.35rem 0.9rem;
-  background: transparent; border: 1px solid rgba(107,63,160,0.3);
+  background: transparent; border: 1px solid rgba(180,110,40,0.3);
   color: var(--crystal-dim); border-radius: 4px; cursor: pointer; transition: all 0.2s;
 }
 .inv-tab:hover { border-color: var(--crystal-dim); color: var(--crystal); }
-.inv-tab.active { background: rgba(107,63,160,0.25); border-color: var(--crystal-dim); color: var(--crystal-bright); }
+.inv-tab.active { background: rgba(180,110,40,0.25); border-color: var(--crystal-dim); color: var(--crystal-bright); }
 .inv-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 .inv-table th {
   font-family: 'Cinzel', serif; font-size: 0.68rem; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--crystal-dim);
-  background: rgba(107,63,160,0.12); padding: 0.5rem 0.8rem;
-  border-bottom: 1px solid rgba(107,63,160,0.3); text-align: left;
+  background: rgba(180,110,40,0.12); padding: 0.5rem 0.8rem;
+  border-bottom: 1px solid rgba(180,110,40,0.3); text-align: left;
 }
-.inv-table td { padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(107,63,160,0.1); color: var(--silver); }
-.inv-table tr:hover td { background: rgba(107,63,160,0.08); }
+.inv-table td { padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(180,110,40,0.1); color: var(--silver); }
+.inv-table tr:hover td { background: rgba(180,110,40,0.08); }
 .inv-empty { text-align: center; padding: 2rem; color: var(--silver-dim); font-style: italic; font-size: 0.9rem; }
 
 /* ── MODALS ── */
@@ -291,7 +294,7 @@ body {
 .modal-title {
   font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600;
   color: var(--crystal-bright); margin-bottom: 1.2rem;
-  border-bottom: 1px solid rgba(107,63,160,0.3); padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(180,110,40,0.3); padding-bottom: 0.5rem;
 }
 .modal-close {
   position: absolute; top: 1rem; right: 1rem;
@@ -301,11 +304,11 @@ body {
 .modal-close:hover { color: var(--crystal); }
 .char-list-item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0.7rem 0.9rem; border: 1px solid rgba(107,63,160,0.25);
+  padding: 0.7rem 0.9rem; border: 1px solid rgba(180,110,40,0.25);
   border-radius: 5px; margin-bottom: 0.5rem; cursor: pointer;
   transition: all 0.2s; background: rgba(13,6,24,0.5);
 }
-.char-list-item:hover { border-color: var(--arcane-border); background: rgba(107,63,160,0.12); }
+.char-list-item:hover { border-color: var(--arcane-border); background: rgba(180,110,40,0.12); }
 .char-list-item.active-char { border-color: var(--teal-magic); background: rgba(64,216,200,0.07); }
 .char-list-name { font-family: 'Cinzel', serif; font-size: 0.88rem; color: var(--crystal-bright); }
 .char-list-sub { font-size: 0.78rem; color: var(--silver-dim); margin-top: 0.1rem; }
@@ -330,7 +333,7 @@ body {
 
 /* ── SPINNER ── */
 .spinner {
-  width: 32px; height: 32px; border: 2px solid rgba(107,63,160,0.3);
+  width: 32px; height: 32px; border: 2px solid rgba(180,110,40,0.3);
   border-top-color: var(--crystal-dim); border-radius: 50%;
   animation: spin 0.8s linear infinite; margin: 2rem auto;
 }
@@ -338,7 +341,7 @@ body {
 .loading-text { text-align: center; color: var(--silver-dim); font-style: italic; font-size: 0.9rem; margin-top: 0.5rem; }
 
 /* ── MISC ── */
-.ornament { text-align: center; color: rgba(107,63,160,0.4); letter-spacing: 0.5em; margin: 1.5rem 0 0.5rem; font-size: 0.9rem; }
+.ornament { text-align: center; color: rgba(180,110,40,0.4); letter-spacing: 0.5em; margin: 1.5rem 0 0.5rem; font-size: 0.9rem; }
 .pending-notice {
   background: rgba(240,200,72,0.08); border: 1px solid rgba(240,200,72,0.3);
   border-radius: 5px; padding: 0.8rem 1.1rem; font-size: 0.88rem;
@@ -364,7 +367,7 @@ body {
 }
 .wizard-card::before {
   content: ''; position: absolute; inset: 5px;
-  border: 1px solid rgba(107,63,160,0.18); border-radius: 5px; pointer-events: none;
+  border: 1px solid rgba(180,110,40,0.18); border-radius: 5px; pointer-events: none;
 }
 .wizard-step { display: none; }
 .wizard-step.active { display: block; }
@@ -374,11 +377,11 @@ body {
 .wizard-dot {
   width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center;
   justify-content: center; font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 600;
-  border: 1px solid rgba(107,63,160,0.4); color: var(--silver-dim); transition: all 0.3s;
+  border: 1px solid rgba(180,110,40,0.4); color: var(--silver-dim); transition: all 0.3s;
 }
-.wizard-dot.active { background: rgba(107,63,160,0.35); border-color: var(--crystal-dim); color: var(--crystal-bright); }
+.wizard-dot.active { background: rgba(180,110,40,0.35); border-color: var(--crystal-dim); color: var(--crystal-bright); }
 .wizard-dot.done   { background: rgba(64,216,200,0.2); border-color: var(--teal-magic); color: var(--teal-magic); }
-.wizard-line { flex: 1; height: 1px; background: rgba(107,63,160,0.25); }
+.wizard-line { flex: 1; height: 1px; background: rgba(180,110,40,0.25); }
 .wizard-title {
   font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 600;
   color: var(--crystal-bright); margin-bottom: 0.4rem;
@@ -389,24 +392,24 @@ body {
   margin-bottom: 1.2rem;
 }
 .class-btn {
-  background: rgba(13,6,24,0.6); border: 1px solid rgba(107,63,160,0.3);
+  background: rgba(13,6,24,0.6); border: 1px solid rgba(180,110,40,0.3);
   border-radius: 5px; padding: 0.7rem 0.5rem; cursor: pointer; transition: all 0.2s;
   text-align: center;
 }
-.class-btn:hover { border-color: var(--arcane-border); background: rgba(107,63,160,0.15); }
-.class-btn.selected { border-color: var(--crystal-dim); background: rgba(107,63,160,0.3); }
+.class-btn:hover { border-color: var(--arcane-border); background: rgba(180,110,40,0.15); }
+.class-btn.selected { border-color: var(--crystal-dim); background: rgba(180,110,40,0.3); }
 .class-btn-name { font-family: 'Cinzel', serif; font-size: 0.72rem; font-weight: 600; color: var(--crystal-bright); }
 .class-btn-gold { font-size: 0.68rem; color: var(--gold-magic); margin-top: 0.2rem; }
 .equip-option {
-  border: 1px solid rgba(107,63,160,0.3); border-radius: 6px; padding: 1rem 1.2rem;
+  border: 1px solid rgba(180,110,40,0.3); border-radius: 6px; padding: 1rem 1.2rem;
   cursor: pointer; transition: all 0.2s; margin-bottom: 0.8rem; background: rgba(13,6,24,0.5);
 }
 .equip-option:hover { border-color: var(--arcane-border); }
-.equip-option.selected { border-color: var(--crystal-dim); background: rgba(107,63,160,0.2); }
+.equip-option.selected { border-color: var(--crystal-dim); background: rgba(180,110,40,0.2); }
 .equip-option-title { font-family: 'Cinzel', serif; font-size: 0.85rem; font-weight: 600; color: var(--crystal-bright); margin-bottom: 0.3rem; }
 .equip-option-desc { font-size: 0.82rem; color: var(--silver-dim); line-height: 1.55; }
 .recommended-tag { font-family: 'Cinzel', serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.1em; padding: 2px 7px; border-radius: 3px; border: 1px solid var(--teal-magic); color: var(--teal-magic); margin-left: 0.5rem; }
-.item-pill { display: inline-block; background: rgba(107,63,160,0.15); border: 1px solid rgba(107,63,160,0.3); border-radius: 3px; padding: 2px 7px; font-size: 0.72rem; color: var(--crystal); margin: 2px; }
+.item-pill { display: inline-block; background: rgba(180,110,40,0.15); border: 1px solid rgba(180,110,40,0.3); border-radius: 3px; padding: 2px 7px; font-size: 0.72rem; color: var(--crystal); margin: 2px; }
 
 /* ── CHEST CLAIM OVERLAY ── */
 #chest-overlay {
@@ -448,9 +451,73 @@ body {
 .reward-stat-val { font-size: 1.4rem; font-weight: 600; }
 .reward-stat-lbl { font-size: 0.65rem; letter-spacing: 0.1em; color: var(--silver-dim); text-transform: uppercase; }
 .reward-items-title { font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 0.1em; color: var(--crystal-dim); text-transform: uppercase; margin-bottom: 0.6rem; }
-.reward-item-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; border-bottom: 1px solid rgba(107,63,160,0.12); }
+.reward-item-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; border-bottom: 1px solid rgba(180,110,40,0.12); }
 .reward-item-row:last-child { border-bottom: none; }
 .reward-item-name { font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--crystal-bright); }
+
+/* ════════════════════════════════════════════════════════
+   D&D DARK RED/BROWN THEME OVERRIDE
+   Replaces arcane purple with the site-wide dark theme
+════════════════════════════════════════════════════════ */
+:root {
+  --arcane:#0e0b09; --arcane-mid:#1a1208; --arcane-light:#261a10;
+  --arcane-border:rgba(196,30,30,.45); --arcane-glow:rgba(196,30,30,.15);
+  --void:#070503;
+  --crystal:#e0d8c8; --crystal-bright:#f0e8d8; --crystal-dim:#b0a898;
+  --azure:#c8952a; --azure-bright:#e8b040;
+  --silver:#e0d8c8; --silver-dim:#786858;
+  --gold-magic:#c8952a; --gold-dim:#7a5818;
+  --teal-magic:#c8952a;
+  --red-sale:#c41e1e; --red-sale-dim:#8b1010;
+  --bg-card:rgba(28,18,10,.92); --bg-input:rgba(13,7,3,.7);
+  --tab-active-bg:rgba(196,30,30,.18); --tab-active-border:rgba(196,30,30,.5);
+  --tab-hover:rgba(196,30,30,.1);
+  --green:#5a9a40; --red:#c41e1e;
+}
+body {
+  background:#0e0b09 !important;
+  background-image:
+    radial-gradient(ellipse 70% 40% at 50% 0%,#1f0f08,transparent 70%),
+    radial-gradient(ellipse 40% 30% at 90% 100%,#180a08,transparent 60%) !important;
+}
+.page{position:relative;z-index:1;}
+.topbar{
+  background:rgba(14,9,4,.92) !important;
+  border-bottom:2px solid rgba(180,110,40,.22) !important;
+}
+.topbar-brand,.topbar-brand span{color:#e0d8c8 !important;}
+.topbar-brand span{color:#c41e1e !important;}
+.nav-tab{background:rgba(180,110,40,.07)!important;border-color:rgba(180,110,40,.22)!important;color:#b0a898!important;}
+.nav-tab:hover{background:rgba(196,30,30,.12)!important;border-color:rgba(196,30,30,.35)!important;color:#e0d8c8!important;}
+.nav-tab.active{background:rgba(196,30,30,.2)!important;border-color:rgba(196,30,30,.6)!important;color:#f0e8d8!important;}
+.arcane-card{background:rgba(28,18,10,.88)!important;border-color:rgba(180,110,40,.2)!important;}
+.section-title{color:#c8952a!important;border-color:rgba(180,110,40,.3)!important;}
+.btn.btn-primary,.signout-btn{background:rgba(196,30,30,.18)!important;border-color:rgba(196,30,30,.45)!important;color:#e0d8c8!important;}
+.btn.btn-primary:hover,.signout-btn:hover{background:rgba(196,30,30,.32)!important;}
+.btn.btn-gold{background:rgba(180,110,40,.18)!important;border-color:rgba(180,110,40,.45)!important;color:#c8952a!important;}
+.btn.btn-gold:hover{background:rgba(180,110,40,.3)!important;}
+.char-badge{background:rgba(196,30,30,.12)!important;border-color:rgba(196,30,30,.35)!important;}
+/* Stars → embers */
+.star{background:rgba(200,149,42,.7)!important;}
+/* Wizard */
+.wizard-card{background:rgba(26,15,8,.95)!important;border-color:rgba(180,110,40,.3)!important;}
+.wizard-dot{border-color:rgba(196,30,30,.4)!important;color:#786858!important;}
+.wizard-dot.active{background:rgba(196,30,30,.25)!important;border-color:rgba(196,30,30,.7)!important;color:#f0e8d8!important;}
+.wizard-dot.done{background:rgba(180,110,40,.2)!important;border-color:rgba(180,110,40,.6)!important;color:#c8952a!important;}
+.wizard-line{background:rgba(180,110,40,.2)!important;}
+.wizard-title{color:#e0d8c8!important;}
+.class-btn{background:rgba(180,110,40,.07)!important;border-color:rgba(180,110,40,.22)!important;}
+.class-btn:hover,.class-btn.selected{background:rgba(196,30,30,.18)!important;border-color:rgba(196,30,30,.6)!important;}
+.class-btn-name{color:#e0d8c8!important;}
+.class-btn-gold{color:#c8952a!important;}
+.form-input{background:rgba(13,7,3,.7)!important;border-color:rgba(180,110,40,.35)!important;color:#e0d8c8!important;}
+.form-input:focus{border-color:rgba(180,110,40,.7)!important;}
+.form-label{color:#b0a898!important;}
+/* Inventory */
+.inv-table thead th{background:rgba(180,110,40,.1)!important;color:#c8952a!important;border-color:rgba(180,110,40,.25)!important;}
+.inv-table tbody tr:hover{background:rgba(196,30,30,.05)!important;}
+/* Modal */
+.modal-overlay .modal-box{background:#1a1208!important;border-color:rgba(180,110,40,.4)!important;}
 </style>
 </head>
 <body>
@@ -506,7 +573,8 @@ body {
 <!-- SCREEN: Character Creation Wizard -->
 <div id="screen-char-create" class="wizard-wrap" style="display:none">
   <div class="wizard-card">
-    <div class="wizard-progress">
+    <!-- Progress dots (8 steps) -->
+    <div class="wizard-progress" id="wizard-progress">
       <div class="wizard-dot active" id="wd-1">1</div>
       <div class="wizard-line"></div>
       <div class="wizard-dot" id="wd-2">2</div>
@@ -514,78 +582,179 @@ body {
       <div class="wizard-dot" id="wd-3">3</div>
       <div class="wizard-line"></div>
       <div class="wizard-dot" id="wd-4">4</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-5">5</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-6">6</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-7">7</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-8">8</div>
     </div>
 
     <!-- Step 1: Class -->
     <div class="wizard-step active" id="wstep-1">
       <div class="wizard-title">Choose Your Class</div>
-      <div class="wizard-sub">Your class determines your abilities, starting equipment, and role in the party.</div>
+      <div class="wizard-sub">Your class defines your role, abilities, and starting equipment.</div>
       <div class="class-grid" id="class-grid"></div>
-      <p class="form-error" id="w1-err" style="display:none; margin-bottom:0.6rem;"></p>
-      <button class="btn btn-primary btn-block" onclick="wizardNext(1)">Continue →</button>
+      <div class="form-group" style="margin-top:1rem;">
+        <label class="form-label">Character Name</label>
+        <input class="form-input" id="w-charname" type="text" maxlength="40" placeholder="e.g. Lyra Shadowstep">
+        <p class="form-hint">The name other players will see.</p>
+      </div>
+      <p class="form-error" id="w1-err" style="display:none;margin-bottom:.6rem;"></p>
+      <button class="btn btn-gold btn-block" onclick="wizardNext(1)">Continue →</button>
     </div>
 
-    <!-- Step 2: Race & Background -->
+    <!-- Step 2: Race -->
     <div class="wizard-step" id="wstep-2">
-      <div class="wizard-title">Race &amp; Background</div>
-      <div class="wizard-sub">Your heritage and history shape who you are before your adventure begins.</div>
+      <div class="wizard-title">Choose Your Race</div>
+      <div class="wizard-sub">In 2024 rules, races no longer grant ability score bonuses — those come from your background. Your race determines your size, speed, and special traits.</div>
       <div class="form-group">
         <label class="form-label">Race</label>
         <select class="form-input" id="w-race"></select>
       </div>
-      <div class="form-group">
-        <label class="form-label">Background</label>
-        <select class="form-input" id="w-background"></select>
-        <p class="form-hint" id="bg-gold-hint"></p>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Character Name</label>
-        <input class="form-input" id="w-charname" type="text" maxlength="40" placeholder="e.g. Lyra Shadowstep">
-        <p class="form-hint">This is the name other players will see.</p>
-      </div>
-      <p class="form-error" id="w2-err" style="display:none; margin-bottom:0.6rem;"></p>
-      <div style="display:flex;gap:0.6rem;">
+      <p class="form-error" id="w2-err" style="display:none;margin-bottom:.6rem;"></p>
+      <div style="display:flex;gap:.6rem;">
         <button class="btn btn-primary" onclick="wizardBack(2)">← Back</button>
         <button class="btn btn-gold btn-block" onclick="wizardNext(2)">Continue →</button>
       </div>
     </div>
 
-    <!-- Step 3: Equipment choice -->
+    <!-- Step 3: Background + ASI -->
     <div class="wizard-step" id="wstep-3">
-      <div class="wizard-title">Starting Equipment</div>
-      <div class="wizard-sub">Choose how you equip your character for their first adventure.</div>
-
-      <div class="equip-option" id="equip-opt-package" onclick="selectEquip('package')">
-        <div class="equip-option-title">
-          Class Equipment Package
-          <span class="recommended-tag">RECOMMENDED</span>
+      <div class="wizard-title">Choose Your Background</div>
+      <div class="wizard-sub">Your background grants +2 to one ability score and +1 to another (2024 PHB rules), plus two skill proficiencies and an Origin Feat.</div>
+      <div class="form-group">
+        <label class="form-label">Background</label>
+        <select class="form-input" id="w-background" onchange="onBackgroundChange()"></select>
+      </div>
+      <!-- Custom ASI pickers (shown only for Custom background) -->
+      <div id="custom-asi-wrap" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem;">
+          <div class="form-group">
+            <label class="form-label">+2 to which stat?</label>
+            <select class="form-input" id="custom-asi2" onchange="onCustomAsiChange()">
+              <option value="">Choose…</option>
+              <option value="str">Strength</option><option value="dex">Dexterity</option>
+              <option value="con">Constitution</option><option value="int">Intelligence</option>
+              <option value="wis">Wisdom</option><option value="cha">Charisma</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">+1 to which stat?</label>
+            <select class="form-input" id="custom-asi1" onchange="onCustomAsiChange()">
+              <option value="">Choose…</option>
+              <option value="str">Strength</option><option value="dex">Dexterity</option>
+              <option value="con">Constitution</option><option value="int">Intelligence</option>
+              <option value="wis">Wisdom</option><option value="cha">Charisma</option>
+            </select>
+          </div>
         </div>
-        <div class="equip-option-desc" id="equip-package-desc">Loading items...</div>
       </div>
-
-      <div class="equip-option" id="equip-opt-gold" onclick="selectEquip('gold')">
-        <div class="equip-option-title">Starting Gold</div>
-        <div class="equip-option-desc" id="equip-gold-desc">Loading...</div>
-      </div>
-
-      <p class="form-error" id="w3-err" style="display:none; margin-bottom:0.6rem;"></p>
-      <div style="display:flex;gap:0.6rem;margin-top:0.4rem;">
+      <!-- ASI preview -->
+      <div id="bg-asi-preview" style="background:rgba(180,110,40,.08);border:1px solid rgba(180,110,40,.25);border-radius:5px;padding:.7rem 1rem;font-size:.85rem;color:var(--crystal-dim);margin-bottom:.8rem;display:none;"></div>
+      <p class="form-error" id="w3-err" style="display:none;margin-bottom:.6rem;"></p>
+      <div style="display:flex;gap:.6rem;">
         <button class="btn btn-primary" onclick="wizardBack(3)">← Back</button>
         <button class="btn btn-gold btn-block" onclick="wizardNext(3)">Continue →</button>
       </div>
     </div>
 
-    <!-- Step 4: Review & Confirm -->
+    <!-- Step 4: Point Buy Stats -->
     <div class="wizard-step" id="wstep-4">
+      <div class="wizard-title">Set Ability Scores</div>
+      <div class="wizard-sub">Spend exactly 27 points. Base scores range from 8–15. Stats are non-linear: raising above 13 costs 2 points per step. Your background bonuses are shown below each stat.</div>
+      <!-- Stat cards -->
+      <div id="stat-buy-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-bottom:1rem;"></div>
+      <!-- Points remaining -->
+      <div style="text-align:center;margin-bottom:1rem;">
+        <span style="font-family:'Cinzel',serif;font-size:.75rem;letter-spacing:.12em;color:var(--silver-dim);">POINTS REMAINING</span><br>
+        <span id="pb-remaining" style="font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-magic);">27</span>
+      </div>
+      <p class="form-error" id="w4-err" style="display:none;margin-bottom:.6rem;"></p>
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn btn-primary" onclick="wizardBack(4)">← Back</button>
+        <button class="btn btn-gold btn-block" id="btn-w4-next" onclick="wizardNext(4)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Skills & Origin Feat -->
+    <div class="wizard-step" id="wstep-5">
+      <div class="wizard-title">Skills &amp; Origin Feat</div>
+      <div class="wizard-sub">Choose your class skill proficiencies and an Origin Feat from your background. Background skill proficiencies are already included.</div>
+      <div class="form-group">
+        <label class="form-label">Class Skill Proficiencies (<span id="skills-count-label">choose 2</span>)</label>
+        <div id="skill-pick-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:.35rem;margin-bottom:.5rem;font-size:.88rem;"></div>
+        <p id="skill-bg-note" style="font-size:.76rem;color:var(--silver-dim);font-style:italic;margin-top:.3rem;"></p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Origin Feat</label>
+        <select class="form-input" id="w-feat">
+          <option value="">— Choose an Origin Feat —</option>
+          <option value="Alert">Alert — +5 initiative, can't be surprised</option>
+          <option value="Crafter">Crafter — proficiency with 3 artisan tools</option>
+          <option value="Lucky">Lucky — 3 luck points per day to reroll</option>
+          <option value="Magic Initiate (Cleric)">Magic Initiate (Cleric) — 2 cleric cantrips + 1 1st-level spell</option>
+          <option value="Magic Initiate (Druid)">Magic Initiate (Druid) — 2 druid cantrips + 1 1st-level spell</option>
+          <option value="Magic Initiate (Wizard)">Magic Initiate (Wizard) — 2 wizard cantrips + 1 1st-level spell</option>
+          <option value="Musician">Musician — proficiency with 3 instruments + Inspiring Song</option>
+          <option value="Savage Attacker">Savage Attacker — reroll weapon damage once per turn</option>
+          <option value="Skilled">Skilled — proficiency in any 3 skills or tools</option>
+          <option value="Tavern Brawler">Tavern Brawler — proficiency with improvised weapons, d4 unarmed</option>
+          <option value="Tough">Tough — +2 HP per level</option>
+        </select>
+      </div>
+      <p class="form-error" id="w5-err" style="display:none;margin-bottom:.6rem;"></p>
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn btn-primary" onclick="wizardBack(5)">← Back</button>
+        <button class="btn btn-gold btn-block" onclick="wizardNext(5)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 6: Spells (placeholder) -->
+    <div class="wizard-step" id="wstep-6">
+      <div class="wizard-title">Spell Selection</div>
+      <div class="wizard-sub">Coming soon — spell selection will be available in a future update. If your class uses spells, work with your DM to choose your starting spells.</div>
+      <div style="background:rgba(180,110,40,.07);border:1px solid rgba(180,110,40,.22);border-radius:5px;padding:1.2rem;text-align:center;margin-bottom:1rem;">
+        <div style="font-size:2rem;margin-bottom:.5rem;">📜</div>
+        <div style="font-family:'Cinzel',serif;font-size:.85rem;color:var(--crystal-dim);letter-spacing:.06em;">SPELL SELECTION — COMING SOON</div>
+        <div style="font-size:.82rem;color:var(--silver-dim);margin-top:.4rem;">Your spells will be logged in your character sheet once this feature is available.</div>
+      </div>
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn btn-primary" onclick="wizardBack(6)">← Back</button>
+        <button class="btn btn-gold btn-block" onclick="wizardNext(6)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 7: Equipment -->
+    <div class="wizard-step" id="wstep-7">
+      <div class="wizard-title">Starting Equipment</div>
+      <div class="wizard-sub">Choose how you equip your character for their first adventure.</div>
+      <div class="equip-option" id="equip-opt-package" onclick="selectEquip('package')">
+        <div class="equip-option-title">Class Equipment Package <span class="recommended-tag">RECOMMENDED</span></div>
+        <div class="equip-option-desc" id="equip-package-desc">Loading items...</div>
+      </div>
+      <div class="equip-option" id="equip-opt-gold" onclick="selectEquip('gold')">
+        <div class="equip-option-title">Starting Gold</div>
+        <div class="equip-option-desc" id="equip-gold-desc">Loading...</div>
+      </div>
+      <p class="form-error" id="w7-err" style="display:none;margin-bottom:.6rem;"></p>
+      <div style="display:flex;gap:.6rem;margin-top:.4rem;">
+        <button class="btn btn-primary" onclick="wizardBack(7)">← Back</button>
+        <button class="btn btn-gold btn-block" onclick="wizardNext(7)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 8: Review -->
+    <div class="wizard-step" id="wstep-8">
       <div class="wizard-title">Ready to Begin?</div>
       <div class="wizard-sub">Review your character before entering the Emporium.</div>
-      <div id="wizard-review" style="background:rgba(107,63,160,0.1);border:1px solid rgba(107,63,160,0.3);border-radius:6px;padding:1.2rem;margin-bottom:1.2rem;"></div>
-      <p class="form-error" id="w4-err" style="display:none; margin-bottom:0.6rem;"></p>
-      <div style="display:flex;gap:0.6rem;">
-        <button class="btn btn-primary" onclick="wizardBack(4)">← Back</button>
-        <button class="btn btn-gold btn-block" id="btn-create-char" onclick="createCharacter()">
-          Create Character &amp; Enter
-        </button>
+      <div id="wizard-review" style="background:rgba(180,110,40,.07);border:1px solid rgba(180,110,40,.25);border-radius:6px;padding:1.2rem;margin-bottom:1.2rem;"></div>
+      <p class="form-error" id="w8-err" style="display:none;margin-bottom:.6rem;"></p>
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn btn-primary" onclick="wizardBack(8)">← Back</button>
+        <button class="btn btn-gold btn-block" id="btn-create-char" onclick="createCharacter()">Create Character &amp; Enter</button>
       </div>
     </div>
   </div>
@@ -603,10 +772,10 @@ body {
 
     <!-- TOP BAR -->
     <div class="topbar">
-      <div class="topbar-brand">Mr. <span>Smith's</span> Magical Emporium</div>
+      <div class="topbar-brand" style="display:flex;align-items:center;gap:.5rem;"><span style="color:var(--red-sale);">⚔</span> <span>Player Portal</span></div>
       <div class="topbar-right">
-        <a href="index.html" style="font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.07em;color:var(--silver-dim);text-decoration:none;border:1px solid rgba(107,63,160,.25);padding:.3rem .7rem;border-radius:4px;transition:all .2s;white-space:nowrap;" onmouseover="this.style.color='var(--crystal)';this.style.borderColor='var(--arcane-border)'" onmouseout="this.style.color='var(--silver-dim)';this.style.borderColor='rgba(107,63,160,.25)'">&#8962; Home</a>
-        <a href="noticeboard.html" style="font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.07em;color:var(--silver-dim);text-decoration:none;border:1px solid rgba(107,63,160,.25);padding:.3rem .7rem;border-radius:4px;transition:all .2s;white-space:nowrap;" onmouseover="this.style.color='var(--crystal)';this.style.borderColor='var(--arcane-border)'" onmouseout="this.style.color='var(--silver-dim)';this.style.borderColor='rgba(107,63,160,.25)'">&#128196; Quest Board</a>
+        <a href="index.html" style="font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.07em;color:var(--silver-dim);text-decoration:none;border:1px solid rgba(180,110,40,.25);padding:.3rem .7rem;border-radius:4px;transition:all .2s;white-space:nowrap;" onmouseover="this.style.color='var(--crystal)';this.style.borderColor='var(--arcane-border)'" onmouseout="this.style.color='var(--silver-dim)';this.style.borderColor='rgba(180,110,40,.25)'">&#8962; Home</a>
+        <a href="noticeboard.html" style="font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.07em;color:var(--silver-dim);text-decoration:none;border:1px solid rgba(180,110,40,.25);padding:.3rem .7rem;border-radius:4px;transition:all .2s;white-space:nowrap;" onmouseover="this.style.color='var(--crystal)';this.style.borderColor='var(--arcane-border)'" onmouseout="this.style.color='var(--silver-dim)';this.style.borderColor='rgba(180,110,40,.25)'">&#128196; Quest Board</a>
         <div class="char-badge" onclick="openCharModal()">
           <span style="font-size:14px;">&#9881;</span>
           <span class="char-name" id="tb-charname">Loading...</span>
@@ -1358,7 +1527,7 @@ function openBuyModal(itemJSON) {
   const newGold   = gold - price;
 
   document.getElementById('modal-buy-content').innerHTML = `
-    <div style="background:rgba(107,63,160,0.1);border:1px solid rgba(107,63,160,0.3);border-radius:5px;padding:1rem;margin-bottom:1rem;">
+    <div style="background:rgba(180,110,40,0.1);border:1px solid rgba(180,110,40,0.3);border-radius:5px;padding:1rem;margin-bottom:1rem;">
       <p style="font-family:'Cinzel',serif;font-size:1rem;color:var(--crystal-bright);margin-bottom:.4rem;">${esc(item.itemName)}</p>
       <p style="font-size:.85rem;color:var(--silver-dim);">${esc(item.description || '')}</p>
     </div>
@@ -1367,7 +1536,7 @@ function openBuyModal(itemJSON) {
           <td style="text-align:right;color:var(--gold-magic);font-family:'Cinzel',serif;font-weight:600;">${price} gp</td></tr>
       <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Your gold</td>
           <td style="text-align:right;color:var(--crystal-bright);">${gold} gp</td></tr>
-      <tr style="border-top:1px solid rgba(107,63,160,.3);">
+      <tr style="border-top:1px solid rgba(180,110,40,.3);">
           <td style="color:var(--silver-dim);padding:.4rem 0;">After purchase</td>
           <td style="text-align:right;color:${canAfford?'var(--teal-magic)':'var(--red-sale)'};">
             ${canAfford ? Math.max(0, newGold) + ' gp' : 'Not enough gold'}</td></tr>
@@ -1557,7 +1726,7 @@ function openSellModal(itemJSON) {
     <table style="width:100%;font-size:.9rem;">
       <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Your gold</td>
           <td style="text-align:right;color:var(--crystal-bright);">${gold} gp</td></tr>
-      <tr style="border-top:1px solid rgba(107,63,160,.3);">
+      <tr style="border-top:1px solid rgba(180,110,40,.3);">
           <td style="color:var(--silver-dim);padding:.4rem 0;">After sale</td>
           <td style="text-align:right;color:var(--teal-magic);">${newGold} gp ${capped?'<span style="font-size:.75rem;color:var(--gold-magic)">(capped at 1,000)</span>':''}</td></tr>
     </table>
@@ -1889,98 +2058,137 @@ function makeStars() {
 const DND5E = {
   classes: ['Barbarian','Bard','Cleric','Druid','Fighter','Monk','Paladin','Ranger','Rogue','Sorcerer','Warlock','Wizard'],
 
-  // Races from PHB 2014+2024, Xanathar's, Tasha's, Mordenkainen's, MMotM, and supplements
-  // Latest rules used where PHB 2014 and 2024 conflict. No duplicates.
+  backgrounds: [
+    { name:'Acolyte',     asi:{ wis:2, int:1 }, skills:['Insight','Religion'],           feat:'Magic Initiate (Cleric)' },
+    { name:'Artisan',     asi:{ str:2, dex:1 }, skills:['History','Persuasion'],          feat:'Crafter' },
+    { name:'Charlatan',   asi:{ cha:2, dex:1 }, skills:['Deception','Sleight of Hand'],   feat:'Skilled' },
+    { name:'Criminal',    asi:{ dex:2, int:1 }, skills:['Sleight of Hand','Stealth'],     feat:'Alert' },
+    { name:'Entertainer', asi:{ cha:2, dex:1 }, skills:['Acrobatics','Performance'],      feat:'Musician' },
+    { name:'Farmer',      asi:{ con:2, wis:1 }, skills:['Animal Handling','Nature'],      feat:'Tough' },
+    { name:'Guard',       asi:{ str:2, con:1 }, skills:['Athletics','Perception'],        feat:'Alert' },
+    { name:'Guide',       asi:{ wis:2, dex:1 }, skills:['Stealth','Survival'],            feat:'Magic Initiate (Druid)' },
+    { name:'Hermit',      asi:{ con:2, wis:1 }, skills:['Medicine','Religion'],           feat:'Magic Initiate (Druid)' },
+    { name:'Merchant',    asi:{ cha:2, int:1 }, skills:['Animal Handling','Persuasion'],  feat:'Lucky' },
+    { name:'Noble',       asi:{ cha:2, wis:1 }, skills:['History','Persuasion'],          feat:'Skilled' },
+    { name:'Sage',        asi:{ int:2, wis:1 }, skills:['Arcana','History'],              feat:'Magic Initiate (Wizard)' },
+    { name:'Sailor',      asi:{ str:2, dex:1 }, skills:['Acrobatics','Perception'],       feat:'Tavern Brawler' },
+    { name:'Scribe',      asi:{ int:2, dex:1 }, skills:['Investigation','Perception'],    feat:'Skilled' },
+    { name:'Soldier',     asi:{ str:2, con:1 }, skills:['Athletics','Intimidation'],      feat:'Savage Attacker' },
+    { name:'Wayfarer',    asi:{ dex:2, wis:1 }, skills:['Insight','Stealth'],             feat:'Lucky' },
+    { name:'Custom',      asi:null,              skills:[],                               feat:null },
+  ],
+
   races: [
-    // ── PHB Core ──
     'Dragonborn','Dwarf (Hill)','Dwarf (Mountain)','Elf (High)','Elf (Wood)',
     'Gnome (Forest)','Gnome (Rock)','Half-Elf','Half-Orc',
     'Halfling (Lightfoot)','Halfling (Stout)','Human','Tiefling',
-    // ── PHB 2024 additions ──
     'Aasimar','Ardling','Goliath','Orc',
-    // ── SCAG / Mordenkainen's ──
     'Drow (Dark Elf)','Duergar (Grey Dwarf)','Deep Gnome (Svirfneblin)',
     'Eladrin','Sea Elf','Shadar-kai (Shadow Elf)',
-    // ── Volo's / MMotM ──
     'Aarakocra','Bugbear','Firbolg','Goblin','Hobgoblin',
     'Kenku','Kobold','Lizardfolk','Tabaxi','Triton','Yuan-ti Pureblood',
-    // ── Mordenkainen's Tome of Foes / MMotM ──
     'Githyanki','Githzerai','Leonin','Satyr',
-    // ── Elemental Evil ──
     'Genasi (Air)','Genasi (Earth)','Genasi (Fire)','Genasi (Water)',
-    // ── Wild Beyond the Witchlight / MMotM ──
-    'Fairy','Harengon',
-    // ── GGtR / MOoT / MMotM ──
-    'Centaur','Minotaur',
-    // ── ERftLW / MMotM ──
-    'Changeling','Shifter','Warforged',
-    // ── Strixhaven ──
-    'Owlin',
-    // ── Tortle Package ──
-    'Tortle',
+    'Fairy','Harengon','Centaur','Minotaur','Changeling','Shifter','Warforged','Owlin','Tortle',
   ],
 
-  // Backgrounds from PHB 2014, PHB 2024, SCAG, and other supplements
-  // PHB 2024 versions used where they conflict with 2014
-  backgrounds: [
-    // ── PHB Core (2014 / 2024 updated) ──
-    'Acolyte','Charlatan','Criminal','Entertainer','Hermit','Noble','Sage','Sailor','Soldier','Urchin',
-    // ── PHB 2024 new ──
-    'Artisan','Farmer','Guard','Guide','Merchant','Scribe','Wayfarer',
-    // ── PHB 2014 (not in 2024) ──
-    'Folk Hero','Guild Artisan','Outlander',
-    // ── Sword Coast Adventurer's Guide ──
-    'City Watch','Cloistered Scholar','Courtier','Faction Agent',
-    'Far Traveler','Inheritor','Mercenary Veteran','Urban Bounty Hunter',
-  ],
   startingGold: { Barbarian:50,Bard:125,Cleric:125,Druid:50,Fighter:175,Monk:25,Paladin:175,Ranger:125,Rogue:100,Sorcerer:75,Warlock:100,Wizard:100 },
-  backgroundGold: { Acolyte:15,Charlatan:15,Criminal:15,Entertainer:15,'Folk Hero':10,'Guild Artisan':15,Hermit:5,Noble:25,Outlander:10,Sage:10,Sailor:10,Soldier:10,Urchin:10 },
-  classEquipment: {
-    Barbarian:  [{item:'Greataxe',qty:1},{item:'Handaxe',qty:2},{item:"Explorer's Pack",qty:1},{item:'Javelin',qty:4}],
-    Bard:       [{item:'Rapier',qty:1},{item:"Diplomat's Pack",qty:1},{item:'Lute',qty:1},{item:'Leather armour',qty:1},{item:'Dagger',qty:1}],
-    Cleric:     [{item:'Mace',qty:1},{item:'Scale mail',qty:1},{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:"Priest's Pack",qty:1},{item:'Shield',qty:1},{item:'Holy symbol (amulet)',qty:1}],
-    Druid:      [{item:'Shield',qty:1},{item:'Scimitar',qty:1},{item:'Leather armour',qty:1},{item:"Explorer's Pack",qty:1},{item:'Druidic focus (wooden staff)',qty:1}],
-    Fighter:    [{item:'Chain mail',qty:1},{item:'Longsword',qty:1},{item:'Shield',qty:1},{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:"Dungeoneer's Pack",qty:1}],
-    Monk:       [{item:'Shortsword',qty:1},{item:"Dungeoneer's Pack",qty:1},{item:'Dart',qty:10}],
-    Paladin:    [{item:'Longsword',qty:1},{item:'Shield',qty:1},{item:'Javelin',qty:5},{item:"Priest's Pack",qty:1},{item:'Chain mail',qty:1},{item:'Holy symbol (amulet)',qty:1}],
-    Ranger:     [{item:'Scale mail',qty:1},{item:'Shortsword',qty:2},{item:"Dungeoneer's Pack",qty:1},{item:'Longbow',qty:1},{item:'Quiver',qty:1},{item:'Arrows (20)',qty:1}],
-    Rogue:      [{item:'Rapier',qty:1},{item:'Shortbow',qty:1},{item:'Quiver',qty:1},{item:'Arrows (20)',qty:1},{item:"Burglar's Pack",qty:1},{item:'Leather armour',qty:1},{item:'Dagger',qty:2},{item:"Thieves' tools",qty:1}],
-    Sorcerer:   [{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:'Component pouch',qty:1},{item:"Dungeoneer's Pack",qty:1},{item:'Dagger',qty:2}],
-    Warlock:    [{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:'Component pouch',qty:1},{item:"Scholar's Pack",qty:1},{item:'Leather armour',qty:1},{item:'Dagger',qty:2},{item:'Shortsword',qty:1}],
-    Wizard:     [{item:'Quarterstaff',qty:1},{item:'Spellbook',qty:1},{item:'Component pouch',qty:1},{item:"Scholar's Pack",qty:1},{item:'Dagger',qty:1}],
+
+  classSaves: {
+    Barbarian:['str','con'], Bard:['dex','cha'], Cleric:['wis','cha'],
+    Druid:['int','wis'], Fighter:['str','con'], Monk:['str','dex'],
+    Paladin:['wis','cha'], Ranger:['str','dex'], Rogue:['dex','int'],
+    Sorcerer:['con','cha'], Warlock:['wis','cha'], Wizard:['int','wis'],
   },
-  backgroundEquipment: {
-    Acolyte:        [{item:'Holy symbol (amulet)',qty:1},{item:'Robes',qty:1},{item:'Clothes (common)',qty:1}],
-    Charlatan:      [{item:'Clothes (fine)',qty:1},{item:'Kit (disguise)',qty:1}],
-    Criminal:       [{item:'Crowbar',qty:1},{item:'Clothes (common)',qty:1}],
-    Entertainer:    [{item:'Clothes (costume)',qty:1}],
-    'Folk Hero':    [{item:'Shovel',qty:1},{item:'Pot (iron)',qty:1},{item:'Clothes (common)',qty:1}],
-    'Guild Artisan':[{item:"Clothes (traveler's)",qty:1}],
-    Hermit:         [{item:'Blanket',qty:1},{item:'Clothes (common)',qty:1},{item:'Kit (herbalism)',qty:1}],
-    Noble:          [{item:'Clothes (fine)',qty:1},{item:'Signet ring',qty:1}],
-    Outlander:      [{item:'Hunting trap',qty:1},{item:"Clothes (traveler's)",qty:1}],
-    Sage:           [{item:'Ink (1 oz bottle)',qty:1},{item:'Ink pen',qty:1},{item:'Clothes (common)',qty:1}],
-    Sailor:         [{item:'Rope (silk 50 feet)',qty:1},{item:'Clothes (common)',qty:1}],
-    Soldier:        [{item:'Clothes (common)',qty:1}],
-    Urchin:         [{item:'Clothes (common)',qty:1}],
+
+  classSkills: {
+    Barbarian: { count:2, from:['Animal Handling','Athletics','Intimidation','Nature','Perception','Survival'] },
+    Bard:      { count:3, from:'any' },
+    Cleric:    { count:2, from:['History','Insight','Medicine','Persuasion','Religion'] },
+    Druid:     { count:2, from:['Arcana','Animal Handling','Insight','Medicine','Nature','Perception','Religion','Survival'] },
+    Fighter:   { count:2, from:['Acrobatics','Animal Handling','Athletics','History','Insight','Intimidation','Perception','Survival'] },
+    Monk:      { count:2, from:['Acrobatics','Athletics','History','Insight','Religion','Stealth'] },
+    Paladin:   { count:2, from:['Athletics','Insight','Intimidation','Medicine','Persuasion','Religion'] },
+    Ranger:    { count:3, from:['Animal Handling','Athletics','Insight','Investigation','Nature','Perception','Stealth','Survival'] },
+    Rogue:     { count:4, from:['Acrobatics','Athletics','Deception','Insight','Intimidation','Investigation','Perception','Performance','Persuasion','Sleight of Hand','Stealth'] },
+    Sorcerer:  { count:2, from:['Arcana','Deception','Insight','Intimidation','Persuasion','Religion'] },
+    Warlock:   { count:2, from:['Arcana','Deception','History','Intimidation','Investigation','Nature','Religion'] },
+    Wizard:    { count:2, from:['Arcana','History','Insight','Investigation','Medicine','Religion'] },
+  },
+
+  ALL_SKILLS: ['Acrobatics','Animal Handling','Arcana','Athletics','Deception','History',
+    'Insight','Intimidation','Investigation','Medicine','Nature','Perception',
+    'Performance','Persuasion','Religion','Sleight of Hand','Stealth','Survival'],
+
+  HIT_DIE: {Barbarian:12,Bard:8,Cleric:8,Druid:8,Fighter:10,Monk:8,Paladin:10,Ranger:10,Rogue:8,Sorcerer:6,Warlock:8,Wizard:6},
+
+  classEquipment: {
+    Barbarian: [{item:'Greataxe',qty:1},{item:'Handaxe',qty:2},{item:"Explorer's Pack",qty:1},{item:'Javelin',qty:4}],
+    Bard:      [{item:'Rapier',qty:1},{item:"Diplomat's Pack",qty:1},{item:'Lute',qty:1},{item:'Leather armour',qty:1},{item:'Dagger',qty:1}],
+    Cleric:    [{item:'Mace',qty:1},{item:'Scale mail',qty:1},{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:"Priest's Pack",qty:1},{item:'Shield',qty:1},{item:'Holy symbol (amulet)',qty:1}],
+    Druid:     [{item:'Shield',qty:1},{item:'Scimitar',qty:1},{item:'Leather armour',qty:1},{item:"Explorer's Pack",qty:1},{item:'Druidic focus (wooden staff)',qty:1}],
+    Fighter:   [{item:'Chain mail',qty:1},{item:'Longsword',qty:1},{item:'Shield',qty:1},{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:"Dungeoneer's Pack",qty:1}],
+    Monk:      [{item:'Shortsword',qty:1},{item:"Dungeoneer's Pack",qty:1},{item:'Dart',qty:10}],
+    Paladin:   [{item:'Longsword',qty:1},{item:'Shield',qty:1},{item:'Javelin',qty:5},{item:"Priest's Pack",qty:1},{item:'Chain mail',qty:1},{item:'Holy symbol (amulet)',qty:1}],
+    Ranger:    [{item:'Scale mail',qty:1},{item:'Shortsword',qty:2},{item:"Dungeoneer's Pack",qty:1},{item:'Longbow',qty:1},{item:'Quiver',qty:1},{item:'Arrows (20)',qty:1}],
+    Rogue:     [{item:'Rapier',qty:1},{item:'Shortbow',qty:1},{item:'Quiver',qty:1},{item:'Arrows (20)',qty:1},{item:"Burglar's Pack",qty:1},{item:'Leather armour',qty:1},{item:'Dagger',qty:2},{item:"Thieves' tools",qty:1}],
+    Sorcerer:  [{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:'Component pouch',qty:1},{item:"Dungeoneer's Pack",qty:1},{item:'Dagger',qty:2}],
+    Warlock:   [{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:'Component pouch',qty:1},{item:"Scholar's Pack",qty:1},{item:'Leather armour',qty:1},{item:'Dagger',qty:2},{item:'Shortsword',qty:1}],
+    Wizard:    [{item:'Quarterstaff',qty:1},{item:'Spellbook',qty:1},{item:'Component pouch',qty:1},{item:"Scholar's Pack",qty:1},{item:'Dagger',qty:1}],
   },
 };
 
-// ================================================================
-//  CHARACTER CREATION WIZARD
-// ================================================================
+// Point buy constants (2024 PHB — non-linear above 13)
+const PB_CUMULATIVE = { 8:0, 9:1, 10:2, 11:3, 12:4, 13:5, 14:7, 15:9 };
+const PB_TOTAL = 27, PB_MIN = 8, PB_MAX = 15;
+const STAT_NAMES = { str:'Strength', dex:'Dexterity', con:'Constitution', int:'Intelligence', wis:'Wisdom', cha:'Charisma' };
+const STAT_KEYS  = ['str','dex','con','int','wis','cha'];
 
-let wizardData = { class:null, race:null, background:null, charName:'', equipChoice:null };
+// ─── WIZARD STATE ───────────────────────────────────────────────────
+let wizardData = {
+  class:null, race:null, background:null, bgObj:null,
+  customAsi2:null, customAsi1:null, charName:'',
+  baseStats:{ str:8,dex:8,con:8,int:8,wis:8,cha:8 },
+  classSkills:[], bgSkills:[], originFeat:null, equipChoice:null,
+};
+
+function saveDraft()  { try{ localStorage.setItem('char_draft',JSON.stringify(wizardData)); }catch(e){} }
+function loadDraft()  { try{ const d=localStorage.getItem('char_draft'); return d?JSON.parse(d):null; }catch(e){return null;} }
+function clearDraft() { try{ localStorage.removeItem('char_draft'); }catch(e){} }
+
+function getFinalScores() {
+  const asi = wizardData.bgObj?.asi || {};
+  const scores = {};
+  STAT_KEYS.forEach(k => { scores[k] = (wizardData.baseStats[k]||8) + (asi[k]||0); });
+  return scores;
+}
+function pbSpent()     { return STAT_KEYS.reduce((s,k)=>s+(PB_CUMULATIVE[wizardData.baseStats[k]]||0),0); }
+function pbRemaining() { return PB_TOTAL - pbSpent(); }
 
 function showCharacterCreationWizard() {
-  wizardData = { class:null, race:null, background:null, charName:'', equipChoice:null };
-  buildClassGrid(); buildRaceSelect(); buildBackgroundSelect();
-  setWizardStep(1);
+  const draft = loadDraft();
+  if (draft && draft.class && draft.charName) {
+    Object.assign(wizardData, draft);
+    buildClassGrid(); buildRaceSelect(); buildBackgroundSelect();
+    const classBtn = document.getElementById(`class-btn-${wizardData.class}`);
+    if (classBtn) classBtn.classList.add('selected');
+    const raceSel = document.getElementById('w-race');
+    if (raceSel && wizardData.race) raceSel.value = wizardData.race;
+    const bgSel = document.getElementById('w-background');
+    if (bgSel && wizardData.background) { bgSel.value = wizardData.background; onBackgroundChange(); }
+    const nameInp = document.getElementById('w-charname');
+    if (nameInp && wizardData.charName) nameInp.value = wizardData.charName;
+    const hasMeaningfulStats = STAT_KEYS.some(k=>(wizardData.baseStats[k]||8)!==8);
+    setWizardStep(hasMeaningfulStats ? 4 : 1);
+  } else {
+    wizardData = { class:null, race:null, background:null, bgObj:null, customAsi2:null, customAsi1:null, charName:'', baseStats:{str:8,dex:8,con:8,int:8,wis:8,cha:8}, classSkills:[], bgSkills:[], originFeat:null, equipChoice:null };
+    buildClassGrid(); buildRaceSelect(); buildBackgroundSelect(); setWizardStep(1);
+  }
   show('screen-char-create');
 }
 
 function buildClassGrid() {
-  document.getElementById('class-grid').innerHTML = DND5E.classes.map(cls =>
+  document.getElementById('class-grid').innerHTML = DND5E.classes.map(cls=>
     `<div class="class-btn" id="class-btn-${cls}" onclick="selectClass('${cls}')">
       <div class="class-btn-name">${cls}</div>
       <div class="class-btn-gold">${DND5E.startingGold[cls]} gp</div>
@@ -1989,145 +2197,295 @@ function buildClassGrid() {
 
 function selectClass(cls) {
   wizardData.class = cls;
-  document.querySelectorAll('.class-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById(`class-btn-${cls}`).classList.add('selected');
-  document.getElementById('w1-err').style.display = 'none';
+  document.querySelectorAll('.class-btn').forEach(b=>b.classList.remove('selected'));
+  const btn = document.getElementById(`class-btn-${cls}`);
+  if (btn) btn.classList.add('selected');
+  document.getElementById('w1-err').style.display='none';
+  saveDraft();
 }
 
 function buildRaceSelect() {
   document.getElementById('w-race').innerHTML = '<option value="">— Choose your race —</option>' +
-    DND5E.races.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+    DND5E.races.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
 }
 
 function buildBackgroundSelect() {
-  const sel = document.getElementById('w-background');
-  sel.innerHTML = '<option value="">— Choose your background —</option>' +
-    DND5E.backgrounds.map(b => `<option value="${esc(b)}">${esc(b)}</option>`).join('');
-  sel.addEventListener('change', () => {
-    const bg = sel.value;
-    const hint = document.getElementById('bg-gold-hint');
-    hint.textContent = bg ? `+${DND5E.backgroundGold[bg]||0} gp starting gold from background` : '';
-  });
+  document.getElementById('w-background').innerHTML = '<option value="">— Choose your background —</option>' +
+    DND5E.backgrounds.map(b=>`<option value="${esc(b.name)}">${esc(b.name)}</option>`).join('');
+}
+
+function onBackgroundChange() {
+  const bgName = document.getElementById('w-background').value;
+  const bgObj  = DND5E.backgrounds.find(b=>b.name===bgName);
+  wizardData.background = bgName; wizardData.bgObj = bgObj;
+  const preview = document.getElementById('bg-asi-preview');
+  const customWrap = document.getElementById('custom-asi-wrap');
+  if (!bgObj) { preview.style.display='none'; customWrap.style.display='none'; return; }
+  if (bgObj.name === 'Custom') {
+    customWrap.style.display='block'; preview.style.display='none';
+  } else {
+    customWrap.style.display='none';
+    const asiParts = Object.entries(bgObj.asi).map(([k,v])=>`<strong>+${v} ${STAT_NAMES[k]}</strong>`).join(' &amp; ');
+    preview.innerHTML = `<span style="color:var(--gold-magic)">📊 ASI:</span> ${asiParts} &nbsp;·&nbsp; 
+      <span style="color:var(--gold-magic)">🎯 Skills:</span> ${bgObj.skills.join(', ')} &nbsp;·&nbsp;
+      ${bgObj.feat?`<span style="color:var(--gold-magic)">✦ Suggested Feat:</span> ${bgObj.feat}`:''}`;
+    preview.style.display='block';
+    wizardData.bgSkills = bgObj.skills;
+    // Pre-select the suggested feat
+    if (bgObj.feat) { const f=document.getElementById('w-feat'); if(f) f.value=bgObj.feat; }
+  }
+  saveDraft(); updateStatDisplay();
+}
+
+function onCustomAsiChange() {
+  wizardData.customAsi2 = document.getElementById('custom-asi2').value||null;
+  wizardData.customAsi1 = document.getElementById('custom-asi1').value||null;
+  saveDraft(); updateStatDisplay();
 }
 
 function setWizardStep(n) {
-  for (let i = 1; i <= 4; i++) {
-    document.getElementById(`wstep-${i}`).classList.toggle('active', i === n);
-    const dot = document.getElementById(`wd-${i}`);
-    dot.classList.toggle('active', i === n);
-    dot.classList.toggle('done', i < n);
-    if (i < n) dot.textContent = '✓';
-    else if (i > n) dot.textContent = i;
+  for (let i=1; i<=8; i++) {
+    const step = document.getElementById(`wstep-${i}`);
+    const dot  = document.getElementById(`wd-${i}`);
+    if (step) step.classList.toggle('active', i===n);
+    if (dot) {
+      dot.classList.toggle('active', i===n);
+      dot.classList.toggle('done', i<n);
+      dot.textContent = (i<n)?'✓':i;
+    }
   }
+  if (n===4) buildStatBuyGrid();
+  if (n===5) buildSkillStep();
+  if (n===7) buildEquipmentStep();
+  if (n===8) buildReviewStep();
 }
 
 function wizardNext(step) {
-  if (step === 1) {
-    if (!wizardData.class) { showWizErr(1,'Please select a class.'); return; }
-    setWizardStep(2);
-  } else if (step === 2) {
-    const race = document.getElementById('w-race').value;
-    const bg   = document.getElementById('w-background').value;
-    const name = document.getElementById('w-charname').value.trim();
-    if (!race||!bg||!name) { showWizErr(2,'Please fill in all fields.'); return; }
-    wizardData.race=race; wizardData.background=bg; wizardData.charName=name;
-    document.getElementById('w2-err').style.display='none';
-    buildEquipmentStep(); setWizardStep(3);
-  } else if (step === 3) {
-    if (!wizardData.equipChoice) { showWizErr(3,'Please choose an equipment option.'); return; }
-    buildReviewStep(); setWizardStep(4);
+  switch(step) {
+    case 1: {
+      const name = document.getElementById('w-charname').value.trim();
+      if (!wizardData.class) { showWizErr(1,'Please select a class.'); return; }
+      if (!name) { showWizErr(1,'Please enter a character name.'); return; }
+      wizardData.charName=name; saveDraft(); setWizardStep(2); break;
+    }
+    case 2: {
+      const race = document.getElementById('w-race').value;
+      if (!race) { showWizErr(2,'Please select a race.'); return; }
+      wizardData.race=race; saveDraft(); setWizardStep(3); break;
+    }
+    case 3: {
+      const bgObj = DND5E.backgrounds.find(b=>b.name===document.getElementById('w-background').value);
+      if (!bgObj) { showWizErr(3,'Please select a background.'); return; }
+      if (bgObj.name==='Custom') {
+        const a2=document.getElementById('custom-asi2').value;
+        const a1=document.getElementById('custom-asi1').value;
+        if (!a2||!a1) { showWizErr(3,'Please choose both ASI stats for your Custom background.'); return; }
+        if (a2===a1) { showWizErr(3,'The +2 and +1 bonuses must go to different ability scores.'); return; }
+        wizardData.bgObj = {...bgObj, asi:{[a2]:2,[a1]:1}, skills:[]};
+        wizardData.bgSkills=[];
+      } else {
+        wizardData.bgObj=bgObj; wizardData.bgSkills=bgObj.skills;
+        if (bgObj.feat) { const f=document.getElementById('w-feat'); if(f) f.value=bgObj.feat; }
+      }
+      saveDraft(); setWizardStep(4); break;
+    }
+    case 4: {
+      const rem = pbRemaining();
+      if (rem!==0) { showWizErr(4,`Spend exactly 27 points. ${rem>0?rem+' points remaining':Math.abs(rem)+' points over budget.'}`); return; }
+      const finals = getFinalScores();
+      const over = STAT_KEYS.filter(k=>finals[k]>18);
+      if (over.length) { showWizErr(4,`No score can exceed 18. Reduce: ${over.map(k=>STAT_NAMES[k]).join(', ')}.`); return; }
+      saveDraft(); setWizardStep(5); break;
+    }
+    case 5: {
+      const reqd = DND5E.classSkills[wizardData.class]?.count||2;
+      if (wizardData.classSkills.length!==reqd) { showWizErr(5,`Choose exactly ${reqd} class skill${reqd!==1?'s':''}.`); return; }
+      wizardData.originFeat = document.getElementById('w-feat').value;
+      if (!wizardData.originFeat) { showWizErr(5,'Please choose an Origin Feat.'); return; }
+      saveDraft(); setWizardStep(6); break;
+    }
+    case 6: setWizardStep(7); break;
+    case 7: {
+      if (!wizardData.equipChoice) { showWizErr(7,'Please choose an equipment option.'); return; }
+      setWizardStep(8); break;
+    }
   }
 }
 
 function wizardBack(step) { setWizardStep(step-1); }
+function showWizErr(step,msg) { const el=document.getElementById(`w${step}-err`); if(el){el.textContent=msg;el.style.display='block';} }
 
-function showWizErr(step, msg) {
-  const el = document.getElementById(`w${step}-err`);
-  el.textContent = msg; el.style.display = 'block';
+// ─── STAT BUY ────────────────────────────────────────────────────────
+function buildStatBuyGrid() {
+  const asi  = wizardData.bgObj?.asi||{};
+  const grid = document.getElementById('stat-buy-grid');
+  if (!grid) return;
+  grid.innerHTML = STAT_KEYS.map(k => {
+    const base  = wizardData.baseStats[k]||8;
+    const bonus = asi[k]||0;
+    const final = base+bonus;
+    const mod   = Math.floor((final-10)/2);
+    return `<div style="background:rgba(180,110,40,.07);border:1px solid rgba(180,110,40,.2);border-radius:5px;padding:.65rem .4rem;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:.65rem;font-weight:600;letter-spacing:.1em;color:var(--silver-dim);margin-bottom:.3rem;">${k.toUpperCase()}</div>
+      <button onclick="pbAdjust('${k}',1)" style="background:rgba(196,30,30,.2);border:1px solid rgba(196,30,30,.4);border-radius:3px;color:#e0d8c8;font-size:1.1rem;line-height:1;width:30px;height:30px;cursor:pointer;">+</button>
+      <div id="pb-val-${k}" style="font-family:'Cinzel',serif;font-size:1.7rem;font-weight:900;color:#f0e8d8;line-height:1.2;margin:.15rem 0;">${base}</div>
+      <button onclick="pbAdjust('${k}',-1)" style="background:rgba(180,110,40,.12);border:1px solid rgba(180,110,40,.3);border-radius:3px;color:#e0d8c8;font-size:1.1rem;line-height:1;width:30px;height:30px;cursor:pointer;">−</button>
+      <div id="pb-final-${k}" style="font-family:'Cinzel',serif;font-size:.76rem;color:var(--teal-magic);margin-top:.28rem;">
+        ${bonus?`<span style="color:var(--gold-magic)">${final}</span> <span style="font-size:.65rem">(+${bonus})</span>`:`${final}`} &nbsp;<span style="color:var(--silver-dim)">${(mod>=0?'+':'')+mod}</span>
+      </div>
+    </div>`;
+  }).join('');
+  updatePbDisplay();
 }
 
+function pbAdjust(stat, delta) {
+  const cur = wizardData.baseStats[stat]||8;
+  const next = cur+delta;
+  if (next<PB_MIN||next>PB_MAX) return;
+  wizardData.baseStats[stat]=next;
+  const valEl   = document.getElementById(`pb-val-${stat}`);
+  const finalEl = document.getElementById(`pb-final-${stat}`);
+  const asi = wizardData.bgObj?.asi||{};
+  const bonus=asi[stat]||0, final=next+bonus, mod=Math.floor((final-10)/2);
+  if (valEl)   valEl.textContent=next;
+  if (finalEl) finalEl.innerHTML = bonus
+    ? `<span style="color:var(--gold-magic)">${final}</span> <span style="font-size:.65rem">(+${bonus})</span> &nbsp;<span style="color:var(--silver-dim)">${(mod>=0?'+':'')+mod}</span>`
+    : `${final} &nbsp;<span style="color:var(--silver-dim)">${(mod>=0?'+':'')+mod}</span>`;
+  updatePbDisplay(); saveDraft();
+}
+
+function updatePbDisplay() {
+  const rem = pbRemaining();
+  const el  = document.getElementById('pb-remaining');
+  if (el) { el.textContent=rem; el.style.color=rem<0?'var(--red-sale)':rem===0?'#5a9a40':'var(--gold-magic)'; }
+  const btn = document.getElementById('btn-w4-next');
+  if (btn) btn.disabled = rem!==0;
+}
+
+function updateStatDisplay() {
+  if (document.getElementById('wstep-4')?.classList.contains('active')) buildStatBuyGrid();
+}
+
+// ─── SKILLS STEP ─────────────────────────────────────────────────────
+function buildSkillStep() {
+  const clsObj  = DND5E.classSkills[wizardData.class]||{count:2,from:[]};
+  const bgSkills= wizardData.bgSkills||[];
+  const skillList = clsObj.from==='any' ? DND5E.ALL_SKILLS : clsObj.from;
+  const count   = clsObj.count;
+  const lbl = document.getElementById('skills-count-label');
+  if (lbl) lbl.textContent = `choose ${count}`;
+  const note = document.getElementById('skill-bg-note');
+  if (note) note.textContent = bgSkills.length ? `Background grants: ${bgSkills.join(', ')}` : '';
+  wizardData.classSkills = wizardData.classSkills.filter(s=>skillList.includes(s));
+  const grid = document.getElementById('skill-pick-grid');
+  if (!grid) return;
+  grid.innerHTML = skillList.map(skill=>{
+    const isBg=bgSkills.includes(skill), isSel=wizardData.classSkills.includes(skill);
+    return `<label style="display:flex;align-items:center;gap:.4rem;cursor:${isBg?'default':'pointer'};opacity:${isBg?.5:1};font-size:.85rem;color:${isBg?'var(--silver-dim)':'var(--crystal)'};">
+      <input type="checkbox" id="sk-${skill.replace(/[\s\/]/g,'_')}" ${isSel?'checked':''} ${isBg?'disabled':''} onchange="toggleSkill('${skill}',${count})">
+      ${skill}${isBg?' <span style=\'font-size:.68rem;color:var(--gold-magic)\'>✦bg</span>':''}
+    </label>`;
+  }).join('');
+}
+
+function toggleSkill(skill, maxCount) {
+  const idx = wizardData.classSkills.indexOf(skill);
+  if (idx>=0) { wizardData.classSkills.splice(idx,1); }
+  else {
+    if (wizardData.classSkills.length>=maxCount) {
+      const chk=document.getElementById(`sk-${skill.replace(/[\s\/]/g,'_')}`);
+      if (chk) chk.checked=false;
+      showWizErr(5,`You can only choose ${maxCount} class skill${maxCount!==1?'s':''}.`); return;
+    }
+    wizardData.classSkills.push(skill);
+  }
+  document.getElementById('w5-err').style.display='none';
+  saveDraft();
+}
+
+// ─── EQUIPMENT STEP ──────────────────────────────────────────────────
 function buildEquipmentStep() {
-  const cls=wizardData.class, bg=wizardData.background;
-  const items=[...(DND5E.classEquipment[cls]||[]),...(DND5E.backgroundEquipment[bg]||[])];
-  const bgGold=DND5E.backgroundGold[bg]||0;
-  const totalGold=DND5E.startingGold[cls]+bgGold;
+  const cls=wizardData.class;
+  const items=DND5E.classEquipment[cls]||[];
   const pills=items.map(i=>`<span class="item-pill">${i.qty>1?i.qty+'× ':''}${esc(i.item)}</span>`).join('');
-  document.getElementById('equip-package-desc').innerHTML=
-    `Class and background starting gear:<br><div style="margin-top:.4rem;">${pills}</div><p style="font-size:.75rem;color:var(--silver-dim);margin-top:.4rem;font-style:italic;">+${bgGold} gp from background</p>`;
-  document.getElementById('equip-gold-desc').innerHTML=
-    `Receive <strong style="color:var(--gold-magic)">${totalGold} gp</strong> to spend in the shop. For experienced players only.`;
+  document.getElementById('equip-package-desc').innerHTML=`Class starting gear:<br><div style="margin-top:.4rem;">${pills}</div>`;
+  document.getElementById('equip-gold-desc').innerHTML=`Receive <strong style="color:var(--gold-magic)">${DND5E.startingGold[cls]} gp</strong> to spend in the shop.`;
   wizardData.equipChoice=null;
-  document.getElementById('equip-opt-package').classList.remove('selected');
-  document.getElementById('equip-opt-gold').classList.remove('selected');
+  ['equip-opt-package','equip-opt-gold'].forEach(id=>document.getElementById(id).classList.remove('selected'));
 }
 
 function selectEquip(choice) {
-  if (choice==='gold' && !confirm('Starting gold is only recommended for experienced D&D players who know what items they need.\n\nAre you sure?')) return;
+  if (choice==='gold'&&!confirm('Starting gold only recommended for experienced players.\nAre you sure?')) return;
   wizardData.equipChoice=choice;
   document.getElementById('equip-opt-package').classList.toggle('selected',choice==='package');
   document.getElementById('equip-opt-gold').classList.toggle('selected',choice==='gold');
-  document.getElementById('w3-err').style.display='none';
+  document.getElementById('w7-err').style.display='none'; saveDraft();
 }
 
+// ─── REVIEW ──────────────────────────────────────────────────────────
 function buildReviewStep() {
-  const {class:cls,race,background:bg,charName,equipChoice}=wizardData;
-  const bgGold=DND5E.backgroundGold[bg]||0;
-  const startGold=equipChoice==='gold'?DND5E.startingGold[cls]+bgGold:bgGold;
+  const {class:cls,race,background:bg,charName,classSkills,bgSkills,originFeat,equipChoice}=wizardData;
+  const finals = getFinalScores();
+  const statRow = STAT_KEYS.map(k=>{const f=finals[k],m=Math.floor((f-10)/2);
+    return `<td style="text-align:center;padding:.3rem;border:1px solid rgba(180,110,40,.15);">
+      <div style="font-family:'Cinzel',serif;font-size:.62rem;color:var(--silver-dim);">${k.toUpperCase()}</div>
+      <div style="font-family:'Cinzel',serif;font-size:1.1rem;font-weight:700;color:#f0e8d8;">${f}</div>
+      <div style="font-size:.7rem;color:var(--gold-magic)">${(m>=0?'+':'')+m}</div></td>`;
+  }).join('');
   document.getElementById('wizard-review').innerHTML=`
-    <table style="width:100%;font-size:.88rem;">
-      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Name</td><td style="text-align:right;font-family:'Cinzel',serif;color:var(--crystal-bright);">${esc(charName)}</td></tr>
-      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Class</td><td style="text-align:right;color:var(--crystal);">${esc(cls)}</td></tr>
-      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Race</td><td style="text-align:right;color:var(--crystal);">${esc(race)}</td></tr>
-      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Background</td><td style="text-align:right;color:var(--crystal);">${esc(bg)}</td></tr>
-      <tr style="border-top:1px solid rgba(107,63,160,0.2);">
-        <td style="color:var(--silver-dim);padding:.4rem 0;">Starting Gold</td>
-        <td style="text-align:right;color:var(--gold-magic);font-family:'Cinzel',serif;font-weight:600;">${startGold} gp</td></tr>
-      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Equipment</td>
-        <td style="text-align:right;color:var(--teal-magic);">${equipChoice==='package'?'Class package + background gear':'Starting gold only'}</td></tr>
-    </table>`;
+    <table style="width:100%;font-size:.85rem;margin-bottom:.8rem;">
+      ${[['Character',charName,'#f0e8d8'],['Class',cls],['Race',race],['Background',bg],['Origin Feat',originFeat||'—'],
+         ['Skills',[...new Set([...(classSkills||[]),...(bgSkills||[])])].join(', ')||'—'],
+         ['Equipment',equipChoice==='package'?'Class gear package':`${DND5E.startingGold[cls]} gp gold`,'var(--teal-magic)'],
+        ].map(([l,v,c])=>`<tr><td style="color:var(--silver-dim);padding:.22rem 0;width:38%">${l}</td><td style="color:${c||'var(--crystal)'};">${esc(String(v))}</td></tr>`).join('')}
+    </table>
+    <table style="width:100%;border-collapse:collapse;"><tr>${statRow}</tr></table>`;
 }
 
+// ─── CREATE CHARACTER ─────────────────────────────────────────────────
 async function createCharacter() {
   const btn=document.getElementById('btn-create-char');
-  const err=document.getElementById('w4-err');
-  btn.disabled=true; btn.textContent='Creating...';
-  err.style.display='none';
-  const {class:cls,race,background:bg,charName,equipChoice}=wizardData;
-  const bgGold=DND5E.backgroundGold[bg]||0;
-  const startGold=equipChoice==='gold'?DND5E.startingGold[cls]+bgGold:bgGold;
+  const err=document.getElementById('w8-err');
+  btn.disabled=true; btn.textContent='Creating...'; err.style.display='none';
+  const {class:cls,race,background:bg,bgObj,charName,equipChoice,baseStats,classSkills,bgSkills,originFeat}=wizardData;
+  const finals=getFinalScores();
+  const conMod=Math.floor((finals.con-10)/2);
+  const maxHp=(DND5E.HIT_DIE[cls]||8)+conMod;
+  const startGold=equipChoice==='gold'?DND5E.startingGold[cls]:0;
+  const allSkills=[...new Set([...(classSkills||[]),...(bgSkills||[])])];
   try {
     const charRef=await db.collection('Characters').add({
       characterName:charName, playerId:loggedInUsername, class:cls, race, background:bg,
       level:1, xp:0, gold:startGold, status:'Active', createdAt:new Date().toISOString(),
-      sheet:{ abilityScores:{str:null,dex:null,con:null,int:null,wis:null,cha:null}, hp:null, maxHp:null, ac:null, savingThrows:{}, skills:{}, spells:[], features:[] },
+      sheet:{
+        abilityScores:finals, baseStats, backgroundASI:bgObj?.asi||{},
+        savingThrowProficiencies:DND5E.classSaves[cls]||[],
+        skillProficiencies:allSkills, skillExpertises:[],
+        originFeat:originFeat||'', hp:maxHp, maxHp, tempHp:0,
+        conditions:[], speed:30, deathSaves:{successes:0,failures:0},
+      },
     });
     await updatePlayer({activeCharacterId:charRef.id});
     activeChar={id:charRef.id,characterName:charName,playerId:loggedInUsername,class:cls,race,background:bg,level:1,xp:0,gold:startGold,status:'Active'};
     allChars=[activeChar];
     if (equipChoice==='package') {
-      const allItems=[...(DND5E.classEquipment[cls]||[]),...(DND5E.backgroundEquipment[bg]||[])];
-      for (const entry of allItems) {
-        // Lean schema — itemName + quantity only, details resolved from ItemPool at render time
+      for (const entry of DND5E.classEquipment[cls]||[]) {
         await db.collection('Inventory').add({
-          characterId:  charRef.id,
-          itemName:     entry.item,
-          quantity:     entry.qty || 1,
-          source:       'Starting Equipment',
-          acquiredDate: new Date().toISOString(),
+          characterId:charRef.id, itemName:entry.item, quantity:entry.qty||1,
+          source:'Starting Equipment', acquiredDate:new Date().toISOString(),
         });
       }
     }
+    clearDraft();
     toast(`${charName} is ready for adventure!`,'success');
-    show('screen-app');
-    updateTopBar(activeChar);
+    show('screen-app'); updateTopBar(activeChar);
     loadInventory(); loadShopTab(); loadEmporiumTab(); loadCharactersTab();
   } catch(e) {
-    console.error(e);
-    err.textContent='Failed to create character. Please try again.';
-    err.style.display='block';
-    btn.disabled=false; btn.textContent='Create Character & Enter';
+    console.error(e); err.textContent='Failed to create character. Please try again.';
+    err.style.display='block'; btn.disabled=false; btn.textContent='Create Character & Enter';
   }
 }
+
 
 // ================================================================
 //  CHEST CLAIM OVERLAY

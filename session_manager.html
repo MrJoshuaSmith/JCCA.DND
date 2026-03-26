@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Manager — D&D Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --bg:#0e0b09;--bg-card:#1e1916;--bg-card2:#221a12;
+  --border:rgba(180,110,40,.22);--border-red:rgba(160,28,28,.4);
+  --red:#c41e1e;--red-d:#8b1010;--gold:#c8952a;--gold-d:#7a5818;
+  --text:#e0d8c8;--text-m:#b0a898;--text-d:#786858;
+  --green:#5a8830;--green-b:#80c060;
+  --hp-full:#4a8820;--hp-injured:#8a9820;--hp-wounded:#9a6010;--hp-critical:#8b1010;--hp-dead:#2a0808;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);background-image:radial-gradient(ellipse 70% 40% at 50% 0%,#1f0f08,transparent 70%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--text);}
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;padding:.6rem 1.5rem;background:rgba(14,9,4,.92);border-bottom:2px solid var(--border);position:sticky;top:0;z-index:100;}
+.tb-brand{font-family:'Cinzel',serif;font-size:.9rem;font-weight:900;color:var(--text);}
+.tb-brand b{color:var(--red);}
+.tb-session-name{font-family:'Cinzel',serif;font-size:.72rem;color:var(--text-d);}
+.btn{font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;letter-spacing:.06em;padding:.32rem .8rem;border-radius:4px;cursor:pointer;border:1px solid;transition:all .2s;display:inline-flex;align-items:center;gap:.25rem;text-decoration:none;}
+.btn-red{background:rgba(196,30,30,.2);border-color:var(--red-d);color:var(--text);}
+.btn-red:hover{background:rgba(196,30,30,.38);}
+.btn-gold{background:rgba(180,110,40,.15);border-color:var(--gold-d);color:var(--gold);}
+.btn-gold:hover{background:rgba(180,110,40,.28);}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text-m);}
+.btn-ghost:hover{border-color:var(--gold-d);color:var(--gold);}
+.btn-danger{background:rgba(196,30,30,.1);border-color:rgba(196,30,30,.4);color:var(--red);}
+.btn-danger:hover{background:rgba(196,30,30,.25);}
+.btn-green{background:rgba(80,130,40,.2);border-color:rgba(80,130,40,.5);color:var(--green-b);}
+.btn-green:hover{background:rgba(80,130,40,.35);}
+.btn-sm{padding:.22rem .6rem;font-size:.62rem;}
+/* LAYOUT */
+.page{max-width:1200px;margin:0 auto;padding:1.2rem 1rem 4rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+@media(max-width:780px){.two-col{grid-template-columns:1fr;}}
+/* CARDS */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:5px;padding:1.2rem 1.4rem;margin-bottom:1rem;}
+.card-title{font-family:'Cinzel',serif;font-size:1rem;font-weight:600;color:var(--text);border-bottom:1px solid var(--border);padding-bottom:.4rem;margin-bottom:.9rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
+.card-title span{color:var(--text-m);font-size:.72rem;font-weight:400;}
+/* COMBATANT CARDS */
+.combatant{background:var(--bg-card2);border:1px solid var(--border);border-radius:4px;padding:.7rem .9rem;margin-bottom:.5rem;position:relative;}
+.combatant.player{border-left:3px solid var(--gold-d);}
+.combatant.enemy{border-left:3px solid var(--red-d);}
+.combatant.dead{opacity:.5;}
+.cm-header{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.4rem;flex-wrap:wrap;}
+.cm-name{font-family:'Cinzel',serif;font-size:.88rem;font-weight:600;color:var(--text);}
+.cm-type{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-d);}
+.cm-hp-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;flex-wrap:wrap;}
+.cm-hp-val{font-family:'Cinzel',serif;font-size:.95rem;font-weight:700;color:var(--text);}
+.cm-hp-max{font-size:.72rem;color:var(--text-d);}
+.hp-bar-outer{flex:1;height:8px;background:rgba(180,110,40,.08);border-radius:4px;overflow:hidden;min-width:60px;}
+.hp-bar-inner{height:100%;border-radius:4px;transition:width .4s,background .4s;}
+.cm-actions{display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.4rem;}
+.cm-initiative{font-family:'Cinzel',serif;font-size:.68rem;color:var(--text-d);}
+/* HP status label for enemies (player view) */
+.hp-status{font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.1rem .5rem;border-radius:3px;}
+.hp-status.fine{background:rgba(74,136,32,.2);color:#80c060;border:1px solid rgba(74,136,32,.4);}
+.hp-status.injured{background:rgba(138,152,32,.2);color:#d0c840;border:1px solid rgba(138,152,32,.4);}
+.hp-status.wounded{background:rgba(154,96,16,.2);color:#d08840;border:1px solid rgba(154,96,16,.4);}
+.hp-status.critical{background:rgba(139,16,16,.2);color:#e06060;border:1px solid rgba(139,16,16,.4);}
+.hp-status.unconscious{background:rgba(58,8,8,.4);color:#c06060;border:1px solid rgba(96,8,8,.5);}
+.hp-status.dead{background:rgba(20,8,8,.6);color:#806060;border:1px solid rgba(40,8,8,.5);}
+/* STATUS LABEL */
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:.4rem;}
+/* QUICK ADJUST */
+.quick-adj{display:flex;align-items:center;gap:.3rem;}
+.adj-input{width:50px;background:rgba(13,8,4,.7);border:1px solid var(--border);border-radius:3px;padding:.22rem .4rem;color:var(--text);font-family:'Cinzel',serif;font-size:.72rem;text-align:center;outline:none;}
+/* INITIATIVE ORDER */
+.init-badge{font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;background:rgba(180,110,40,.1);border:1px solid var(--border);border-radius:3px;padding:.1rem .4rem;color:var(--gold);min-width:22px;text-align:center;}
+/* ADD ENEMY FORM */
+.add-form{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:.4rem;align-items:end;}
+@media(max-width:500px){.add-form{grid-template-columns:1fr 1fr;}}
+.fi{width:100%;background:rgba(13,8,4,.7);border:1px solid var(--border);border-radius:4px;padding:.48rem .7rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:.9rem;outline:none;}
+.fi:focus{border-color:var(--gold-d);}
+.fl{display:block;font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-m);margin-bottom:.25rem;}
+/* MODALS */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500;align-items:center;justify-content:center;padding:1rem;}
+.mbg.open{display:flex;}
+.mc{background:var(--bg-card);border:1px solid var(--border-red);border-radius:6px;padding:1.8rem;width:100%;max-width:380px;}
+.mc-ttl{font-family:'Cinzel',serif;font-size:.95rem;color:var(--text);border-bottom:1px solid var(--border);padding-bottom:.4rem;margin-bottom:.9rem;}
+.mc-fi{width:100%;background:rgba(13,8,4,.7);border:1px solid var(--border);border-radius:4px;padding:.52rem .8rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:1.2rem;text-align:center;outline:none;margin-bottom:.5rem;}
+.mc-row{display:flex;gap:.5rem;margin-bottom:.4rem;}
+.mc-btn{flex:1;font-family:'Cinzel',serif;font-size:.76rem;font-weight:600;padding:.5rem;border-radius:4px;cursor:pointer;border:1px solid;transition:all .2s;}
+/* ALERTS */
+.alert{padding:.65rem .9rem;border-radius:4px;font-size:.84rem;margin-bottom:.7rem;}
+.alert-info{background:rgba(180,110,40,.07);border:1px solid rgba(180,110,40,.3);color:var(--text-m);}
+.alert-warn{background:rgba(196,30,30,.06);border:1px solid rgba(196,30,30,.3);color:var(--text-m);}
+/* SESSION SETUP */
+.setup-card{background:var(--bg-card);border:1px solid var(--border-red);border-radius:6px;padding:2rem;max-width:600px;margin:2rem auto;}
+/* TOASTS */
+.toasts{position:fixed;bottom:1.5rem;right:1.5rem;z-index:600;display:flex;flex-direction:column;gap:.4rem;}
+.toast{background:var(--bg-card);border:1px solid;border-radius:4px;padding:.6rem 1rem;font-size:.82rem;animation:tin .25s ease;}
+@keyframes tin{from{opacity:0;transform:translateY(8px);}to{opacity:1;}}
+.toast.success{border-color:#4a8030;color:#80c060;}
+.toast.error{border-color:var(--red-d);color:var(--red);}
+.toast.info{border-color:var(--gold-d);color:var(--gold);}
+.spinner{width:22px;height:22px;border:2px solid rgba(200,160,80,.2);border-top-color:rgba(200,160,80,.5);border-radius:50%;animation:spin .8s linear infinite;margin:1rem auto;display:block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tb-brand">&#9876; <b>Session Manager</b></div>
+  <div id="tb-session-name" class="tb-session-name"></div>
+  <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+    <button class="btn btn-ghost btn-sm" id="btn-end-session" style="display:none;border-color:var(--red-d);color:var(--red);" onclick="endSession()">End Session</button>
+    <a href="dm_tools.html" class="btn btn-ghost btn-sm">DM Tools</a>
+    <a href="index.html" class="btn btn-ghost btn-sm">&#8962; Home</a>
+    <button class="btn btn-ghost btn-sm" onclick="doSignOut()">Sign Out</button>
+  </div>
+</div>
+
+<!-- SESSION SETUP (shown when no active session) -->
+<div id="screen-setup" class="page" style="display:none">
+  <div class="setup-card">
+    <div style="font-family:'Cinzel',serif;font-size:1.1rem;font-weight:600;color:var(--red);margin-bottom:1rem;">Start a Combat Session</div>
+    <div class="alert alert-info" style="margin-bottom:1rem;">As Session DM you can run live combat, track HP in real-time, and manage encounters. Players in your party will see the combat view automatically.</div>
+    <div style="margin-bottom:.8rem;">
+      <label class="fl">Session Name</label>
+      <input class="fi" id="setup-name" type="text" placeholder="e.g. Ambush in the Forest">
+    </div>
+    <div style="margin-bottom:1rem;">
+      <label class="fl">Select Party Characters</label>
+      <div id="party-picker" style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;max-height:220px;overflow-y:auto;"></div>
+    </div>
+    <button class="btn btn-red" onclick="startSession()" style="width:100%;">&#9876; Begin Session</button>
+  </div>
+</div>
+
+<!-- PLAYER VIEW (non-DM) -->
+<div id="screen-player" class="page" style="display:none">
+  <div class="alert alert-info" id="no-session-msg" style="display:none">No active session right now. Check back when your DM starts combat!</div>
+  <div id="player-party-section"></div>
+  <div id="player-enemy-section"></div>
+</div>
+
+<!-- DM VIEW -->
+<div id="screen-dm" class="page" style="display:none">
+  <div class="two-col">
+    <!-- PARTY -->
+    <div>
+      <div class="card">
+        <div class="card-title">&#9876; Party <span id="party-count"></span></div>
+        <div id="party-list"><div class="spinner"></div></div>
+      </div>
+    </div>
+    <!-- ENEMIES -->
+    <div>
+      <div class="card">
+        <div class="card-title">&#9761; Enemies <span id="enemy-count"></span></div>
+        <div id="enemy-list"><div class="spinner"></div></div>
+        <div style="margin-top:.8rem;padding-top:.8rem;border-top:1px solid var(--border);">
+          <div style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--text-m);margin-bottom:.5rem;letter-spacing:.06em;text-transform:uppercase;">Add Enemy</div>
+          <div class="add-form">
+            <div><label class="fl">Name</label><input class="fi" id="e-name" type="text" placeholder="Goblin"></div>
+            <div><label class="fl">Max HP</label><input class="fi" id="e-maxhp" type="number" min="1" max="999" value="10"></div>
+            <div><label class="fl">Initiative</label><input class="fi" id="e-init" type="number" min="-5" max="30" value="0"></div>
+            <div><label class="fl">&nbsp;</label><button class="btn btn-red" onclick="addEnemy()">Add</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HP ADJUST MODAL -->
+<div class="mbg" id="m-hp">
+  <div class="mc">
+    <div class="mc-ttl" id="m-hp-ttl">Adjust HP</div>
+    <input class="mc-fi" id="hp-adj-amt" type="number" min="1" max="999" value="1">
+    <div class="mc-row">
+      <button class="mc-btn" style="background:rgba(80,120,40,.2);border-color:rgba(80,120,40,.5);color:#80c060;" onclick="commitHP('heal')">+ Heal</button>
+      <button class="mc-btn" style="background:rgba(196,30,30,.15);border-color:var(--red-d);color:var(--red);" onclick="commitHP('dmg')">&#8722; Damage</button>
+    </div>
+    <div class="mc-row">
+      <button class="mc-btn" style="background:rgba(100,70,20,.15);border-color:rgba(100,70,20,.4);color:var(--text-m);" onclick="commitHP('temp')">+ Temp HP</button>
+      <button class="mc-btn" style="background:transparent;border-color:var(--border);color:var(--text-m);" onclick="closeMHp()">Cancel</button>
+    </div>
+  </div>
+</div>
+<div class="toasts" id="toasts"></div>
+
+<script>
+firebase.initializeApp({apiKey:'AIzaSyAWpUnUirhcI3nhW9WF_7aqDInOCvIbsIY',authDomain:'jcca-dnd.firebaseapp.com',projectId:'jcca-dnd',storageBucket:'jcca-dnd.firebasestorage.app',messagingSenderId:'128758977152',appId:'1:128758977152:web:f43ef158eedf82614ccc65'});
+const auth=firebase.auth(),db=firebase.firestore();
+
+// ── STATE ──────────────────────────────────────────────────────────
+let loggedUser=null,loggedRole=null,loggedName=null;
+let activeSessionId=null,activeSessionData=null;
+let combatants={};  // id→data
+let unsubSession=null,unsubCombatants=null;
+let pendingHpId=null,pendingHpType=null; // for HP modal
+
+const HP_DIE={Barbarian:12,Bard:8,Cleric:8,Druid:8,Fighter:10,Monk:8,Paladin:10,Ranger:10,Rogue:8,Sorcerer:6,Warlock:8,Wizard:6};
+
+// ── BOOT ──────────────────────────────────────────────────────────
+async function boot(){
+  try{await auth.signInAnonymously();}catch(e){}
+  const saved=['dnd_username','dm_username','session_dm_username'].map(k=>sessionStorage.getItem(k)).find(Boolean);
+  if(!saved){window.location.href='index.html';return;}
+  try{
+    const doc=await db.collection('Users').doc(saved).get();
+    if(!doc.exists){window.location.href='index.html';return;}
+    const d=doc.data();loggedUser=saved;loggedRole=d.role;loggedName=d.playerName||saved;
+  }catch(e){toast('Login failed.','error');return;}
+  // Listen for any active session
+  listenForSession();
+}
+
+function listenForSession(){
+  if(unsubSession){unsubSession();}
+  unsubSession=db.collection('ActiveCombat')
+    .where('isActive','==',true)
+    .onSnapshot(snap=>{
+      if(snap.empty){
+        // No active session
+        activeSessionId=null;activeSessionData=null;
+        if(combatants)Object.keys(combatants).forEach(k=>delete combatants[k]);
+        if(unsubCombatants){unsubCombatants();unsubCombatants=null;}
+        showScreenForRole(false);
+      }else{
+        const doc=snap.docs[0];
+        const newId=doc.id;
+        if(newId!==activeSessionId){
+          activeSessionId=newId;activeSessionData=doc.data();
+          if(unsubCombatants){unsubCombatants();unsubCombatants=null;}
+          listenForCombatants();
+        }else{
+          activeSessionData=doc.data();
+        }
+        showScreenForRole(true);
+        document.getElementById('tb-session-name').textContent=activeSessionData.sessionName||'Active Session';
+      }
+    });
+}
+
+function listenForCombatants(){
+  if(!activeSessionId)return;
+  unsubCombatants=db.collection('ActiveCombat').doc(activeSessionId)
+    .collection('combatants').onSnapshot(snap=>{
+      combatants={};
+      snap.forEach(d=>{combatants[d.id]={id:d.id,...d.data()};});
+      renderCombatants();
+    });
+}
+
+function showScreenForRole(hasSession){
+  show('screen-setup',false);show('screen-player',false);show('screen-dm',false);
+  document.getElementById('btn-end-session').style.display='none';
+  if(!hasSession){
+    if(loggedRole==='dm'||loggedRole==='session_dm'){
+      show('screen-setup',true);
+      loadPartyPicker();
+    }else{
+      show('screen-player',true);
+      document.getElementById('no-session-msg').style.display='block';
+    }
+  }else{
+    if(loggedRole==='dm'||loggedRole==='session_dm'){
+      show('screen-dm',true);
+      document.getElementById('btn-end-session').style.display='inline-flex';
+    }else{
+      show('screen-player',true);
+      document.getElementById('no-session-msg').style.display='none';
+    }
+    renderCombatants();
+  }
+}
+
+function show(id,vis=true){const el=document.getElementById(id);if(el)el.style.display=vis?'block':'none';}
+
+// ── SETUP: PARTY PICKER ──────────────────────────────────────────
+async function loadPartyPicker(){
+  const picker=document.getElementById('party-picker');
+  if(!picker)return;
+  picker.innerHTML='<div class="spinner"></div>';
+  try{
+    const snap=await db.collection('Characters').where('status','==','Active').get();
+    const chars=snap.docs.map(d=>({id:d.id,...d.data()}));
+    picker.innerHTML=chars.map(c=>`<label style="display:flex;align-items:center;gap:.4rem;font-size:.84rem;color:var(--text-m);cursor:pointer;padding:.3rem 0;">
+      <input type="checkbox" value="${c.id}" data-maxhp="${(c.sheet?.maxHp)||HP_DIE[c.class]||8}" data-name="${esc(c.characterName)}" data-player="${esc(c.playerId)}" data-class="${esc(c.class||'')}">
+      ${esc(c.characterName)} <span style="color:var(--text-d);font-size:.72rem;">(${esc(c.class||'')} L${c.level||1} — ${esc(c.playerId)})</span>
+    </label>`).join('');
+  }catch(e){picker.innerHTML='<div style="font-style:italic;color:var(--text-d);font-size:.82rem;">Failed to load characters.</div>';}
+}
+
+// ── START SESSION ────────────────────────────────────────────────
+async function startSession(){
+  const name=document.getElementById('setup-name').value.trim()||'Combat Session';
+  const checked=[...document.querySelectorAll('#party-picker input[type=checkbox]:checked')];
+  if(!checked.length){toast('Select at least one party member.','error');return;}
+  try{
+    const batch=db.batch();
+    const sessionRef=db.collection('ActiveCombat').doc();
+    batch.set(sessionRef,{sessionName:name,dmId:loggedUser,isActive:true,createdAt:new Date().toISOString()});
+    checked.forEach(cb=>{
+      const charId=cb.value;
+      const maxHp=parseInt(cb.dataset.maxhp)||8;
+      const ref=sessionRef.collection('combatants').doc(charId);
+      batch.set(ref,{name:cb.dataset.name,type:'player',characterId:charId,playerId:cb.dataset.player,
+        maxHp,currentHp:maxHp,tempHp:0,initiative:0,conditions:[],isVisible:true});
+    });
+    await batch.commit();
+    activeSessionId=sessionRef.id;
+    toast('Session started!','success');
+  }catch(e){console.error(e);toast('Failed to start session.','error');}
+}
+
+// ── ADD ENEMY ────────────────────────────────────────────────────
+async function addEnemy(){
+  if(!activeSessionId){toast('No active session.','error');return;}
+  const name=document.getElementById('e-name').value.trim();
+  const maxHp=parseInt(document.getElementById('e-maxhp').value)||10;
+  const init=parseInt(document.getElementById('e-init').value)||0;
+  if(!name){toast('Enter an enemy name.','error');return;}
+  try{
+    await db.collection('ActiveCombat').doc(activeSessionId).collection('combatants').add({
+      name,type:'enemy',maxHp,currentHp:maxHp,tempHp:0,initiative:init,conditions:[],isVisible:true,isDead:false
+    });
+    document.getElementById('e-name').value='';
+    toast(`${name} added.`,'success');
+  }catch(e){toast('Failed to add enemy.','error');}
+}
+
+// ── RENDER COMBATANTS ────────────────────────────────────────────
+function renderCombatants(){
+  const sorted=Object.values(combatants).sort((a,b)=>(b.initiative||0)-(a.initiative||0));
+  const party=sorted.filter(c=>c.type==='player');
+  const enemies=sorted.filter(c=>c.type==='enemy');
+  if(loggedRole==='dm'||loggedRole==='session_dm'){
+    renderDmParty(party);
+    renderDmEnemies(enemies);
+  }else{
+    renderPlayerParty(party);
+    renderPlayerEnemies(enemies);
+  }
+}
+
+// ── DM: PARTY LIST ───────────────────────────────────────────────
+function renderDmParty(party){
+  const el=document.getElementById('party-list');if(!el)return;
+  document.getElementById('party-count').textContent=`(${party.length})`;
+  if(!party.length){el.innerHTML='<div style="font-style:italic;color:var(--text-d);font-size:.82rem;">No party members added yet.</div>';return;}
+  el.innerHTML=party.map(c=>combatantCard(c,true)).join('');
+}
+
+// ── DM: ENEMIES LIST ─────────────────────────────────────────────
+function renderDmEnemies(enemies){
+  const el=document.getElementById('enemy-list');if(!el)return;
+  document.getElementById('enemy-count').textContent=`(${enemies.length})`;
+  if(!enemies.length){el.innerHTML='<div style="font-style:italic;color:var(--text-d);font-size:.82rem;">No enemies added yet.</div>';return;}
+  el.innerHTML=enemies.map(c=>combatantCard(c,true)).join('');
+}
+
+function combatantCard(c,isDmView){
+  const pct=c.maxHp?Math.max(0,Math.min(100,Math.round((c.currentHp/c.maxHp)*100))):0;
+  const barColor=pct>75?'var(--hp-full)':pct>50?'var(--hp-injured)':pct>25?'var(--hp-wounded)':pct>0?'var(--hp-critical)':'var(--hp-dead)';
+  const deadClass=c.isDead||c.currentHp<=0&&pct===0?' dead':'';
+  return `<div class="combatant ${c.type}${deadClass}" id="cm-${c.id}">
+    <div class="cm-header">
+      <div>
+        <div class="cm-name">${esc(c.name)}${c.type==='player'?` <span style="font-size:.62rem;color:var(--text-d);">(${esc(c.playerId||'')})</span>`:''}</div>
+        <div class="cm-type">${c.type==='player'?'Player Character':'Enemy'} · Init ${c.initiative||0}</div>
+      </div>
+      ${isDmView?`<div class="quick-adj">
+        <input class="adj-input" type="number" id="adj-${c.id}" min="1" max="999" value="5" title="Amount">
+        <button class="btn btn-green btn-sm" onclick="quickHP('${c.id}','heal')">+</button>
+        <button class="btn btn-danger btn-sm" onclick="quickHP('${c.id}','dmg')">&#8722;</button>
+        ${c.type==='enemy'?`<button class="btn btn-ghost btn-sm" onclick="removeEnemy('${c.id}')" title="Remove enemy">&#x2715;</button>`:''}
+      </div>`:''}
+    </div>
+    <div class="cm-hp-row">
+      ${isDmView?`<span class="cm-hp-val">${c.currentHp}</span><span class="cm-hp-max">/${c.maxHp} HP${c.tempHp?` (+${c.tempHp} tmp)`:''}</span>`:''}
+      <div class="hp-bar-outer"><div class="hp-bar-inner" style="width:${pct}%;background:${barColor};"></div></div>
+    </div>
+    ${c.conditions&&c.conditions.length?`<div style="font-size:.72rem;color:var(--text-d);margin-top:.2rem;">&#9883; ${c.conditions.join(', ')}</div>`:''}
+    ${isDmView?`<div class="cm-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openMHp('${c.id}','${c.type}')">Full Adjust</button>
+      ${c.type==='enemy'?`<button class="btn btn-${c.isDead?'ghost':'danger'} btn-sm" onclick="toggleDead('${c.id}',${!!c.isDead})">${c.isDead?'Revive':'Mark Dead'}</button>`:''}
+    </div>`:''}
+  </div>`;
+}
+
+// ── PLAYER VIEW ──────────────────────────────────────────────────
+function renderPlayerParty(party){
+  const el=document.getElementById('player-party-section');if(!el)return;
+  if(!party.length){el.innerHTML='';return;}
+  const myChar=party.find(c=>c.playerId===loggedUser);
+  el.innerHTML=`<div class="card">
+    <div class="card-title">&#9876; Your Party</div>
+    ${party.map(c=>{
+      const pct=c.maxHp?Math.max(0,Math.min(100,Math.round((c.currentHp/c.maxHp)*100))):0;
+      const barColor=pct>75?'var(--hp-full)':pct>50?'var(--hp-injured)':pct>25?'var(--hp-wounded)':pct>0?'var(--hp-critical)':'var(--hp-dead)';
+      const isMe=c.playerId===loggedUser;
+      return `<div class="combatant player${c.currentHp<=0?' dead':''}">
+        <div class="cm-header">
+          <div><div class="cm-name">${esc(c.name)}${isMe?' <span style="font-size:.62rem;color:var(--gold);">(You)</span>':''}</div></div>
+        </div>
+        <div class="cm-hp-row">
+          ${isMe?`<span class="cm-hp-val">${c.currentHp}</span><span class="cm-hp-max">/${c.maxHp} HP</span>`:'<span style="font-size:.75rem;color:var(--text-d);">HP visible to DM only</span>'}
+          <div class="hp-bar-outer"><div class="hp-bar-inner" style="width:${pct}%;background:${barColor};"></div></div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderPlayerEnemies(enemies){
+  const el=document.getElementById('player-enemy-section');if(!el)return;
+  const visible=enemies.filter(c=>c.isVisible&&!c.isDead);
+  if(!visible.length){el.innerHTML='';return;}
+  el.innerHTML=`<div class="card">
+    <div class="card-title">&#9761; Enemies in View</div>
+    ${visible.map(c=>{
+      const pct=c.maxHp?Math.max(0,Math.min(100,Math.round((c.currentHp/c.maxHp)*100))):0;
+      const statusLabel=pct>75?['Fine','fine']:pct>50?['Injured','injured']:pct>25?['Wounded','wounded']:pct>0?['Critical','critical']:[c.isDead?'Dead':'Unconscious',c.isDead?'dead':'unconscious'];
+      return `<div class="combatant enemy">
+        <div class="cm-header">
+          <div><div class="cm-name">${esc(c.name)}</div></div>
+          <div class="hp-status ${statusLabel[1]}">${statusLabel[0]}</div>
+        </div>
+        <div class="hp-bar-outer" style="height:12px;margin-top:.3rem;"><div class="hp-bar-inner" style="height:100%;width:${pct}%;background:${pct>75?'var(--hp-full)':pct>50?'var(--hp-injured)':pct>25?'var(--hp-wounded)':pct>0?'var(--hp-critical)':'var(--hp-dead)'};"></div></div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ── HP ACTIONS ───────────────────────────────────────────────────
+async function quickHP(id,action){
+  const c=combatants[id];if(!c||!activeSessionId)return;
+  const amt=parseInt(document.getElementById(`adj-${id}`)?.value)||5;
+  await applyHpChange(id,c,action,amt);
+}
+
+function openMHp(id,type){
+  pendingHpId=id;pendingHpType=type;
+  const c=combatants[id]||{};
+  document.getElementById('hp-adj-amt').value=5;
+  document.getElementById('m-hp-ttl').textContent=`Adjust HP — ${c.name||''}`;
+  document.getElementById('m-hp').classList.add('open');
+}
+function closeMHp(){document.getElementById('m-hp').classList.remove('open');}
+async function commitHP(action){
+  const id=pendingHpId;if(!id)return;
+  const c=combatants[id];if(!c)return;
+  const amt=parseInt(document.getElementById('hp-adj-amt').value)||0;
+  if(amt<=0){toast('Enter a positive amount.','error');return;}
+  await applyHpChange(id,c,action,amt);
+  closeMHp();
+}
+
+async function applyHpChange(id,c,action,amt){
+  let hp=c.currentHp,tmp=c.tempHp||0;
+  if(action==='heal')hp=Math.min(c.maxHp,hp+amt);
+  if(action==='dmg'){if(tmp>0){const ab=Math.min(tmp,amt);tmp-=ab;hp=Math.max(0,hp-(amt-ab));}else hp=Math.max(0,hp-amt);}
+  if(action==='temp')tmp+=amt;
+  try{
+    await db.collection('ActiveCombat').doc(activeSessionId).collection('combatants').doc(id).update({currentHp:hp,tempHp:tmp});
+    // If this is a player character, also update the Characters collection for persistence
+    if(c.type==='player'&&c.characterId){
+      await db.collection('Characters').doc(c.characterId).update({'sheet.hp':hp,'sheet.tempHp':tmp});
+    }
+    toast(`${c.name}: ${hp}/${c.maxHp} HP`,'success');
+  }catch(e){toast('Failed to update HP.','error');}
+}
+
+async function toggleDead(id,wasDead){
+  try{
+    await db.collection('ActiveCombat').doc(activeSessionId).collection('combatants').doc(id).update({isDead:!wasDead,currentHp:wasDead?1:0});
+    toast(wasDead?'Revived.':'Marked as dead.','info');
+  }catch(e){toast('Failed.','error');}
+}
+
+async function removeEnemy(id){
+  if(!confirm('Remove this enemy from the encounter?'))return;
+  try{
+    await db.collection('ActiveCombat').doc(activeSessionId).collection('combatants').doc(id).delete();
+    toast('Enemy removed.','info');
+  }catch(e){toast('Failed.','error');}
+}
+
+// ── END SESSION ──────────────────────────────────────────────────
+async function endSession(){
+  if(!activeSessionId)return;
+  if(!confirm('End this combat session? All combatants will be cleared.'))return;
+  try{
+    // Delete all combatants first
+    const snap=await db.collection('ActiveCombat').doc(activeSessionId).collection('combatants').get();
+    const batch=db.batch();
+    snap.docs.forEach(d=>batch.delete(d.ref));
+    batch.update(db.collection('ActiveCombat').doc(activeSessionId),{isActive:false,endedAt:new Date().toISOString()});
+    await batch.commit();
+    toast('Session ended.','info');
+  }catch(e){toast('Failed to end session.','error');}
+}
+
+function doSignOut(){['dnd_username','dm_username'].forEach(k=>sessionStorage.removeItem(k));window.location.href='index.html';}
+function toast(msg,type='info'){const w=document.getElementById('toasts'),el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;w.appendChild(el);setTimeout(()=>el.remove(),4000);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+boot();
+</script>
+</body>
+</html>

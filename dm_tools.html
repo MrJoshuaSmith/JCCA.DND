@@ -930,7 +930,7 @@ function rRollChest(type){
 
 function rRand(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
 
-function rEnsureInit(){} // placeholder — could lazy-load data
+function rEnsureInit(){ rPopulateSessions(); }
 
 function rGoStep(n) {
   for(let i=1;i<=4;i++){
@@ -944,22 +944,31 @@ function rGoStep(n) {
 }
 
 async function rPopulateSessions(){
+  const sel=document.getElementById('r-session-id');
+  if(!sel)return;
+  sel.innerHTML='<option value="">— Loading sessions… —</option>';
   try{
+    // No orderBy avoids Firestore composite-index requirement; sort client-side
+    const snap=await db.collection('Sessions').get();
     const now=new Date(); now.setHours(0,0,0,0);
-    const snap=await db.collection('Sessions').orderBy('date','desc').get();
-    const sess=snap.docs.map(d=>({id:d.id,...d.data()})).filter(s=>{
-      const d=new Date(s.date+'T12:00:00'); const diff=Math.round((now-d)/86400000);
-      return diff<=14; // within 14 days past or upcoming
-    });
-    const sel=document.getElementById('r-session-id');
-    if(!sel)return;
-    sel.innerHTML='<option value="">— No scheduled session —</option>'+
+    const sess=snap.docs.map(d=>({id:d.id,...d.data()}))
+      .sort((a,b)=>new Date(b.date)-new Date(a.date));
+    if(!sess.length){sel.innerHTML='<option value="">— No sessions found —</option>';return;}
+    sel.innerHTML='<option value="">— Select a session —</option>'+
       sess.map(s=>{
-        const d=new Date(s.date+'T12:00:00');
-        const label=d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
-        return `<option value="${s.id}">${label}: ${s.title||'D&D Session'}</option>`;
+        let d; try{d=new Date(s.date+'T12:00:00');}catch(e){d=new Date();}
+        const label=d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+        const diff=Math.round((now-d)/86400000);
+        const tag=diff<0?'(upcoming)':diff===0?'(today)':diff<=7?'('+diff+'d ago)':'';
+        return '<option value="'+s.id+'">'+label+' '+tag+': '+(s.title||'D&D Session')+'</option>';
       }).join('');
-  }catch(e){console.error(e);}
+    // Auto-select the most recent past/today session
+    const autoSel=sess.find(s=>{const d=new Date(s.date+'T12:00:00');return d<=new Date();});
+    if(autoSel){sel.value=autoSel.id;rOnSessionSelect(sel);}
+  }catch(e){
+    console.error('rPopulateSessions error:',e);
+    sel.innerHTML='<option value="">— Error loading: '+(e.code||e.message||'unknown')+'—</option>';
+  }
 }
 
 function rOnSessionSelect(sel){

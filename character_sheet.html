@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Character Sheet — D&D Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#0e0b09;--bg-card:#1e1916;--border:rgba(180,110,40,.22);--border-red:rgba(160,28,28,.4);--red:#c41e1e;--red-d:#8b1010;--gold:#c8952a;--gold-d:#7a5818;--text:#e0d8c8;--text-m:#b0a898;--text-d:#786858;--ink:#2a1208;--ink-m:#5a3820;--ink-l:#8a6040;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);background-image:radial-gradient(ellipse 70% 40% at 50% 0%,#1f0f08,transparent 70%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--text);}
+.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;padding:.6rem 1.5rem;background:rgba(14,9,4,.9);border-bottom:2px solid var(--border);position:sticky;top:0;z-index:100;}
+.tb-brand{font-family:'Cinzel',serif;font-size:.9rem;font-weight:900;color:var(--text);}
+.tb-brand b{color:var(--red);}
+.tb-right{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+.tb-charname{font-family:'Cinzel',serif;font-size:.75rem;color:var(--text-m);}
+.btn{font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;letter-spacing:.06em;padding:.32rem .8rem;border-radius:4px;cursor:pointer;border:1px solid;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text-m);}
+.btn-ghost:hover{border-color:var(--gold-d);color:var(--gold);}
+.fi{width:auto;background:rgba(13,8,4,.7);border:1px solid var(--border);border-radius:4px;padding:.3rem .6rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:.72rem;outline:none;}
+.spinner{width:26px;height:26px;border:2px solid rgba(200,160,80,.2);border-top-color:rgba(200,160,80,.5);border-radius:50%;animation:spin .8s linear infinite;margin:2rem auto;display:block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sheet-wrap{max-width:1100px;margin:0 auto;padding:1.2rem 1rem 4rem;}
+/* SHEET */
+.sheet{background:#f4e6c0;background-image:radial-gradient(ellipse at 0% 0%,rgba(200,155,50,.1),transparent 40%),radial-gradient(ellipse at 100% 100%,rgba(160,110,30,.08),transparent 40%),repeating-linear-gradient(90deg,transparent,transparent 4px,rgba(100,70,20,.018) 4px,rgba(100,70,20,.018) 5px);border:2px solid rgba(100,70,20,.3);border-radius:3px;box-shadow:0 8px 40px rgba(0,0,0,.6);}
+/* HEADER */
+.sh-hdr{background:rgba(100,60,10,.12);border-bottom:2px solid rgba(100,70,20,.3);padding:1rem 1.5rem;display:grid;grid-template-columns:1fr auto;gap:.8rem;align-items:start;}
+.sh-name{font-family:'Cinzel',serif;font-size:1.8rem;font-weight:900;color:var(--ink);line-height:1;}
+.sh-meta{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:.4rem;}
+.sh-mi{text-align:center;}
+.sh-mi-lbl{font-family:'Cinzel',serif;font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-l);}
+.sh-mi-val{font-family:'Cinzel',serif;font-size:.88rem;font-weight:600;color:var(--ink-m);}
+.sh-xp-lbl{font-family:'Cinzel',serif;font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-l);}
+.sh-xp-val{font-family:'Cinzel',serif;font-size:.95rem;font-weight:600;color:var(--ink);text-align:right;}
+.xp-bar{width:130px;height:6px;background:rgba(100,70,20,.18);border-radius:3px;margin-top:.3rem;}
+.xp-fill{height:100%;background:rgba(160,28,28,.55);border-radius:3px;transition:width .4s;}
+/* BODY GRID */
+.sh-body{display:grid;grid-template-columns:168px 1fr 200px;border-top:1px solid rgba(100,70,20,.25);}
+@media(max-width:760px){.sh-body{grid-template-columns:1fr;}}
+/* LEFT */
+.sh-left{border-right:1px solid rgba(100,70,20,.25);padding:.9rem .7rem;}
+.ab-lbl{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-l);text-align:center;margin-bottom:.7rem;}
+.ab-grid{display:flex;flex-direction:column;gap:.45rem;}
+.ab-block{text-align:center;border:2px solid rgba(100,70,20,.28);border-radius:6px;padding:.38rem .3rem .45rem;position:relative;background:rgba(200,155,50,.04);}
+.ab-nm{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-l);margin-bottom:.05rem;}
+.ab-mod{font-family:'Cinzel',serif;font-size:1.35rem;font-weight:900;color:var(--ink);line-height:1;}
+.ab-sc{font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;color:var(--ink-m);border:1px solid rgba(100,70,20,.25);border-radius:3px;display:inline-block;width:28px;margin-top:.12rem;line-height:1.5;}
+.save-dot{position:absolute;top:3px;right:3px;width:7px;height:7px;background:rgba(160,28,28,.7);border-radius:50%;}
+.sh-prof-box{text-align:center;margin-top:.9rem;padding-top:.7rem;border-top:1px solid rgba(100,70,20,.22);}
+.sh-prof-lbl{font-family:'Cinzel',serif;font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-l);}
+.sh-prof-val{font-family:'Cinzel',serif;font-size:1.25rem;font-weight:900;color:var(--ink);}
+.insp-row{display:flex;align-items:center;gap:.4rem;justify-content:center;margin-top:.5rem;}
+.insp-box{width:15px;height:15px;border:2px solid var(--ink-m);border-radius:3px;}
+.insp-lbl{font-family:'Cinzel',serif;font-size:.57rem;letter-spacing:.07em;color:var(--ink-l);}
+/* MIDDLE */
+.sh-mid{padding:.8rem .9rem;border-right:1px solid rgba(100,70,20,.25);}
+.sh-sec{margin-bottom:.8rem;}
+.sh-sec-ttl{font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);border-bottom:1px solid rgba(100,70,20,.22);padding-bottom:.22rem;margin-bottom:.4rem;}
+.sv-row,.sk-row{display:flex;align-items:center;gap:.38rem;font-size:.8rem;color:var(--ink-m);line-height:1.52;}
+.rb{width:13px;height:13px;border:1.5px solid var(--ink-m);border-radius:3px;flex-shrink:0;background:transparent;display:flex;align-items:center;justify-content:center;}
+.rb.prof{background:var(--ink-m);}
+.rb.exp{background:var(--red-d);}
+.rv{font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;color:var(--ink);min-width:22px;text-align:right;}
+.sk-attr{font-size:.6rem;color:var(--ink-l);margin-left:auto;font-style:italic;}
+.passive-row{margin-top:.45rem;padding:.38rem .55rem;background:rgba(100,70,20,.07);border:1px solid rgba(100,70,20,.2);border-radius:3px;font-size:.77rem;color:var(--ink-m);display:flex;justify-content:space-between;}
+/* RIGHT */
+.sh-right{padding:.8rem .7rem;}
+.cb-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.38rem;margin-bottom:.65rem;}
+.cb{text-align:center;border:1.5px solid rgba(100,70,20,.25);border-radius:4px;padding:.38rem .2rem;}
+.cb-lbl{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-l);margin-bottom:.08rem;}
+.cb-val{font-family:'Cinzel',serif;font-size:1.25rem;font-weight:900;color:var(--ink);line-height:1;}
+.cb-sub{font-size:.58rem;color:var(--ink-l);}
+.hp-block{border:2px solid rgba(100,70,20,.25);border-radius:4px;padding:.55rem .7rem;margin-bottom:.55rem;}
+.hp-row{display:flex;align-items:center;gap:.45rem;margin-bottom:.3rem;}
+.hp-lbl{font-family:'Cinzel',serif;font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-l);min-width:52px;}
+.hp-val{font-family:'Cinzel',serif;font-size:1.25rem;font-weight:900;color:var(--ink);line-height:1;}
+.hp-adj-btn{background:rgba(160,28,28,.1);border:1px solid rgba(160,28,28,.32);border-radius:3px;font-family:'Cinzel',serif;font-size:.6rem;padding:.16rem .45rem;cursor:pointer;color:var(--red-d);}
+.hp-adj-btn:hover{background:rgba(160,28,28,.22);}
+.hp-bar-wrap{height:7px;background:rgba(100,70,20,.14);border-radius:4px;overflow:hidden;margin-top:.18rem;}
+.hp-bar{height:100%;border-radius:4px;transition:width .5s,background .5s;}
+.hd-row{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--ink-m);margin-bottom:.45rem;}
+.hd-val{font-family:'Cinzel',serif;font-size:.85rem;font-weight:600;color:var(--ink);}
+.ds-block{border:1.5px solid rgba(100,70,20,.22);border-radius:4px;padding:.45rem .65rem;}
+.ds-ttl{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-l);margin-bottom:.3rem;}
+.ds-row{display:flex;align-items:center;gap:.3rem;font-size:.74rem;color:var(--ink-m);margin-bottom:.18rem;}
+.ds-pip{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--ink-m);display:inline-block;}
+.ds-pip.s{background:#4a7820;border-color:#4a7820;}
+.ds-pip.f{background:#8b1010;border-color:#8b1010;}
+/* BOTTOM */
+.sh-bot{display:grid;grid-template-columns:1fr 1fr;border-top:2px solid rgba(100,70,20,.25);}
+@media(max-width:560px){.sh-bot{grid-template-columns:1fr;}}
+.sh-bot-sec{padding:.8rem .9rem;border-right:1px solid rgba(100,70,20,.2);}
+.sh-bot-sec:last-child{border-right:none;}
+.feat-item{padding:.18rem 0;border-bottom:1px solid rgba(100,70,20,.09);font-size:.8rem;color:var(--ink-m);}
+.feat-item:last-child{border-bottom:none;}
+.feat-nm{font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;color:var(--ink);}
+/* HP MODAL */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500;align-items:center;justify-content:center;padding:1rem;}
+.mbg.open{display:flex;}
+.mc{background:var(--bg-card);border:1px solid var(--border-red);border-radius:6px;padding:1.8rem;width:100%;max-width:360px;}
+.mc-ttl{font-family:'Cinzel',serif;font-size:.95rem;color:var(--text);border-bottom:1px solid var(--border);padding-bottom:.4rem;margin-bottom:.9rem;}
+.mc-fi{width:100%;background:rgba(13,8,4,.7);border:1px solid var(--border);border-radius:4px;padding:.52rem .8rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:1.2rem;text-align:center;outline:none;margin-bottom:.5rem;}
+.mc-row{display:flex;gap:.5rem;margin-bottom:.4rem;}
+.mc-btn{flex:1;font-family:'Cinzel',serif;font-size:.76rem;font-weight:600;padding:.5rem;border-radius:4px;cursor:pointer;border:1px solid;transition:all .2s;}
+.toasts{position:fixed;bottom:1.5rem;right:1.5rem;z-index:600;display:flex;flex-direction:column;gap:.4rem;}
+.toast{background:var(--bg-card);border:1px solid;border-radius:4px;padding:.6rem 1rem;font-size:.82rem;animation:tin .25s ease;}
+@keyframes tin{from{opacity:0;transform:translateY(8px);}to{opacity:1;}}
+.toast.success{border-color:#4a8030;color:#80c060;}
+.toast.error{border-color:var(--red-d);color:var(--red);}
+.toast.info{border-color:var(--gold-d);color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tb-brand">&#9876; <b>Character Sheet</b></div>
+  <div class="tb-right">
+    <span class="tb-charname" id="tb-charname"></span>
+    <select class="fi" id="char-select" onchange="loadCharacter(this.value)">
+      <option value="">Loading…</option>
+    </select>
+    <a href="shop_portal.html" class="btn btn-ghost">Portal</a>
+    <a href="index.html" class="btn btn-ghost">&#8962; Home</a>
+  </div>
+</div>
+
+<div id="loading-wrap" style="text-align:center;padding:4rem;"><div class="spinner"></div></div>
+<div id="sheet-wrap" class="sheet-wrap" style="display:none;"></div>
+
+<div class="mbg" id="m-hp">
+  <div class="mc">
+    <div class="mc-ttl" id="m-hp-ttl">Adjust HP</div>
+    <input class="mc-fi" id="hp-adj-amt" type="number" min="1" max="999" value="1">
+    <div class="mc-row">
+      <button class="mc-btn" style="background:rgba(80,120,40,.2);border-color:rgba(80,120,40,.5);color:#80c060;" onclick="applyHP('heal')">+ Heal</button>
+      <button class="mc-btn" style="background:rgba(196,30,30,.15);border-color:var(--red-d);color:var(--red);" onclick="applyHP('dmg')">&#8722; Damage</button>
+    </div>
+    <div class="mc-row">
+      <button class="mc-btn" style="background:rgba(100,70,20,.15);border-color:rgba(100,70,20,.4);color:var(--text-m);" onclick="applyHP('temp')">+ Temp HP</button>
+      <button class="mc-btn" style="background:transparent;border-color:var(--border);color:var(--text-m);" onclick="closeMHp()">Cancel</button>
+    </div>
+  </div>
+</div>
+<div class="toasts" id="toasts"></div>
+
+<script>
+firebase.initializeApp({apiKey:'AIzaSyAWpUnUirhcI3nhW9WF_7aqDInOCvIbsIY',authDomain:'jcca-dnd.firebaseapp.com',projectId:'jcca-dnd',storageBucket:'jcca-dnd.firebasestorage.app',messagingSenderId:'128758977152',appId:'1:128758977152:web:f43ef158eedf82614ccc65'});
+const auth=firebase.auth(),db=firebase.firestore();
+
+const PROF_BY_LEVEL={1:2,2:2,3:2,4:2,5:3,6:3,7:3,8:3,9:4,10:4,11:4,12:4,13:5,14:5,15:5,16:5,17:6,18:6,19:6,20:6};
+const SKILL_AB={Acrobatics:'dex','Animal Handling':'wis',Arcana:'int',Athletics:'str',Deception:'cha',History:'int',Insight:'wis',Intimidation:'cha',Investigation:'int',Medicine:'wis',Nature:'int',Perception:'wis',Performance:'cha',Persuasion:'cha',Religion:'int','Sleight of Hand':'dex',Stealth:'dex',Survival:'wis'};
+const ALL_SKILLS=Object.keys(SKILL_AB);
+const HIT_DIE={Barbarian:12,Bard:8,Cleric:8,Druid:8,Fighter:10,Monk:8,Paladin:10,Ranger:10,Rogue:8,Sorcerer:6,Warlock:8,Wizard:6};
+const XP_TH=[0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
+const SPELLCASTERS=['Bard','Cleric','Druid','Paladin','Ranger','Sorcerer','Warlock','Wizard'];
+const SNAMES={str:'STR',dex:'DEX',con:'CON',int:'INT',wis:'WIS',cha:'CHA'};
+const SKEYS=['str','dex','con','int','wis','cha'];
+
+let loggedUser=null,loggedRole=null,currentChar=null,currentCharId=null,unsub=null;
+
+async function boot(){
+  try{await auth.signInAnonymously();}catch(e){}
+  const saved=['dnd_username','dm_username'].map(k=>sessionStorage.getItem(k)).find(Boolean);
+  if(!saved){window.location.href='shop_portal.html';return;}
+  try{
+    const doc=await db.collection('Users').doc(saved).get();
+    if(!doc.exists){window.location.href='shop_portal.html';return;}
+    const d=doc.data();loggedUser=saved;loggedRole=d.role;
+    await loadList(saved,d.activeCharacterId);
+  }catch(e){console.error(e);showErr('Failed to load user.');}
+}
+
+async function loadList(uid,activeId){
+  try{
+    const snap=await db.collection('Characters').where('playerId','==',uid).where('status','==','Active').get();
+    const chars=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const sel=document.getElementById('char-select');
+    if(!chars.length){showErr('No active characters. Create one in the Portal.');return;}
+    sel.innerHTML=chars.map(c=>`<option value="${c.id}">${esc(c.characterName)} (${esc(c.class)} L${c.level||1})</option>`).join('');
+    const tid=activeId&&chars.find(c=>c.id===activeId)?activeId:chars[0].id;
+    sel.value=tid; await loadCharacter(tid);
+  }catch(e){console.error(e);showErr('Failed to load characters.');}
+}
+
+async function loadCharacter(charId){
+  if(!charId)return;
+  if(unsub){unsub();unsub=null;}
+  document.getElementById('loading-wrap').style.display='block';
+  document.getElementById('sheet-wrap').style.display='none';
+  try{
+    const doc=await db.collection('Characters').doc(charId).get();
+    if(!doc.exists){showErr('Character not found.');return;}
+    currentChar={id:doc.id,...doc.data()};currentCharId=charId;
+    document.getElementById('tb-charname').textContent=currentChar.characterName||'';
+    renderSheet();
+    unsub=db.collection('Characters').doc(charId).onSnapshot(snap=>{
+      if(!snap.exists)return;
+      const d=snap.data();if(!d.sheet)return;
+      currentChar.sheet=d.sheet;
+      const sh=d.sheet;
+      const hpEl=document.getElementById('hp-live');
+      const tmpEl=document.getElementById('tmp-live');
+      const barEl=document.getElementById('hp-bar');
+      if(hpEl)hpEl.textContent=sh.hp??sh.maxHp;
+      if(tmpEl)tmpEl.textContent=sh.tempHp||0;
+      if(barEl){barEl.style.width=hpPct(sh.hp??sh.maxHp,sh.maxHp)+'%';barEl.style.background=hpColor(sh.hp??sh.maxHp,sh.maxHp);}
+    });
+  }catch(e){console.error(e);showErr('Failed to load sheet.');}
+  finally{document.getElementById('loading-wrap').style.display='none';document.getElementById('sheet-wrap').style.display='block';}
+}
+
+function m(s){return Math.floor((s-10)/2);}
+function ms(s){const v=m(s);return(v>=0?'+':'')+v;}
+function pb(lv){return PROF_BY_LEVEL[Math.min(20,Math.max(1,lv||1))];}
+function hpPct(c,mx){if(!mx)return 0;return Math.max(0,Math.min(100,Math.round((c/mx)*100)));}
+function hpColor(c,mx){const p=hpPct(c,mx);return p>75?'#4a8820':p>50?'#8a9820':p>25?'#9a6010':p>0?'#8b1010':'#3a0808';}
+
+function renderSheet(){
+  const char=currentChar;
+  const s=char.sheet||{};
+  const scores=s.abilityScores||{str:10,dex:10,con:10,int:10,wis:10,cha:10};
+  const lv=char.level||1;
+  const profB=pb(lv);
+  const saves=s.savingThrowProficiencies||[];
+  const skillP=s.skillProficiencies||[];
+  const skillE=s.skillExpertises||[];
+  const maxHp=s.maxHp||HIT_DIE[char.class]||8;
+  const curHp=s.hp??maxHp;
+  const tempHp=s.tempHp||0;
+  const xpCur=char.xp||0;
+  const xpN=XP_TH[lv]||XP_TH[19];
+  const xpP=XP_TH[lv-1]||0;
+  const xpPct=xpN>xpP?Math.round(((xpCur-xpP)/(xpN-xpP))*100):0;
+  const dexM=m(scores.dex||10),conM=m(scores.con||10),wisM=m(scores.wis||10);
+  let ac=10+dexM;
+  if(char.class==='Barbarian')ac=10+dexM+conM;
+  else if(char.class==='Monk')ac=10+dexM+wisM;
+  const initStr=(dexM>=0?'+':'')+dexM;
+
+  const abHtml=SKEYS.map(k=>{
+    const sc=scores[k]||10;const v=m(sc);
+    return `<div class="ab-block">
+      <div class="ab-nm">${SNAMES[k]}</div>
+      <div class="ab-mod">${(v>=0?'+':'')+v}</div>
+      <div class="ab-sc">${sc}</div>
+      ${saves.includes(k)?'<div class="save-dot" title="Save proficiency"></div>':''}
+    </div>`;
+  }).join('');
+
+  const savesHtml=SKEYS.map(k=>{
+    const sc=scores[k]||10;const prof=saves.includes(k);
+    const v=m(sc)+(prof?profB:0);return `<div class="sv-row">
+      <div class="rb${prof?' prof':''}"></div>
+      <span class="rv">${(v>=0?'+':'')+v}</span>
+      <span>${SNAMES[k]} Save</span>
+    </div>`;
+  }).join('');
+
+  const skillsHtml=ALL_SKILLS.map(sk=>{
+    const ab=SKILL_AB[sk];const sc=scores[ab]||10;
+    const exp=skillE.includes(sk);const prof=skillP.includes(sk)||exp;
+    const v=m(sc)+(exp?profB*2:prof?profB:0);
+    return `<div class="sk-row">
+      <div class="rb${exp?' exp':prof?' prof':''}"></div>
+      <span class="rv">${(v>=0?'+':'')+v}</span>
+      <span>${sk}</span>
+      <span class="sk-attr">(${SNAMES[ab]})</span>
+    </div>`;
+  }).join('');
+
+  const percMod=m(scores.wis||10)+(skillP.includes('Perception')?profB:0)+(skillE.includes('Perception')?profB:0);
+  const pprc=10+percMod;
+
+  const feats=[
+    char.class&&`<div class="feat-item"><div class="feat-nm">${esc(char.class)} — Level ${lv}</div>Level ${lv} class features apply. See class description.</div>`,
+    s.originFeat&&`<div class="feat-item"><div class="feat-nm">Origin Feat: ${esc(s.originFeat)}</div></div>`,
+    char.race&&`<div class="feat-item"><div class="feat-nm">${esc(char.race)} Traits</div>Species traits from 2024 PHB.</div>`,
+  ].filter(Boolean).join('');
+
+  document.getElementById('sheet-wrap').innerHTML=`
+  <div class="sheet">
+    <div class="sh-hdr">
+      <div>
+        <div class="sh-name">${esc(char.characterName||'Unknown')}</div>
+        <div class="sh-meta">
+          ${[['Class',char.class],['Level',lv],['Species',char.race],['Background',char.background],['Player',char.playerId]].map(([l,v])=>`<div class="sh-mi"><div class="sh-mi-lbl">${l}</div><div class="sh-mi-val">${esc(String(v||'—'))}</div></div>`).join('')}
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="sh-xp-lbl">Experience</div>
+        <div class="sh-xp-val">${xpCur.toLocaleString()} / ${xpN.toLocaleString()}</div>
+        <div class="xp-bar"><div class="xp-fill" style="width:${xpPct}%"></div></div>
+        <div style="font-size:.6rem;color:var(--ink-l);margin-top:.2rem;">${xpPct}% to Lv${lv+1}</div>
+      </div>
+    </div>
+    <div class="sh-body">
+      <div class="sh-left">
+        <div class="ab-lbl">Ability Scores</div>
+        <div class="ab-grid">${abHtml}</div>
+        <div class="sh-prof-box">
+          <div class="sh-prof-lbl">Proficiency Bonus</div>
+          <div class="sh-prof-val">+${profB}</div>
+        </div>
+        <div class="insp-row"><div class="insp-box"></div><span class="insp-lbl">Inspiration</span></div>
+        <div style="text-align:center;margin-top:.7rem;padding-top:.55rem;border-top:1px solid rgba(100,70,20,.2);">
+          <div style="font-family:'Cinzel',serif;font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-l);">Initiative</div>
+          <div style="font-family:'Cinzel',serif;font-size:1.05rem;font-weight:700;color:var(--ink);">${initStr}</div>
+        </div>
+      </div>
+      <div class="sh-mid">
+        <div class="sh-sec"><div class="sh-sec-ttl">Saving Throws</div>${savesHtml}</div>
+        <div class="sh-sec">
+          <div class="sh-sec-ttl">Skills</div>
+          ${skillsHtml}
+          <div class="passive-row"><span>Passive Perception</span><b>${pprc}</b></div>
+        </div>
+        <div class="sh-sec">
+          <div class="sh-sec-ttl">Skill Proficiencies</div>
+          <div style="font-size:.77rem;color:var(--ink-m);line-height:1.65;">${[...new Set([...skillP,...skillE])].sort().join(', ')||'None'}</div>
+        </div>
+      </div>
+      <div class="sh-right">
+        <div class="sh-sec-ttl" style="margin-bottom:.55rem;">Combat</div>
+        <div class="cb-grid">
+          <div class="cb"><div class="cb-lbl">AC</div><div class="cb-val">${ac}</div></div>
+          <div class="cb"><div class="cb-lbl">Initiative</div><div class="cb-val">${initStr}</div></div>
+          <div class="cb"><div class="cb-lbl">Speed</div><div class="cb-val">${s.speed||30}</div><div class="cb-sub">ft</div></div>
+        </div>
+        <div class="hp-block">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
+            <div style="font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-l);">Hit Points</div>
+            <button class="hp-adj-btn" onclick="openMHp()">Adjust</button>
+          </div>
+          <div class="hp-row"><div class="hp-lbl">Current</div><div class="hp-val" id="hp-live">${curHp}</div></div>
+          <div class="hp-row"><div class="hp-lbl">Maximum</div><div class="hp-val">${maxHp}</div></div>
+          <div class="hp-row"><div class="hp-lbl">Temp</div><div class="hp-val" id="tmp-live">${tempHp}</div></div>
+          <div class="hp-bar-wrap"><div class="hp-bar" id="hp-bar" style="width:${hpPct(curHp,maxHp)}%;background:${hpColor(curHp,maxHp)};"></div></div>
+        </div>
+        <div class="hd-row">
+          <span style="font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-l);">Hit Dice:</span>
+          <span class="hd-val">${lv}d${HIT_DIE[char.class]||8}</span>
+        </div>
+        <div class="ds-block">
+          <div class="ds-ttl">Death Saving Throws</div>
+          <div class="ds-row"><span style="min-width:60px;">Successes</span>${[0,1,2].map(i=>`<div class="ds-pip${(s.deathSaves?.successes||0)>i?' s':''}"></div>`).join('')}</div>
+          <div class="ds-row"><span style="min-width:60px;">Failures</span>${[0,1,2].map(i=>`<div class="ds-pip${(s.deathSaves?.failures||0)>i?' f':''}"></div>`).join('')}</div>
+        </div>
+        ${SPELLCASTERS.includes(char.class)?`<div style="margin-top:.55rem;padding:.4rem .55rem;background:rgba(100,70,20,.06);border:1px solid rgba(100,70,20,.2);border-radius:3px;"><div style="font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-l);margin-bottom:.18rem;">Spell Slots</div><div style="font-size:.75rem;color:var(--ink-l);font-style:italic;">Spell tracking coming soon.</div></div>`:''}
+      </div>
+    </div>
+    <div class="sh-bot">
+      <div class="sh-bot-sec">
+        <div class="sh-sec-ttl">Features &amp; Traits</div>
+        <div>${feats||'<div style="font-style:italic;color:var(--ink-l);font-size:.8rem;">No features recorded.</div>'}</div>
+      </div>
+      <div class="sh-bot-sec">
+        <div class="sh-sec-ttl">Notes &amp; Gold</div>
+        <div style="font-family:'Cinzel',serif;font-size:1.4rem;font-weight:700;color:var(--ink);margin-bottom:.5rem;">${(char.gold||0).toLocaleString()} <span style="font-size:.68rem;font-weight:400;color:var(--ink-l);">gp</span></div>
+        <div style="font-size:.8rem;color:var(--ink-m);font-style:italic;margin-bottom:.6rem;">Personality traits, ideals, bonds, and flaws go here.</div>
+        <div class="sh-sec-ttl" style="margin-top:.6rem;">Inventory Summary</div>
+        <div id="inv-summary" style="font-size:.78rem;color:var(--ink-m);">Loading…</div>
+      </div>
+    </div>
+  </div>`;
+  loadInvSummary();
+}
+
+async function loadInvSummary(){
+  if(!currentCharId)return;
+  try{
+    const snap=await db.collection('Inventory').where('characterId','==',currentCharId).get();
+    const items=snap.docs.map(d=>d.data());
+    const el=document.getElementById('inv-summary');
+    if(!el)return;
+    if(!items.length){el.textContent='No items.';return;}
+    el.innerHTML=items.map(i=>`<div style="display:flex;justify-content:space-between;padding:.12rem 0;border-bottom:1px solid rgba(100,70,20,.09);">
+      <span>${esc(i.itemName)}</span><span style="color:var(--ink-l);">×${i.quantity||1}</span>
+    </div>`).join('');
+  }catch(e){console.error(e);}
+}
+
+function openMHp(){document.getElementById('hp-adj-amt').value=1;document.getElementById('m-hp-ttl').textContent='Adjust HP — '+(currentChar?.characterName||'');document.getElementById('m-hp').classList.add('open');}
+function closeMHp(){document.getElementById('m-hp').classList.remove('open');}
+
+async function applyHP(action){
+  if(!currentChar||!currentCharId)return;
+  const amt=parseInt(document.getElementById('hp-adj-amt').value)||0;
+  if(amt<=0){toast('Enter a valid amount.','error');return;}
+  const s=currentChar.sheet||{};
+  const maxHp=s.maxHp||1;
+  let hp=s.hp??maxHp,tmp=s.tempHp||0;
+  if(action==='heal')hp=Math.min(maxHp,hp+amt);
+  if(action==='dmg'){if(tmp>0){const ab=Math.min(tmp,amt);tmp-=ab;hp=Math.max(0,hp-(amt-ab));}else hp=Math.max(0,hp-amt);}
+  if(action==='temp')tmp+=amt;
+  try{await db.collection('Characters').doc(currentCharId).update({'sheet.hp':hp,'sheet.tempHp':tmp});closeMHp();toast(`HP: ${hp}/${maxHp}${tmp?' (+'+tmp+' temp)':''},'success');}
+  catch(e){toast('Failed to update HP.','error');}
+}
+
+function showErr(msg){document.getElementById('loading-wrap').innerHTML=`<div style="text-align:center;padding:3rem;font-style:italic;color:var(--text-d);">${esc(msg)}</div>`;}
+function toast(msg,type='info'){const w=document.getElementById('toasts'),el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;w.appendChild(el);setTimeout(()=>el.remove(),4000);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+boot();
+</script>
+</body>
+</html>
