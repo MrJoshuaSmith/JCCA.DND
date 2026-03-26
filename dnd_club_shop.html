@@ -3,778 +3,428 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Adventurer's Emporium — D&D Club Shop</title>
-<link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;600&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<title>The Adventurer's Shop — D&D Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --gold: #c8952a;
-    --gold-light: #f0d080;
-    --gold-dark: #8a6010;
-    --parchment: #f5eedc;
-    --parchment-dark: #e8dfc0;
-    --ink: #2a1f0e;
-    --ink-mid: #5a4a2e;
-    --ink-light: #8a7a5e;
-    --red-accent: #8b2020;
-    --tab-active: #3a2010;
-    --shadow: rgba(42,31,14,0.18);
-  }
+:root{
+  --bg:#0e0b09;--bg-card:#1e1916;--bg-card2:#261f1a;
+  --border:rgba(180,110,40,.2);--border-red:rgba(160,28,28,.4);
+  --red:#c41e1e;--red-d:#8b1010;--red-b:#e02424;
+  --gold:#c8952a;--gold-d:#7a5818;--gold-b:#e8b040;
+  --text:#e0d8c8;--text-m:#b0a898;--text-d:#786858;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);background-image:radial-gradient(ellipse 80% 40% at 50% 0%,#1f0f08,transparent 70%),radial-gradient(ellipse 40% 30% at 90% 100%,#180a08,transparent 60%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--text);}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── HEADER ── */
+.header{text-align:center;padding:2rem 1rem 1rem;position:relative;}
+.back-link{position:absolute;top:1.4rem;left:1.5rem;font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;letter-spacing:.08em;color:var(--text-d);text-decoration:none;border:1px solid var(--border);padding:.33rem .9rem;border-radius:4px;transition:all .2s;display:inline-flex;align-items:center;gap:.35rem;}
+.back-link:hover{border-color:var(--gold-d);color:var(--gold);}
+.ornament{color:var(--red-d);font-size:1rem;letter-spacing:.5em;opacity:.5;margin:.35rem 0;}
+h1{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(1.8rem,5vw,3rem);color:var(--text);letter-spacing:.03em;}
+.subtitle{font-style:italic;font-size:1.05rem;color:var(--text-m);margin-top:.35rem;}
 
-  body {
-    background: #2a1f0e;
-    background-image:
-      radial-gradient(ellipse at 20% 0%, #3d2a0a 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 100%, #1a1008 0%, transparent 60%);
-    min-height: 100vh;
-    font-family: 'Crimson Pro', Georgia, serif;
-    color: var(--ink);
-  }
+/* ── TABS ── */
+.tab-bar{display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem;padding:.7rem 1rem;max-width:1100px;margin:0 auto;}
+.tab-btn{font-family:'Cinzel',serif;font-size:.76rem;font-weight:600;letter-spacing:.05em;padding:.48rem 1.1rem;background:rgba(180,110,40,.07);border:1px solid var(--border);color:var(--text-m);border-radius:4px 4px 0 0;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.tab-btn:hover{background:rgba(196,30,30,.12);border-color:var(--border-red);color:var(--text);}
+.tab-btn.active{background:var(--bg-card);border-color:var(--red-d);border-bottom-color:var(--bg-card);color:var(--red-b);position:relative;top:1px;}
 
-  /* === HEADER === */
-  .shop-header {
-    text-align: center;
-    padding: 2.5rem 1rem 1rem;
-    position: relative;
-  }
-  .shop-header h1 {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(1.8rem, 5vw, 3rem);
-    font-weight: 600;
-    color: var(--gold-light);
-    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-    letter-spacing: 0.04em;
-    line-height: 1.2;
-  }
-  .shop-header .subtitle {
-    font-family: 'Crimson Pro', serif;
-    font-style: italic;
-    font-size: 1.15rem;
-    color: #c8a870;
-    margin-top: 0.4rem;
-  }
-  .header-ornament {
-    color: var(--gold);
-    font-size: 1.4rem;
-    margin: 0.5rem 0;
-    opacity: 0.7;
-    letter-spacing: 0.5em;
-  }
+/* ── PAGE ── */
+.page{max-width:1100px;margin:0 auto;padding:0 1rem 4rem;}
+.tab-page{display:none;}
+.tab-page.active{display:block;}
 
-  /* === TABS === */
-  .tab-bar {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.3rem;
-    padding: 0.8rem 1rem;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
-  .tab-btn {
-    font-family: 'Cinzel', serif;
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    padding: 0.5rem 1.1rem;
-    background: rgba(200,149,42,0.12);
-    border: 1px solid rgba(200,149,42,0.35);
-    color: #c8a870;
-    border-radius: 4px 4px 0 0;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-  .tab-btn:hover {
-    background: rgba(200,149,42,0.22);
-    color: var(--gold-light);
-  }
-  .tab-btn.active {
-    background: var(--parchment);
-    border-color: var(--gold);
-    border-bottom-color: var(--parchment);
-    color: var(--tab-active);
-    position: relative;
-    top: 1px;
-  }
+/* ── TOME CARD ── */
+.tome{background:var(--bg-card);border:1px solid var(--border-red);border-radius:4px;padding:2rem 2.5rem;box-shadow:0 4px 32px rgba(0,0,0,.5);position:relative;}
+.tome::before{content:'';position:absolute;inset:6px;border:1px solid rgba(160,28,28,.08);border-radius:2px;pointer-events:none;}
+@media(max-width:680px){.tome{padding:1.2rem 1rem;}}
 
-  /* === PAGE WRAPPER === */
-  .page-wrapper {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 1rem 3rem;
-  }
+/* ── HEADINGS ── */
+.sec-title{font-family:'Cinzel',serif;font-size:1.45rem;font-weight:600;color:var(--red);border-bottom:2px solid rgba(196,30,30,.3);padding-bottom:.4rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:.55rem;}
+.sub-title{font-family:'Cinzel',serif;font-size:1rem;font-weight:600;color:var(--gold);border-bottom:1px solid rgba(180,110,40,.28);padding-bottom:.28rem;margin:1.6rem 0 .8rem;}
+.more-link{font-family:'Crimson Pro',serif;font-size:.9rem;color:var(--gold-d);text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;border-bottom:1px solid var(--gold-d);margin-bottom:1.4rem;transition:color .2s;}
+.more-link:hover{color:var(--red);border-color:var(--red);}
 
-  /* === PARCHMENT CARD === */
-  .parchment {
-    background: var(--parchment);
-    background-image:
-      radial-gradient(ellipse at 0% 0%, #f9f0d8 0%, transparent 50%),
-      radial-gradient(ellipse at 100% 100%, #e8dfc0 0%, transparent 50%);
-    border: 2px solid var(--gold);
-    border-radius: 4px;
-    padding: 2rem 2.5rem;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 0 60px rgba(200,149,42,0.06);
-    position: relative;
-  }
-  .parchment::before {
-    content: '';
-    position: absolute;
-    inset: 6px;
-    border: 1px solid rgba(200,149,42,0.2);
-    border-radius: 2px;
-    pointer-events: none;
-  }
+/* ── TABLES ── */
+.scroll{overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;font-size:.95rem;margin-top:.3rem;}
+.tbl thead th{font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--gold);background:rgba(180,110,40,.07);padding:.5rem .8rem;border-bottom:2px solid rgba(180,110,40,.25);text-align:left;}
+.tbl tbody tr{border-bottom:1px solid rgba(180,110,40,.09);transition:background .12s;}
+.tbl tbody tr:hover{background:rgba(196,30,30,.05);}
+.tbl tbody td{padding:.42rem .8rem;color:var(--text);vertical-align:top;}
+.cost{color:var(--gold);font-weight:600;white-space:nowrap;}
+.wt{text-align:center;color:var(--text-m);}
+.sub-row td{font-family:'Cinzel',serif;font-size:.76rem;font-weight:600;color:var(--red-b);background:rgba(160,28,28,.07);padding:.46rem .8rem;border-top:1px solid rgba(160,28,28,.18);border-bottom:1px solid rgba(160,28,28,.18);}
+.italic{font-style:italic;color:var(--text-d);}
+.prop{display:inline-block;font-size:.7rem;background:rgba(180,110,40,.1);color:var(--gold-d);border:1px solid rgba(180,110,40,.28);border-radius:3px;padding:1px 5px;margin:1px 2px;}
+.wb{display:inline-block;font-size:.74rem;font-weight:600;font-family:'Cinzel',serif;background:rgba(180,110,40,.1);color:var(--gold);border:1px solid rgba(180,110,40,.25);border-radius:3px;padding:1px 7px;}
 
-  /* === SECTION HEADING === */
-  .section-title {
-    font-family: 'Cinzel', serif;
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: var(--red-accent);
-    border-bottom: 2px solid var(--gold);
-    padding-bottom: 0.4rem;
-    margin-bottom: 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-  .section-title .icon { font-size: 1.2rem; opacity: 0.8; }
+/* ── INTRO PROSE ── */
+.prose{font-size:1rem;line-height:1.76;color:var(--text);}
+.prose p{margin-bottom:1rem;}
+.prose strong{color:var(--red);}
+.callout{background:rgba(180,110,40,.06);border-left:4px solid var(--gold);border-radius:0 4px 4px 0;padding:.95rem 1.1rem;margin:1.1rem 0;font-size:.95rem;color:var(--text-m);}
+.callout strong{color:var(--red);}
+.callout.warn{border-color:var(--red);background:rgba(160,28,28,.07);}
 
-  .more-info-link {
-    font-family: 'Crimson Pro', serif;
-    font-size: 0.95rem;
-    color: var(--gold-dark);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    border-bottom: 1px solid var(--gold-dark);
-    margin-bottom: 1.5rem;
-    transition: color 0.2s;
-  }
-  .more-info-link:hover { color: var(--red-accent); border-color: var(--red-accent); }
+/* ── CURRENCY TABLE ── */
+.cx-tbl{width:auto;border-collapse:collapse;margin:1.4rem auto;font-size:.93rem;}
+.cx-tbl th,.cx-tbl td{padding:.42rem 1.2rem;border:1px solid rgba(180,110,40,.22);text-align:center;}
+.cx-tbl th{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.06em;background:rgba(180,110,40,.08);color:var(--gold);}
+.cx-tbl td{color:var(--text);}
+.cx-tbl tr:hover td{background:rgba(180,110,40,.05);}
+.cp{color:#9a8040;font-weight:600;}.sp{color:#a8a8b0;font-weight:600;}.gp{color:var(--gold);font-weight:600;}
 
-  /* === TABLES === */
-  .shop-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.97rem;
-    margin-top: 0.5rem;
-  }
-  .shop-table thead th {
-    font-family: 'Cinzel', serif;
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: var(--gold-dark);
-    background: rgba(200,149,42,0.1);
-    padding: 0.55rem 0.8rem;
-    border-bottom: 2px solid var(--gold);
-    text-align: left;
-  }
-  .shop-table tbody tr {
-    border-bottom: 1px solid rgba(200,149,42,0.25);
-    transition: background 0.15s;
-  }
-  .shop-table tbody tr:hover { background: rgba(200,149,42,0.09); }
-  .shop-table tbody td {
-    padding: 0.45rem 0.8rem;
-    color: var(--ink);
-    vertical-align: top;
-  }
-  .shop-table tbody td:first-child { font-weight: 400; }
-  .shop-table .cost { color: var(--gold-dark); font-weight: 600; white-space: nowrap; }
-  .shop-table .weight { text-align: center; color: var(--ink-mid); }
-  .shop-table .sub-header td {
-    font-family: 'Cinzel', serif;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--red-accent);
-    background: rgba(139,32,32,0.06);
-    padding: 0.5rem 0.8rem;
-    border-top: 1px solid rgba(200,149,42,0.3);
-    border-bottom: 1px solid rgba(200,149,42,0.3);
-  }
-  .italic-note { font-style: italic; color: var(--ink-light); }
-  .prop-tag {
-    display: inline-block;
-    font-size: 0.75rem;
-    background: rgba(200,149,42,0.15);
-    color: var(--gold-dark);
-    border: 1px solid rgba(200,149,42,0.4);
-    border-radius: 3px;
-    padding: 1px 6px;
-    margin: 1px 2px;
-  }
-  .weight-badge {
-    display: inline-block;
-    font-size: 0.78rem;
-    font-weight: 600;
-    font-family: 'Cinzel', serif;
-    background: rgba(200,149,42,0.15);
-    color: var(--gold-dark);
-    border: 1px solid rgba(200,149,42,0.3);
-    border-radius: 3px;
-    padding: 1px 8px;
-    text-align: center;
-  }
+/* ── WEIGHT GRID ── */
+.wt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:.65rem;margin:1rem 0;}
+.wt-card{background:rgba(180,110,40,.06);border:1px solid var(--border);border-radius:4px;padding:.65rem .9rem;text-align:center;}
+.wt-lbl{font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;margin-bottom:.15rem;}
+.wt-val{font-size:1rem;font-weight:600;color:var(--red);}
+.wt-sub{font-size:.75rem;color:var(--text-d);margin-top:.1rem;}
 
-  /* === TAB PAGES === */
-  .tab-page { display: none; }
-  .tab-page.active { display: block; }
-
-  /* === INTRO PAGE === */
-  .intro-prose {
-    font-size: 1.05rem;
-    line-height: 1.75;
-    color: var(--ink);
-  }
-  .intro-prose p { margin-bottom: 1rem; }
-  .intro-prose strong { color: var(--red-accent); }
-
-  .exchange-table {
-    width: auto;
-    border-collapse: collapse;
-    margin: 1.5rem auto;
-    font-size: 0.95rem;
-  }
-  .exchange-table th, .exchange-table td {
-    padding: 0.45rem 1.2rem;
-    border: 1px solid rgba(200,149,42,0.35);
-    text-align: center;
-  }
-  .exchange-table th {
-    font-family: 'Cinzel', serif;
-    font-size: 0.78rem;
-    letter-spacing: 0.06em;
-    background: rgba(200,149,42,0.12);
-    color: var(--gold-dark);
-  }
-  .exchange-table td { color: var(--ink); }
-  .exchange-table tr:hover td { background: rgba(200,149,42,0.07); }
-  .coin-cp { color: #7a6020; font-weight: 600; }
-  .coin-sp { color: #7a7a80; font-weight: 600; }
-  .coin-gp { color: #b8820a; font-weight: 600; }
-
-  .callout {
-    background: rgba(200,149,42,0.1);
-    border-left: 4px solid var(--gold);
-    border-radius: 0 4px 4px 0;
-    padding: 1rem 1.2rem;
-    margin: 1.2rem 0;
-    font-size: 0.97rem;
-    color: var(--ink-mid);
-  }
-  .callout strong { color: var(--red-accent); }
-
-  .weight-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 0.7rem;
-    margin: 1rem 0;
-  }
-  .weight-card {
-    background: rgba(200,149,42,0.1);
-    border: 1px solid rgba(200,149,42,0.3);
-    border-radius: 4px;
-    padding: 0.7rem 1rem;
-    text-align: center;
-  }
-  .weight-card .wc-label {
-    font-family: 'Cinzel', serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    color: var(--gold-dark);
-    text-transform: uppercase;
-    margin-bottom: 0.2rem;
-  }
-  .weight-card .wc-value {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--red-accent);
-  }
-  .weight-card .wc-sub {
-    font-size: 0.78rem;
-    color: var(--ink-light);
-    margin-top: 0.15rem;
-  }
-
-  /* === EQUIPMENT PACKS === */
-  .pack-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  .pack-card {
-    background: rgba(200,149,42,0.07);
-    border: 1px solid rgba(200,149,42,0.3);
-    border-radius: 4px;
-    padding: 1rem 1.2rem;
-  }
-  .pack-name {
-    font-family: 'Cinzel', serif;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--red-accent);
-    margin-bottom: 0.3rem;
-  }
-  .pack-cost {
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: var(--gold-dark);
-    margin-bottom: 0.5rem;
-  }
-  .pack-contents {
-    font-size: 0.88rem;
-    color: var(--ink-mid);
-    line-height: 1.6;
-  }
-  .pack-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-size: 0.82rem;
-    color: var(--gold-dark);
-    text-decoration: none;
-    border-bottom: 1px dashed var(--gold-dark);
-    margin-top: 0.6rem;
-    transition: color 0.2s;
-  }
-  .pack-link:hover { color: var(--red-accent); }
-
-  /* === TWO-COL TABLE LAYOUT === */
-  .two-col-tables {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 1.5rem;
-  }
-  @media (max-width: 700px) {
-    .two-col-tables { grid-template-columns: 1fr; }
-    .parchment { padding: 1.2rem 1rem; }
-  }
-
-  /* === SCROLL CONTAINER === */
-  .table-scroll { overflow-x: auto; }
-
-  /* === FOOTER ORNAMENT === */
-  .footer-ornament {
-    text-align: center;
-    color: rgba(200,149,42,0.4);
-    font-size: 1.2rem;
-    letter-spacing: 0.5em;
-    margin-top: 1.5rem;
-  }
+/* ── PACKS ── */
+.pack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(275px,1fr));gap:1rem;margin-top:1rem;}
+.pack{background:rgba(180,110,40,.05);border:1px solid var(--border);border-radius:4px;padding:1rem 1.2rem;transition:border-color .2s;}
+.pack:hover{border-color:var(--gold-d);}
+.pack-name{font-family:'Cinzel',serif;font-size:.93rem;font-weight:600;color:var(--red);margin-bottom:.22rem;}
+.pack-cost{font-size:.86rem;font-weight:600;color:var(--gold);margin-bottom:.45rem;}
+.pack-contents{font-size:.85rem;color:var(--text-m);line-height:1.62;}
+.pack-link{display:inline-flex;align-items:center;gap:.25rem;font-size:.8rem;color:var(--gold-d);text-decoration:none;border-bottom:1px dashed var(--gold-d);margin-top:.55rem;transition:color .2s;}
+.pack-link:hover{color:var(--red);}
+.footer-orn{text-align:center;color:rgba(196,30,30,.25);font-size:1rem;letter-spacing:.5em;margin-top:1.5rem;}
 </style>
 </head>
 <body>
 
-<div class="shop-header">
-  <div class="header-ornament">✦ ✦ ✦</div>
-  <h1>The Adventurer's Emporium</h1>
-  <p class="subtitle">Your trusted outfitter for all things brave and foolhardy</p>
-  <div class="header-ornament">✦ ✦ ✦</div>
+<div class="header">
+  <a href="index.html" class="back-link">&#8592; Home</a>
+  <div class="ornament">&#9876; &#9876; &#9876;</div>
+  <h1>The Adventurer's Shop</h1>
+  <p class="subtitle">Weapons, armour &amp; gear for the brave and the foolhardy</p>
+  <div class="ornament">&#9876; &#9876; &#9876;</div>
 </div>
 
-<!-- TAB BAR -->
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="showTab('intro')">📜 How to Purchase</button>
-  <button class="tab-btn" onclick="showTab('weapons')">⚔️ Weapons</button>
-  <button class="tab-btn" onclick="showTab('armour')">🛡️ Armour</button>
-  <button class="tab-btn" onclick="showTab('gear')">🎒 Adventuring Gear</button>
-  <button class="tab-btn" onclick="showTab('packs')">📦 Adventurer Kits</button>
+  <button class="tab-btn active" onclick="showTab('intro',this)">&#128220; How to Purchase</button>
+  <button class="tab-btn" onclick="showTab('weapons',this)">&#9876; Weapons</button>
+  <button class="tab-btn" onclick="showTab('armour',this)">&#128737; Armour</button>
+  <button class="tab-btn" onclick="showTab('gear',this)">&#127890; Adventuring Gear</button>
+  <button class="tab-btn" onclick="showTab('tools',this)">&#128295; Tools &amp; Instruments</button>
+  <button class="tab-btn" onclick="showTab('packs',this)">&#128230; Adventurer Kits</button>
 </div>
 
-<div class="page-wrapper">
+<div class="page">
 
-<!-- ==================== INTRO ==================== -->
-<div id="tab-intro" class="tab-page active">
-  <div class="parchment">
-    <div class="section-title"><span class="icon">📜</span> Welcome to the Emporium</div>
-
-    <div class="intro-prose">
-      <p>Welcome, adventurer! Before you browse our wares, take a moment to familiarise yourself with how trade works in the realm. Gold doesn't grow on trees — unless you're a Druid, in which case, please put it back.</p>
-
-      <p><strong>Purchasing items</strong> is simple: find what you need, note the cost, and hand over your coin to the Dungeon Master at the start of your session or at an appropriate in-game moment (entering a town, visiting a market, etc.). Your DM will deduct the amount from your character's gold total.</p>
-
-      <p>All prices are listed in gold pieces (gp), silver pieces (sp), or copper pieces (cp). Use the exchange rate table below to convert between them.</p>
-    </div>
-
-    <!-- CURRENCY -->
-    <div class="section-title" style="font-size:1.2rem; margin-top:1.8rem;"><span class="icon">🪙</span> Currency & Exchange Rates</div>
-    <div class="intro-prose">
-      <p>Three coins are in common use across the realm. The <strong>gold piece</strong> is the standard of wealth — with one gold piece a character can buy a bedroll, 50 feet of rope, or feed a goat for a month. The <strong>silver piece</strong> is the coin of commoners, while the <strong>copper piece</strong> buys only the smallest luxuries.</p>
-    </div>
-
-    <table class="exchange-table">
-      <thead>
-        <tr>
-          <th>Coin</th>
-          <th>In Copper (cp)</th>
-          <th>In Silver (sp)</th>
-          <th>In Gold (gp)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><span class="coin-cp">Copper (cp)</span></td>
-          <td>1 cp</td>
-          <td>1/10 sp</td>
-          <td>1/100 gp</td>
-        </tr>
-        <tr>
-          <td><span class="coin-sp">Silver (sp)</span></td>
-          <td>10 cp</td>
-          <td>1 sp</td>
-          <td>1/10 gp</td>
-        </tr>
-        <tr>
-          <td><span class="coin-gp">Gold (gp)</span></td>
-          <td>100 cp</td>
-          <td>10 sp</td>
-          <td>1 gp</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="callout">
-      <strong>Quick conversions:</strong> 1 gp = 10 sp = 100 cp &nbsp;|&nbsp; 1 sp = 10 cp
-    </div>
-
-    <!-- WEIGHT -->
-    <div class="section-title" style="font-size:1.2rem; margin-top:1.8rem;"><span class="icon">⚖️</span> Simplified Weight System</div>
-    <div class="intro-prose">
-      <p>Most small items have <strong>no weight rating</strong> — a candle, a coin, a piece of chalk won't slow you down. Heavier items are assigned a <strong>Weight Rating</strong> based on their bulk:</p>
-    </div>
-
-    <div class="weight-grid">
-      <div class="weight-card">
-        <div class="wc-label">No Rating</div>
-        <div class="wc-value">—</div>
-        <div class="wc-sub">Under 15 lbs</div>
-      </div>
-      <div class="weight-card">
-        <div class="wc-label">Weight 1</div>
-        <div class="wc-value">⬛</div>
-        <div class="wc-sub">15 – 50 lbs</div>
-      </div>
-      <div class="weight-card">
-        <div class="wc-label">Weight 2</div>
-        <div class="wc-value">⬛⬛</div>
-        <div class="wc-sub">51 – 100 lbs</div>
-      </div>
-      <div class="weight-card">
-        <div class="wc-label">Weight 3</div>
-        <div class="wc-value">⬛⬛⬛</div>
-        <div class="wc-sub">101 – 150 lbs</div>
-      </div>
-      <div class="weight-card">
-        <div class="wc-label">Weight 4+</div>
-        <div class="wc-value">⬛⬛⬛⬛</div>
-        <div class="wc-sub">+50 lbs per step</div>
-      </div>
-    </div>
-
-    <div class="callout">
-      <strong>Carry capacity:</strong> You can carry items up to a total Weight Rating of <strong>4 + your Strength modifier</strong>. For example, a character with a +2 Strength modifier can carry items totalling Weight Rating 6.
-    </div>
-
-    <div class="callout" style="border-color: var(--red-accent); background: rgba(139,32,32,0.07);">
-      <strong>Common sense rule:</strong> Items without a weight rating still take up physical space. If your character is carrying an absurd quantity of any item, the Dungeon Master may apply real-world logic and assign appropriate consequences. Don't stuff 500 candles in your pocket.
-    </div>
-
-    <div class="footer-ornament">✦ · · · ✦ · · · ✦</div>
+<!-- ══════ INTRO ══════ -->
+<div id="tab-intro" class="tab-page active"><div class="tome">
+  <div class="sec-title"><span>&#128220;</span> Welcome to the Emporium</div>
+  <div class="prose">
+    <p>Welcome, adventurer! Before you browse our wares, take a moment to familiarise yourself with how trade works in the realm. Gold doesn't grow on trees — unless you're a Druid, in which case, please put it back.</p>
+    <p><strong>Purchasing items</strong> is simple: find what you need, note the cost, and hand over your coin to the Dungeon Master at the start of your session. Your DM will deduct the amount from your character's gold total.</p>
   </div>
-</div>
 
-<!-- ==================== WEAPONS ==================== -->
-<div id="tab-weapons" class="tab-page">
-  <div class="parchment">
-    <div class="section-title"><span class="icon">⚔️</span> Weapons</div>
-    <a class="more-info-link" href="https://roll20.net/compendium/dnd5e/Weapons#content" target="_blank">↗ More info on weapons (Roll20 Compendium)</a>
+  <div class="sub-title">&#9775; Currency &amp; Exchange Rates</div>
+  <div class="prose"><p>Three coins are in common use across the realm. The <strong>gold piece</strong> is the standard of wealth — one gp can buy a bedroll, 50 feet of rope, or feed a goat for a month.</p></div>
+  <table class="cx-tbl">
+    <thead><tr><th>Coin</th><th>In Copper (cp)</th><th>In Silver (sp)</th><th>In Gold (gp)</th></tr></thead>
+    <tbody>
+      <tr><td><span class="cp">Copper (cp)</span></td><td>1 cp</td><td>1/10 sp</td><td>1/100 gp</td></tr>
+      <tr><td><span class="sp">Silver (sp)</span></td><td>10 cp</td><td>1 sp</td><td>1/10 gp</td></tr>
+      <tr><td><span class="gp">Gold (gp)</span></td><td>100 cp</td><td>10 sp</td><td>1 gp</td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><strong>Quick conversions:</strong> 1 gp = 10 sp = 100 cp &nbsp;|&nbsp; 1 sp = 10 cp</div>
 
-    <div class="intro-prose" style="margin-bottom:1.2rem;">
-      <p>Your class grants proficiency in certain weapons, reflecting your training. Whether you favour a dagger or a greataxe, choose wisely — your life may depend on it.</p>
-      <p><em>Properties: F = Finesse · L = Light · R = Reach · Thr = Thrown · 2H = Two-Handed · V = Versatile · Am = Ammunition · Ld = Loading · Sp = Special · H = Heavy</em></p>
-    </div>
-
-    <div class="table-scroll">
-    <table class="shop-table">
-      <thead>
-        <tr>
-          <th>Weapon</th>
-          <th>Cost</th>
-          <th>Damage</th>
-          <th>Type</th>
-          <th>Properties</th>
-          <th class="weight">Weight</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="sub-header"><td colspan="6">Simple Melee Weapons</td></tr>
-        <tr><td>Club</td><td class="cost">1 sp</td><td>1d4 bludgeoning</td><td>Melee</td><td><span class="prop-tag">L</span></td><td class="weight">—</td></tr>
-        <tr><td>Dagger</td><td class="cost">2 gp</td><td>1d4 piercing</td><td>Melee</td><td><span class="prop-tag">F</span><span class="prop-tag">L</span><span class="prop-tag">Thr</span></td><td class="weight">—</td></tr>
-        <tr><td>Greatclub</td><td class="cost">2 sp</td><td>1d8 bludgeoning</td><td>Melee</td><td><span class="prop-tag">2H</span></td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Handaxe</td><td class="cost">5 gp</td><td>1d6 slashing</td><td>Melee</td><td><span class="prop-tag">L</span><span class="prop-tag">Thr</span></td><td class="weight">—</td></tr>
-        <tr><td>Javelin</td><td class="cost">5 sp</td><td>1d6 piercing</td><td>Melee</td><td><span class="prop-tag">Thr</span></td><td class="weight">—</td></tr>
-        <tr><td>Light hammer</td><td class="cost">2 gp</td><td>1d4 bludgeoning</td><td>Melee</td><td><span class="prop-tag">L</span><span class="prop-tag">Thr</span></td><td class="weight">—</td></tr>
-        <tr><td>Mace</td><td class="cost">5 gp</td><td>1d6 bludgeoning</td><td>Melee</td><td>—</td><td class="weight">—</td></tr>
-        <tr><td>Quarterstaff</td><td class="cost">2 sp</td><td>1d6 bludgeoning</td><td>Melee</td><td><span class="prop-tag">V</span></td><td class="weight">—</td></tr>
-        <tr><td>Sickle</td><td class="cost">1 gp</td><td>1d4 slashing</td><td>Melee</td><td><span class="prop-tag">L</span></td><td class="weight">—</td></tr>
-        <tr><td>Spear</td><td class="cost">1 gp</td><td>1d6 piercing</td><td>Melee</td><td><span class="prop-tag">Thr</span><span class="prop-tag">V</span></td><td class="weight">—</td></tr>
-
-        <tr class="sub-header"><td colspan="6">Simple Ranged Weapons</td></tr>
-        <tr><td>Crossbow, light</td><td class="cost">25 gp</td><td>1d8 piercing</td><td>Ranged</td><td><span class="prop-tag">Am</span><span class="prop-tag">Ld</span><span class="prop-tag">2H</span></td><td class="weight">—</td></tr>
-        <tr><td>Dart</td><td class="cost">5 cp</td><td>1d4 piercing</td><td>Ranged</td><td><span class="prop-tag">F</span><span class="prop-tag">Thr</span></td><td class="weight">—</td></tr>
-        <tr><td>Shortbow</td><td class="cost">25 gp</td><td>1d6 piercing</td><td>Ranged</td><td><span class="prop-tag">Am</span><span class="prop-tag">2H</span></td><td class="weight">—</td></tr>
-        <tr><td>Sling</td><td class="cost">1 sp</td><td>1d4 bludgeoning</td><td>Ranged</td><td><span class="prop-tag">Am</span></td><td class="weight">—</td></tr>
-
-        <tr class="sub-header"><td colspan="6">Martial Melee Weapons</td></tr>
-        <tr><td>Battleaxe</td><td class="cost">10 gp</td><td>1d8 slashing</td><td>Melee</td><td><span class="prop-tag">V</span></td><td class="weight">—</td></tr>
-        <tr><td>Flail</td><td class="cost">10 gp</td><td>1d8 bludgeoning</td><td>Melee</td><td>—</td><td class="weight">—</td></tr>
-        <tr><td>Glaive</td><td class="cost">20 gp</td><td>1d10 slashing</td><td>Melee</td><td><span class="prop-tag">H</span><span class="prop-tag">R</span><span class="prop-tag">2H</span></td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Greataxe</td><td class="cost">30 gp</td><td>1d12 slashing</td><td>Melee</td><td><span class="prop-tag">H</span><span class="prop-tag">2H</span></td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Greatsword</td><td class="cost">50 gp</td><td>2d6 slashing</td><td>Melee</td><td><span class="prop-tag">H</span><span class="prop-tag">2H</span></td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Halberd</td><td class="cost">20 gp</td><td>1d10 slashing</td><td>Melee</td><td><span class="prop-tag">H</span><span class="prop-tag">R</span><span class="prop-tag">2H</span></td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Lance</td><td class="cost">10 gp</td><td>1d12 piercing</td><td>Melee</td><td><span class="prop-tag">R</span><span class="prop-tag">Sp</span></td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Longsword</td><td class="cost">15 gp</td><td>1d8 slashing</td><td>Melee</td><td><span class="prop-tag">V</span></td><td class="weight">—</td></tr>
-        <tr><td>Maul</td><td class="cost">10 gp</td><td>2d6 bludgeoning</td><td>Melee</td><td><span class="prop-tag">H</span><span class="prop-tag">2H</span></td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Morningstar</td><td class="cost">15 gp</td><td>1d8 piercing</td><td>Melee</td><td>—</td><td class="weight">—</td></tr>
-        <tr><td>Pike</td><td class="cost">5 gp</td><td>1d10 piercing</td><td>Melee</td><td><span class="prop-tag">H</span><span class="prop-tag">R</span><span class="prop-tag">2H</span></td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Rapier</td><td class="cost">25 gp</td><td>1d8 piercing</td><td>Melee</td><td><span class="prop-tag">F</span></td><td class="weight">—</td></tr>
-        <tr><td>Scimitar</td><td class="cost">25 gp</td><td>1d6 slashing</td><td>Melee</td><td><span class="prop-tag">F</span><span class="prop-tag">L</span></td><td class="weight">—</td></tr>
-        <tr><td>Shortsword</td><td class="cost">10 gp</td><td>1d6 piercing</td><td>Melee</td><td><span class="prop-tag">F</span><span class="prop-tag">L</span></td><td class="weight">—</td></tr>
-        <tr><td>Trident</td><td class="cost">5 gp</td><td>1d6 piercing</td><td>Melee</td><td><span class="prop-tag">Thr</span><span class="prop-tag">V</span></td><td class="weight">—</td></tr>
-        <tr><td>War pick</td><td class="cost">5 gp</td><td>1d8 piercing</td><td>Melee</td><td>—</td><td class="weight">—</td></tr>
-        <tr><td>Warhammer</td><td class="cost">15 gp</td><td>1d8 bludgeoning</td><td>Melee</td><td><span class="prop-tag">V</span></td><td class="weight">—</td></tr>
-        <tr><td>Whip</td><td class="cost">2 gp</td><td>1d4 slashing</td><td>Melee</td><td><span class="prop-tag">F</span><span class="prop-tag">R</span></td><td class="weight">—</td></tr>
-
-        <tr class="sub-header"><td colspan="6">Martial Ranged Weapons</td></tr>
-        <tr><td>Blowgun</td><td class="cost">10 gp</td><td>1 piercing</td><td>Ranged</td><td><span class="prop-tag">Am</span><span class="prop-tag">Ld</span></td><td class="weight">—</td></tr>
-        <tr><td>Crossbow, hand</td><td class="cost">75 gp</td><td>1d6 piercing</td><td>Ranged</td><td><span class="prop-tag">Am</span><span class="prop-tag">L</span><span class="prop-tag">Ld</span></td><td class="weight">—</td></tr>
-        <tr><td>Crossbow, heavy</td><td class="cost">50 gp</td><td>1d10 piercing</td><td>Ranged</td><td><span class="prop-tag">Am</span><span class="prop-tag">H</span><span class="prop-tag">Ld</span><span class="prop-tag">2H</span></td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Longbow</td><td class="cost">50 gp</td><td>1d8 piercing</td><td>Ranged</td><td><span class="prop-tag">Am</span><span class="prop-tag">H</span><span class="prop-tag">2H</span></td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Net</td><td class="cost">1 gp</td><td>—</td><td>Ranged</td><td><span class="prop-tag">Sp</span><span class="prop-tag">Thr</span></td><td class="weight">—</td></tr>
-      </tbody>
-    </table>
-    </div>
-    <div class="footer-ornament">✦ · · · ✦ · · · ✦</div>
+  <div class="sub-title">&#9878; Simplified Weight System</div>
+  <div class="prose"><p>Most small items have <strong>no weight rating</strong>. Heavier items are assigned a <strong>Weight Rating</strong> based on their bulk:</p></div>
+  <div class="wt-grid">
+    <div class="wt-card"><div class="wt-lbl">No Rating</div><div class="wt-val">—</div><div class="wt-sub">Under 15 lbs</div></div>
+    <div class="wt-card"><div class="wt-lbl">Weight 1</div><div class="wt-val">&#9632;</div><div class="wt-sub">15–50 lbs</div></div>
+    <div class="wt-card"><div class="wt-lbl">Weight 2</div><div class="wt-val">&#9632;&#9632;</div><div class="wt-sub">51–100 lbs</div></div>
+    <div class="wt-card"><div class="wt-lbl">Weight 3</div><div class="wt-val">&#9632;&#9632;&#9632;</div><div class="wt-sub">101–150 lbs</div></div>
+    <div class="wt-card"><div class="wt-lbl">Weight 4+</div><div class="wt-val">&#9632;&#9632;&#9632;&#9632;</div><div class="wt-sub">+50 lbs per step</div></div>
   </div>
-</div>
+  <div class="callout"><strong>Carry capacity:</strong> Total Weight Rating you can carry = <strong>4 + your Strength modifier</strong>.</div>
+  <div class="callout warn"><strong>Common sense rule:</strong> Items without a weight rating still take up physical space. Don't stuff 500 candles in your pockets.</div>
+  <div class="footer-orn">&#9876; · · · &#9876; · · · &#9876;</div>
+</div></div>
 
-<!-- ==================== ARMOUR ==================== -->
-<div id="tab-armour" class="tab-page">
-  <div class="parchment">
-    <div class="section-title"><span class="icon">🛡️</span> Armour</div>
-    <a class="more-info-link" href="https://roll20.net/compendium/dnd5e/Armor#content" target="_blank">↗ More info on armour (Roll20 Compendium)</a>
-
-    <div class="intro-prose" style="margin-bottom:1.2rem;">
-      <p>Armour protects you from harm by raising your Armour Class (AC). Heavy armour may impose disadvantage on Stealth checks and requires minimum Strength scores to wear without penalty. You must be proficient in armour to wear it without disadvantage on attack rolls and ability checks involving Strength or Dexterity.</p>
-    </div>
-
-    <div class="table-scroll">
-    <table class="shop-table">
-      <thead>
-        <tr>
-          <th>Armour</th>
-          <th>Cost</th>
-          <th>Armour Class (AC)</th>
-          <th>Stealth</th>
-          <th>Strength Req.</th>
-          <th class="weight">Weight</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="sub-header"><td colspan="6">Light Armour</td></tr>
-        <tr><td>Padded</td><td class="cost">5 gp</td><td>11 + Dex mod</td><td class="italic-note">Disadvantage</td><td>—</td><td class="weight">—</td></tr>
-        <tr><td>Leather</td><td class="cost">10 gp</td><td>11 + Dex mod</td><td>—</td><td>—</td><td class="weight">—</td></tr>
-        <tr><td>Studded leather</td><td class="cost">45 gp</td><td>12 + Dex mod</td><td>—</td><td>—</td><td class="weight">—</td></tr>
-
-        <tr class="sub-header"><td colspan="6">Medium Armour</td></tr>
-        <tr><td>Hide</td><td class="cost">10 gp</td><td>12 + Dex mod (max 2)</td><td>—</td><td>—</td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Chain shirt</td><td class="cost">50 gp</td><td>13 + Dex mod (max 2)</td><td>—</td><td>—</td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Scale mail</td><td class="cost">50 gp</td><td>14 + Dex mod (max 2)</td><td class="italic-note">Disadvantage</td><td>—</td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Breastplate</td><td class="cost">400 gp</td><td>14 + Dex mod (max 2)</td><td>—</td><td>—</td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Half plate</td><td class="cost">750 gp</td><td>15 + Dex mod (max 2)</td><td class="italic-note">Disadvantage</td><td>—</td><td class="weight"><span class="weight-badge">1</span></td></tr>
-
-        <tr class="sub-header"><td colspan="6">Heavy Armour</td></tr>
-        <tr><td>Ring mail</td><td class="cost">30 gp</td><td>14</td><td class="italic-note">Disadvantage</td><td>—</td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Chain mail</td><td class="cost">75 gp</td><td>16</td><td class="italic-note">Disadvantage</td><td>Str 13</td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Splint</td><td class="cost">200 gp</td><td>17</td><td class="italic-note">Disadvantage</td><td>Str 15</td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Plate</td><td class="cost">1,500 gp</td><td>18</td><td class="italic-note">Disadvantage</td><td>Str 15</td><td class="weight"><span class="weight-badge">2</span></td></tr>
-
-        <tr class="sub-header"><td colspan="6">Shields</td></tr>
-        <tr><td>Shield</td><td class="cost">10 gp</td><td>+2 bonus to AC</td><td>—</td><td>—</td><td class="weight">—</td></tr>
-      </tbody>
-    </table>
-    </div>
-    <div class="footer-ornament">✦ · · · ✦ · · · ✦</div>
+<!-- ══════ WEAPONS ══════ -->
+<div id="tab-weapons" class="tab-page"><div class="tome">
+  <div class="sec-title"><span>&#9876;</span> Weapons</div>
+  <a class="more-link" href="https://roll20.net/compendium/dnd5e/Weapons#content" target="_blank">&#8599; More info on weapons (Roll20 Compendium)</a>
+  <div class="prose" style="margin-bottom:1.1rem;">
+    <p>Your class grants proficiency in certain weapons — attack and damage rolls with weapons you're not proficient in do not add your proficiency bonus.</p>
+    <p><em>Properties: F = Finesse · L = Light · R = Reach · Thr = Thrown · 2H = Two-Handed · V = Versatile · Am = Ammunition · Ld = Loading · Sp = Special · H = Heavy</em></p>
   </div>
-</div>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th>Weapon</th><th>Cost</th><th>Damage</th><th>Type</th><th>Properties</th><th class="wt">Weight</th></tr></thead>
+    <tbody>
+      <tr class="sub-row"><td colspan="6">Simple Melee Weapons</td></tr>
+      <tr><td>Club</td><td class="cost">1 sp</td><td>1d4 bludgeoning</td><td>Melee</td><td><span class="prop">L</span></td><td class="wt">—</td></tr>
+      <tr><td>Dagger</td><td class="cost">2 gp</td><td>1d4 piercing</td><td>Melee</td><td><span class="prop">F</span><span class="prop">L</span><span class="prop">Thr</span></td><td class="wt">—</td></tr>
+      <tr><td>Greatclub</td><td class="cost">2 sp</td><td>1d8 bludgeoning</td><td>Melee</td><td><span class="prop">2H</span></td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Handaxe</td><td class="cost">5 gp</td><td>1d6 slashing</td><td>Melee</td><td><span class="prop">L</span><span class="prop">Thr</span></td><td class="wt">—</td></tr>
+      <tr><td>Javelin</td><td class="cost">5 sp</td><td>1d6 piercing</td><td>Melee</td><td><span class="prop">Thr</span></td><td class="wt">—</td></tr>
+      <tr><td>Light hammer</td><td class="cost">2 gp</td><td>1d4 bludgeoning</td><td>Melee</td><td><span class="prop">L</span><span class="prop">Thr</span></td><td class="wt">—</td></tr>
+      <tr><td>Mace</td><td class="cost">5 gp</td><td>1d6 bludgeoning</td><td>Melee</td><td>—</td><td class="wt">—</td></tr>
+      <tr><td>Quarterstaff</td><td class="cost">2 sp</td><td>1d6 bludgeoning</td><td>Melee</td><td><span class="prop">V</span></td><td class="wt">—</td></tr>
+      <tr><td>Sickle</td><td class="cost">1 gp</td><td>1d4 slashing</td><td>Melee</td><td><span class="prop">L</span></td><td class="wt">—</td></tr>
+      <tr><td>Spear</td><td class="cost">1 gp</td><td>1d6 piercing</td><td>Melee</td><td><span class="prop">Thr</span><span class="prop">V</span></td><td class="wt">—</td></tr>
+      <tr class="sub-row"><td colspan="6">Simple Ranged Weapons</td></tr>
+      <tr><td>Crossbow, light</td><td class="cost">25 gp</td><td>1d8 piercing</td><td>Ranged</td><td><span class="prop">Am</span><span class="prop">Ld</span><span class="prop">2H</span></td><td class="wt">—</td></tr>
+      <tr><td>Dart</td><td class="cost">5 cp</td><td>1d4 piercing</td><td>Ranged</td><td><span class="prop">F</span><span class="prop">Thr</span></td><td class="wt">—</td></tr>
+      <tr><td>Shortbow</td><td class="cost">25 gp</td><td>1d6 piercing</td><td>Ranged</td><td><span class="prop">Am</span><span class="prop">2H</span></td><td class="wt">—</td></tr>
+      <tr><td>Sling</td><td class="cost">1 sp</td><td>1d4 bludgeoning</td><td>Ranged</td><td><span class="prop">Am</span></td><td class="wt">—</td></tr>
+      <tr class="sub-row"><td colspan="6">Martial Melee Weapons</td></tr>
+      <tr><td>Battleaxe</td><td class="cost">10 gp</td><td>1d8 slashing</td><td>Melee</td><td><span class="prop">V</span></td><td class="wt">—</td></tr>
+      <tr><td>Flail</td><td class="cost">10 gp</td><td>1d8 bludgeoning</td><td>Melee</td><td>—</td><td class="wt">—</td></tr>
+      <tr><td>Glaive</td><td class="cost">20 gp</td><td>1d10 slashing</td><td>Melee</td><td><span class="prop">H</span><span class="prop">R</span><span class="prop">2H</span></td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Greataxe</td><td class="cost">30 gp</td><td>1d12 slashing</td><td>Melee</td><td><span class="prop">H</span><span class="prop">2H</span></td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Greatsword</td><td class="cost">50 gp</td><td>2d6 slashing</td><td>Melee</td><td><span class="prop">H</span><span class="prop">2H</span></td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Halberd</td><td class="cost">20 gp</td><td>1d10 slashing</td><td>Melee</td><td><span class="prop">H</span><span class="prop">R</span><span class="prop">2H</span></td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Lance</td><td class="cost">10 gp</td><td>1d12 piercing</td><td>Melee</td><td><span class="prop">R</span><span class="prop">Sp</span></td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Longsword</td><td class="cost">15 gp</td><td>1d8 slashing</td><td>Melee</td><td><span class="prop">V</span></td><td class="wt">—</td></tr>
+      <tr><td>Maul</td><td class="cost">10 gp</td><td>2d6 bludgeoning</td><td>Melee</td><td><span class="prop">H</span><span class="prop">2H</span></td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Morningstar</td><td class="cost">15 gp</td><td>1d8 piercing</td><td>Melee</td><td>—</td><td class="wt">—</td></tr>
+      <tr><td>Pike</td><td class="cost">5 gp</td><td>1d10 piercing</td><td>Melee</td><td><span class="prop">H</span><span class="prop">R</span><span class="prop">2H</span></td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Rapier</td><td class="cost">25 gp</td><td>1d8 piercing</td><td>Melee</td><td><span class="prop">F</span></td><td class="wt">—</td></tr>
+      <tr><td>Scimitar</td><td class="cost">25 gp</td><td>1d6 slashing</td><td>Melee</td><td><span class="prop">F</span><span class="prop">L</span></td><td class="wt">—</td></tr>
+      <tr><td>Shortsword</td><td class="cost">10 gp</td><td>1d6 piercing</td><td>Melee</td><td><span class="prop">F</span><span class="prop">L</span></td><td class="wt">—</td></tr>
+      <tr><td>Trident</td><td class="cost">5 gp</td><td>1d6 piercing</td><td>Melee</td><td><span class="prop">Thr</span><span class="prop">V</span></td><td class="wt">—</td></tr>
+      <tr><td>War pick</td><td class="cost">5 gp</td><td>1d8 piercing</td><td>Melee</td><td>—</td><td class="wt">—</td></tr>
+      <tr><td>Warhammer</td><td class="cost">15 gp</td><td>1d8 bludgeoning</td><td>Melee</td><td><span class="prop">V</span></td><td class="wt">—</td></tr>
+      <tr><td>Whip</td><td class="cost">2 gp</td><td>1d4 slashing</td><td>Melee</td><td><span class="prop">F</span><span class="prop">R</span></td><td class="wt">—</td></tr>
+      <tr class="sub-row"><td colspan="6">Martial Ranged Weapons</td></tr>
+      <tr><td>Blowgun</td><td class="cost">10 gp</td><td>1 piercing</td><td>Ranged</td><td><span class="prop">Am</span><span class="prop">Ld</span></td><td class="wt">—</td></tr>
+      <tr><td>Crossbow, hand</td><td class="cost">75 gp</td><td>1d6 piercing</td><td>Ranged</td><td><span class="prop">Am</span><span class="prop">L</span><span class="prop">Ld</span></td><td class="wt">—</td></tr>
+      <tr><td>Crossbow, heavy</td><td class="cost">50 gp</td><td>1d10 piercing</td><td>Ranged</td><td><span class="prop">Am</span><span class="prop">H</span><span class="prop">Ld</span><span class="prop">2H</span></td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Longbow</td><td class="cost">50 gp</td><td>1d8 piercing</td><td>Ranged</td><td><span class="prop">Am</span><span class="prop">H</span><span class="prop">2H</span></td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Net</td><td class="cost">1 gp</td><td>—</td><td>Ranged</td><td><span class="prop">Sp</span><span class="prop">Thr</span></td><td class="wt">—</td></tr>
+    </tbody>
+  </table></div>
+  <div class="footer-orn">&#9876; · · · &#9876; · · · &#9876;</div>
+</div></div>
 
-<!-- ==================== ADVENTURING GEAR ==================== -->
-<div id="tab-gear" class="tab-page">
-  <div class="parchment">
-    <div class="section-title"><span class="icon">🎒</span> Adventuring Gear</div>
-    <a class="more-info-link" href="https://roll20.net/compendium/dnd5e/Adventuring%20Gear#content" target="_blank">↗ More info on adventuring gear (Roll20 Compendium)</a>
-
-    <div class="table-scroll">
-    <table class="shop-table">
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th>Cost</th>
-          <th class="weight">Weight</th>
-          <th>Item</th>
-          <th>Cost</th>
-          <th class="weight">Weight</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>Abacus</td><td class="cost">2 gp</td><td class="weight">—</td><td>Holy symbol (amulet)</td><td class="cost">5 gp</td><td class="weight">—</td></tr>
-        <tr><td>Acid (vial)</td><td class="cost">25 gp</td><td class="weight">—</td><td>Holy symbol (emblem)</td><td class="cost">5 gp</td><td class="weight">—</td></tr>
-        <tr><td>Alchemist's fire (flask)</td><td class="cost">50 gp</td><td class="weight">—</td><td>Holy symbol (reliquary)</td><td class="cost">5 gp</td><td class="weight">—</td></tr>
-        <tr class="sub-header"><td colspan="6">Ammunition</td></tr>
-        <tr><td>Arrows (20)</td><td class="cost">1 gp</td><td class="weight">—</td><td>Holy water (flask)</td><td class="cost">25 gp</td><td class="weight">—</td></tr>
-        <tr><td>Blowgun needles (50)</td><td class="cost">1 gp</td><td class="weight">—</td><td>Hourglass</td><td class="cost">25 gp</td><td class="weight">—</td></tr>
-        <tr><td>Crossbow bolts (20)</td><td class="cost">1 gp</td><td class="weight">—</td><td>Hunting trap</td><td class="cost">5 gp</td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Sling bullets (20)</td><td class="cost">4 cp</td><td class="weight">—</td><td>Ink (1 oz bottle)</td><td class="cost">10 gp</td><td class="weight">—</td></tr>
-        <tr><td>Antitoxin (vial)</td><td class="cost">50 gp</td><td class="weight">—</td><td>Ink pen</td><td class="cost">2 cp</td><td class="weight">—</td></tr>
-        <tr class="sub-header"><td colspan="6">Arcane Focus</td></tr>
-        <tr><td>Crystal</td><td class="cost">10 gp</td><td class="weight">—</td><td>Jug or pitcher</td><td class="cost">2 cp</td><td class="weight">—</td></tr>
-        <tr><td>Orb</td><td class="cost">20 gp</td><td class="weight">—</td><td>Kit, climber's</td><td class="cost">25 gp</td><td class="weight">—</td></tr>
-        <tr><td>Rod</td><td class="cost">10 gp</td><td class="weight">—</td><td>Kit, disguise</td><td class="cost">25 gp</td><td class="weight">—</td></tr>
-        <tr><td>Staff</td><td class="cost">5 gp</td><td class="weight">—</td><td>Kit, forgery</td><td class="cost">15 gp</td><td class="weight">—</td></tr>
-        <tr><td>Wand</td><td class="cost">10 gp</td><td class="weight">—</td><td>Kit, herbalism</td><td class="cost">5 gp</td><td class="weight">—</td></tr>
-        <tr><td>Backpack</td><td class="cost">2 gp</td><td class="weight">—</td><td>Kit, healer's</td><td class="cost">5 gp</td><td class="weight">—</td></tr>
-        <tr><td>Ball bearings (1,000)</td><td class="cost">1 gp</td><td class="weight">—</td><td>Kit, mess</td><td class="cost">2 sp</td><td class="weight">—</td></tr>
-        <tr><td>Barrel</td><td class="cost">2 gp</td><td class="weight"><span class="weight-badge">2</span></td><td>Kit, poisoner's</td><td class="cost">50 gp</td><td class="weight">—</td></tr>
-        <tr><td>Basket</td><td class="cost">4 sp</td><td class="weight">—</td><td>Ladder (10-foot)</td><td class="cost">1 sp</td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td>Bedroll</td><td class="cost">1 gp</td><td class="weight">—</td><td>Lamp</td><td class="cost">5 sp</td><td class="weight">—</td></tr>
-        <tr><td>Bell</td><td class="cost">1 gp</td><td class="weight">—</td><td>Lantern, bullseye</td><td class="cost">10 gp</td><td class="weight">—</td></tr>
-        <tr><td>Blanket</td><td class="cost">5 sp</td><td class="weight">—</td><td>Lantern, hooded</td><td class="cost">5 gp</td><td class="weight">—</td></tr>
-        <tr><td>Block and tackle</td><td class="cost">1 gp</td><td class="weight">—</td><td>Lock</td><td class="cost">10 gp</td><td class="weight">—</td></tr>
-        <tr><td>Book</td><td class="cost">25 gp</td><td class="weight">—</td><td>Magnifying glass</td><td class="cost">100 gp</td><td class="weight">—</td></tr>
-        <tr><td>Bottle, glass</td><td class="cost">2 gp</td><td class="weight">—</td><td>Manacles</td><td class="cost">2 gp</td><td class="weight">—</td></tr>
-        <tr><td>Bucket</td><td class="cost">5 cp</td><td class="weight">—</td><td>Mirror, steel</td><td class="cost">5 gp</td><td class="weight">—</td></tr>
-        <tr><td>Caltrops (bag of 20)</td><td class="cost">1 gp</td><td class="weight">—</td><td>Oil (flask)</td><td class="cost">1 sp</td><td class="weight">—</td></tr>
-        <tr><td>Candle</td><td class="cost">1 cp</td><td class="weight">—</td><td>Paper (one sheet)</td><td class="cost">2 sp</td><td class="weight">—</td></tr>
-        <tr><td>Case, crossbow bolt</td><td class="cost">1 gp</td><td class="weight">—</td><td>Parchment (one sheet)</td><td class="cost">1 sp</td><td class="weight">—</td></tr>
-        <tr><td>Case, map or scroll</td><td class="cost">1 gp</td><td class="weight">—</td><td>Perfume (vial)</td><td class="cost">5 gp</td><td class="weight">—</td></tr>
-        <tr><td>Chain (10 feet)</td><td class="cost">5 gp</td><td class="weight">—</td><td>Pick, miner's</td><td class="cost">2 gp</td><td class="weight">—</td></tr>
-        <tr><td>Chalk (1 piece)</td><td class="cost">1 cp</td><td class="weight">—</td><td>Piton</td><td class="cost">5 cp</td><td class="weight">—</td></tr>
-        <tr><td>Chest</td><td class="cost">5 gp</td><td class="weight"><span class="weight-badge">1</span></td><td>Poison, basic (vial)</td><td class="cost">100 gp</td><td class="weight">—</td></tr>
-        <tr><td>Clothes, common</td><td class="cost">5 sp</td><td class="weight">—</td><td>Pole (10-foot)</td><td class="cost">5 cp</td><td class="weight">—</td></tr>
-        <tr><td>Clothes, costume</td><td class="cost">5 gp</td><td class="weight">—</td><td>Pot, iron</td><td class="cost">2 gp</td><td class="weight">—</td></tr>
-        <tr><td>Clothes, fine</td><td class="cost">15 gp</td><td class="weight">—</td><td>Potion of healing</td><td class="cost">50 gp</td><td class="weight">—</td></tr>
-        <tr><td>Clothes, traveler's</td><td class="cost">2 gp</td><td class="weight">—</td><td>Pouch</td><td class="cost">5 sp</td><td class="weight">—</td></tr>
-        <tr><td>Component pouch</td><td class="cost">25 gp</td><td class="weight">—</td><td>Quiver</td><td class="cost">1 gp</td><td class="weight">—</td></tr>
-        <tr><td>Crowbar</td><td class="cost">2 gp</td><td class="weight">—</td><td>Ram, portable</td><td class="cost">4 gp</td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr class="sub-header"><td colspan="6">Druidic Focus</td></tr>
-        <tr><td>Sprig of mistletoe</td><td class="cost">1 gp</td><td class="weight">—</td><td>Rations (1 day)</td><td class="cost">5 sp</td><td class="weight">—</td></tr>
-        <tr><td>Totem</td><td class="cost">1 gp</td><td class="weight">—</td><td>Robes</td><td class="cost">1 gp</td><td class="weight">—</td></tr>
-        <tr><td>Wooden staff</td><td class="cost">5 gp</td><td class="weight">—</td><td>Rope, hempen (50 feet)</td><td class="cost">1 gp</td><td class="weight">—</td></tr>
-        <tr><td>Yew wand</td><td class="cost">10 gp</td><td class="weight">—</td><td>Rope, silk (50 feet)</td><td class="cost">10 gp</td><td class="weight">—</td></tr>
-        <tr><td>Fishing tackle</td><td class="cost">1 gp</td><td class="weight">—</td><td>Sack</td><td class="cost">1 cp</td><td class="weight">—</td></tr>
-        <tr><td>Flask or tankard</td><td class="cost">2 cp</td><td class="weight">—</td><td>Scale, merchant's</td><td class="cost">5 gp</td><td class="weight">—</td></tr>
-        <tr><td>Grappling hook</td><td class="cost">2 gp</td><td class="weight">—</td><td>Sealing wax</td><td class="cost">5 sp</td><td class="weight">—</td></tr>
-        <tr><td>Hammer</td><td class="cost">1 gp</td><td class="weight">—</td><td>Shovel</td><td class="cost">2 gp</td><td class="weight">—</td></tr>
-        <tr><td>Hammer, sledge</td><td class="cost">2 gp</td><td class="weight">—</td><td>Signal whistle</td><td class="cost">5 cp</td><td class="weight">—</td></tr>
-        <tr><td>Holy symbol (amulet)</td><td class="cost">5 gp</td><td class="weight">—</td><td>Signet ring</td><td class="cost">5 gp</td><td class="weight">—</td></tr>
-        <tr><td></td><td></td><td></td><td>Soap</td><td class="cost">2 cp</td><td class="weight">—</td></tr>
-        <tr><td></td><td></td><td></td><td>Spellbook</td><td class="cost">50 gp</td><td class="weight">—</td></tr>
-        <tr><td></td><td></td><td></td><td>Spikes, iron (10)</td><td class="cost">1 gp</td><td class="weight">—</td></tr>
-        <tr><td></td><td></td><td></td><td>Spyglass</td><td class="cost">1,000 gp</td><td class="weight">—</td></tr>
-        <tr><td></td><td></td><td></td><td>Tent, two-person</td><td class="cost">2 gp</td><td class="weight"><span class="weight-badge">1</span></td></tr>
-        <tr><td></td><td></td><td></td><td>Tinderbox</td><td class="cost">5 sp</td><td class="weight">—</td></tr>
-        <tr><td></td><td></td><td></td><td>Torch</td><td class="cost">1 cp</td><td class="weight">—</td></tr>
-        <tr><td></td><td></td><td></td><td>Vial</td><td class="cost">1 gp</td><td class="weight">—</td></tr>
-        <tr><td></td><td></td><td></td><td>Waterskin</td><td class="cost">2 sp</td><td class="weight">—</td></tr>
-        <tr><td></td><td></td><td></td><td>Whetstone</td><td class="cost">1 cp</td><td class="weight">—</td></tr>
-      </tbody>
-    </table>
-    </div>
-    <div class="footer-ornament">✦ · · · ✦ · · · ✦</div>
+<!-- ══════ ARMOUR ══════ -->
+<div id="tab-armour" class="tab-page"><div class="tome">
+  <div class="sec-title"><span>&#128737;</span> Armour</div>
+  <a class="more-link" href="https://roll20.net/compendium/dnd5e/Armor#content" target="_blank">&#8599; More info on armour (Roll20 Compendium)</a>
+  <div class="prose" style="margin-bottom:1.1rem;">
+    <p>You must be <strong>proficient</strong> in a type of armour to wear it without penalty. Wearing armour you are not proficient in imposes disadvantage on all attack rolls and ability checks that use Strength or Dexterity.</p>
   </div>
-</div>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th>Armour</th><th>Cost</th><th>Armour Class (AC)</th><th>Stealth</th><th>Str Req.</th><th class="wt">Weight</th></tr></thead>
+    <tbody>
+      <tr class="sub-row"><td colspan="6">Light Armour</td></tr>
+      <tr><td>Padded</td><td class="cost">5 gp</td><td>11 + Dex mod</td><td class="italic">Disadvantage</td><td>—</td><td class="wt">—</td></tr>
+      <tr><td>Leather</td><td class="cost">10 gp</td><td>11 + Dex mod</td><td>—</td><td>—</td><td class="wt">—</td></tr>
+      <tr><td>Studded leather</td><td class="cost">45 gp</td><td>12 + Dex mod</td><td>—</td><td>—</td><td class="wt">—</td></tr>
+      <tr class="sub-row"><td colspan="6">Medium Armour</td></tr>
+      <tr><td>Hide</td><td class="cost">10 gp</td><td>12 + Dex mod (max 2)</td><td>—</td><td>—</td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Chain shirt</td><td class="cost">50 gp</td><td>13 + Dex mod (max 2)</td><td>—</td><td>—</td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Scale mail</td><td class="cost">50 gp</td><td>14 + Dex mod (max 2)</td><td class="italic">Disadvantage</td><td>—</td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Breastplate</td><td class="cost">400 gp</td><td>14 + Dex mod (max 2)</td><td>—</td><td>—</td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Half plate</td><td class="cost">750 gp</td><td>15 + Dex mod (max 2)</td><td class="italic">Disadvantage</td><td>—</td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr class="sub-row"><td colspan="6">Heavy Armour</td></tr>
+      <tr><td>Ring mail</td><td class="cost">30 gp</td><td>14</td><td class="italic">Disadvantage</td><td>—</td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Chain mail</td><td class="cost">75 gp</td><td>16</td><td class="italic">Disadvantage</td><td>Str 13</td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Splint</td><td class="cost">200 gp</td><td>17</td><td class="italic">Disadvantage</td><td>Str 15</td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Plate</td><td class="cost">1,500 gp</td><td>18</td><td class="italic">Disadvantage</td><td>Str 15</td><td class="wt"><span class="wb">2</span></td></tr>
+      <tr class="sub-row"><td colspan="6">Shields</td></tr>
+      <tr><td>Shield</td><td class="cost">10 gp</td><td>+2 bonus to AC</td><td>—</td><td>—</td><td class="wt">—</td></tr>
+    </tbody>
+  </table></div>
+  <div class="footer-orn">&#9876; · · · &#9876; · · · &#9876;</div>
+</div></div>
 
-<!-- ==================== EQUIPMENT PACKS ==================== -->
-<div id="tab-packs" class="tab-page">
-  <div class="parchment">
-    <div class="section-title"><span class="icon">📦</span> Adventurer Kits</div>
+<!-- ══════ ADVENTURING GEAR ══════ -->
+<div id="tab-gear" class="tab-page"><div class="tome">
+  <div class="sec-title"><span>&#127890;</span> Adventuring Gear</div>
+  <a class="more-link" href="https://roll20.net/compendium/dnd5e/Adventuring%20Gear#content" target="_blank">&#8599; More info on adventuring gear (Roll20 Compendium)</a>
 
-    <div class="intro-prose" style="margin-bottom:1.2rem;">
-      <p>The starting equipment you receive from your class includes a collection of useful adventuring gear, put together in a pack. If you are purchasing your starting equipment instead of taking class defaults, you can buy one of these packs for the price shown — usually cheaper than buying each item individually.</p>
-    </div>
+  <div class="sub-title">General Items</div>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th>Item</th><th>Cost</th><th class="wt">Wt</th><th>Item</th><th>Cost</th><th class="wt">Wt</th></tr></thead>
+    <tbody>
+      <tr><td>Abacus</td><td class="cost">2 gp</td><td class="wt">—</td><td>Jug or pitcher</td><td class="cost">2 cp</td><td class="wt">—</td></tr>
+      <tr><td>Acid (vial)</td><td class="cost">25 gp</td><td class="wt">—</td><td>Lamp</td><td class="cost">5 sp</td><td class="wt">—</td></tr>
+      <tr><td>Alchemist's fire (flask)</td><td class="cost">50 gp</td><td class="wt">—</td><td>Lantern, bullseye</td><td class="cost">10 gp</td><td class="wt">—</td></tr>
+      <tr><td>Antitoxin (vial)</td><td class="cost">50 gp</td><td class="wt">—</td><td>Lantern, hooded</td><td class="cost">5 gp</td><td class="wt">—</td></tr>
+      <tr><td>Backpack</td><td class="cost">2 gp</td><td class="wt">—</td><td>Lock</td><td class="cost">10 gp</td><td class="wt">—</td></tr>
+      <tr><td>Ball bearings (bag of 1,000)</td><td class="cost">1 gp</td><td class="wt">—</td><td>Magnifying glass</td><td class="cost">100 gp</td><td class="wt">—</td></tr>
+      <tr><td>Barrel</td><td class="cost">2 gp</td><td class="wt"><span class="wb">2</span></td><td>Manacles</td><td class="cost">2 gp</td><td class="wt">—</td></tr>
+      <tr><td>Basket</td><td class="cost">4 sp</td><td class="wt">—</td><td>Mirror, steel</td><td class="cost">5 gp</td><td class="wt">—</td></tr>
+      <tr><td>Bedroll</td><td class="cost">1 gp</td><td class="wt">—</td><td>Oil (flask)</td><td class="cost">1 sp</td><td class="wt">—</td></tr>
+      <tr><td>Bell</td><td class="cost">1 gp</td><td class="wt">—</td><td>Paper (one sheet)</td><td class="cost">2 sp</td><td class="wt">—</td></tr>
+      <tr><td>Blanket</td><td class="cost">5 sp</td><td class="wt">—</td><td>Parchment (one sheet)</td><td class="cost">1 sp</td><td class="wt">—</td></tr>
+      <tr><td>Block and tackle</td><td class="cost">1 gp</td><td class="wt">—</td><td>Perfume (vial)</td><td class="cost">5 gp</td><td class="wt">—</td></tr>
+      <tr><td>Book</td><td class="cost">25 gp</td><td class="wt">—</td><td>Pick, miner's</td><td class="cost">2 gp</td><td class="wt">—</td></tr>
+      <tr><td>Bottle, glass</td><td class="cost">2 gp</td><td class="wt">—</td><td>Piton</td><td class="cost">5 cp</td><td class="wt">—</td></tr>
+      <tr><td>Bucket</td><td class="cost">5 cp</td><td class="wt">—</td><td>Poison, basic (vial)</td><td class="cost">100 gp</td><td class="wt">—</td></tr>
+      <tr><td>Caltrops (bag of 20)</td><td class="cost">1 gp</td><td class="wt">—</td><td>Pole (10-foot)</td><td class="cost">5 cp</td><td class="wt">—</td></tr>
+      <tr><td>Candle</td><td class="cost">1 cp</td><td class="wt">—</td><td>Pot, iron</td><td class="cost">2 gp</td><td class="wt">—</td></tr>
+      <tr><td>Case, crossbow bolt</td><td class="cost">1 gp</td><td class="wt">—</td><td>Potion of healing</td><td class="cost">50 gp</td><td class="wt">—</td></tr>
+      <tr><td>Case, map or scroll</td><td class="cost">1 gp</td><td class="wt">—</td><td>Pouch</td><td class="cost">5 sp</td><td class="wt">—</td></tr>
+      <tr><td>Chain (10 feet)</td><td class="cost">5 gp</td><td class="wt">—</td><td>Quiver</td><td class="cost">1 gp</td><td class="wt">—</td></tr>
+      <tr><td>Chalk (1 piece)</td><td class="cost">1 cp</td><td class="wt">—</td><td>Ram, portable</td><td class="cost">4 gp</td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Chest</td><td class="cost">5 gp</td><td class="wt"><span class="wb">1</span></td><td>Rations (1 day)</td><td class="cost">5 sp</td><td class="wt">—</td></tr>
+      <tr><td>Clothes, common</td><td class="cost">5 sp</td><td class="wt">—</td><td>Robes</td><td class="cost">1 gp</td><td class="wt">—</td></tr>
+      <tr><td>Clothes, costume</td><td class="cost">5 gp</td><td class="wt">—</td><td>Rope, hempen (50 ft)</td><td class="cost">1 gp</td><td class="wt">—</td></tr>
+      <tr><td>Clothes, fine</td><td class="cost">15 gp</td><td class="wt">—</td><td>Rope, silk (50 ft)</td><td class="cost">10 gp</td><td class="wt">—</td></tr>
+      <tr><td>Clothes, traveler's</td><td class="cost">2 gp</td><td class="wt">—</td><td>Sack</td><td class="cost">1 cp</td><td class="wt">—</td></tr>
+      <tr><td>Component pouch</td><td class="cost">25 gp</td><td class="wt">—</td><td>Scale, merchant's</td><td class="cost">5 gp</td><td class="wt">—</td></tr>
+      <tr><td>Crowbar</td><td class="cost">2 gp</td><td class="wt">—</td><td>Sealing wax</td><td class="cost">5 sp</td><td class="wt">—</td></tr>
+      <tr><td>Fishing tackle</td><td class="cost">1 gp</td><td class="wt">—</td><td>Shovel</td><td class="cost">2 gp</td><td class="wt">—</td></tr>
+      <tr><td>Flask or tankard</td><td class="cost">2 cp</td><td class="wt">—</td><td>Signal whistle</td><td class="cost">5 cp</td><td class="wt">—</td></tr>
+      <tr><td>Grappling hook</td><td class="cost">2 gp</td><td class="wt">—</td><td>Signet ring</td><td class="cost">5 gp</td><td class="wt">—</td></tr>
+      <tr><td>Hammer</td><td class="cost">1 gp</td><td class="wt">—</td><td>Soap</td><td class="cost">2 cp</td><td class="wt">—</td></tr>
+      <tr><td>Hammer, sledge</td><td class="cost">2 gp</td><td class="wt">—</td><td>Spellbook</td><td class="cost">50 gp</td><td class="wt">—</td></tr>
+      <tr><td>Holy symbol (amulet)</td><td class="cost">5 gp</td><td class="wt">—</td><td>Spikes, iron (10)</td><td class="cost">1 gp</td><td class="wt">—</td></tr>
+      <tr><td>Holy symbol (emblem)</td><td class="cost">5 gp</td><td class="wt">—</td><td>Spyglass</td><td class="cost">1,000 gp</td><td class="wt">—</td></tr>
+      <tr><td>Holy symbol (reliquary)</td><td class="cost">5 gp</td><td class="wt">—</td><td>Tent, two-person</td><td class="cost">2 gp</td><td class="wt"><span class="wb">1</span></td></tr>
+      <tr><td>Holy water (flask)</td><td class="cost">25 gp</td><td class="wt">—</td><td>Tinderbox</td><td class="cost">5 sp</td><td class="wt">—</td></tr>
+      <tr><td>Hourglass</td><td class="cost">25 gp</td><td class="wt">—</td><td>Torch</td><td class="cost">1 cp</td><td class="wt">—</td></tr>
+      <tr><td>Hunting trap</td><td class="cost">5 gp</td><td class="wt"><span class="wb">1</span></td><td>Vial</td><td class="cost">1 gp</td><td class="wt">—</td></tr>
+      <tr><td>Ink (1 oz bottle)</td><td class="cost">10 gp</td><td class="wt">—</td><td>Waterskin</td><td class="cost">2 sp</td><td class="wt">—</td></tr>
+      <tr><td>Ink pen</td><td class="cost">2 cp</td><td class="wt">—</td><td>Whetstone</td><td class="cost">1 cp</td><td class="wt">—</td></tr>
+    </tbody>
+  </table></div>
 
-    <div class="pack-grid">
+  <div class="sub-title">Ammunition</div>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th>Item</th><th>Cost</th><th class="wt">Weight</th></tr></thead>
+    <tbody>
+      <tr><td>Arrows (20)</td><td class="cost">1 gp</td><td class="wt">—</td></tr>
+      <tr><td>Blowgun needles (50)</td><td class="cost">1 gp</td><td class="wt">—</td></tr>
+      <tr><td>Crossbow bolts (20)</td><td class="cost">1 gp</td><td class="wt">—</td></tr>
+      <tr><td>Sling bullets (20)</td><td class="cost">4 cp</td><td class="wt">—</td></tr>
+    </tbody>
+  </table></div>
 
-      <div class="pack-card">
-        <div class="pack-name">Burglar's Pack</div>
-        <div class="pack-cost">16 gp</div>
-        <div class="pack-contents">A backpack, a bag of 1,000 ball bearings, 10 feet of string, a bell, 5 candles, a crowbar, a hammer, 10 pitons, a hooded lantern, 2 flasks of oil, 5 days rations, a tinderbox, a waterskin, and 50 feet of hempen rope strapped to the side.</div>
-        <a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Burglar%27s%20Pack#content" target="_blank">↗ More info</a>
-      </div>
+  <div class="sub-title">Arcane &amp; Druidic Focuses</div>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th>Item</th><th>Cost</th><th class="wt">Weight</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr class="sub-row"><td colspan="4">Arcane Focus (Sorcerer, Warlock, Wizard)</td></tr>
+      <tr><td>Crystal</td><td class="cost">10 gp</td><td class="wt">—</td><td>—</td></tr>
+      <tr><td>Orb</td><td class="cost">20 gp</td><td class="wt">—</td><td>—</td></tr>
+      <tr><td>Rod</td><td class="cost">10 gp</td><td class="wt">—</td><td>—</td></tr>
+      <tr><td>Staff</td><td class="cost">5 gp</td><td class="wt">—</td><td>Can also be used as a quarterstaff</td></tr>
+      <tr><td>Wand</td><td class="cost">10 gp</td><td class="wt">—</td><td>—</td></tr>
+      <tr class="sub-row"><td colspan="4">Druidic Focus (Druid, Ranger)</td></tr>
+      <tr><td>Sprig of mistletoe</td><td class="cost">1 gp</td><td class="wt">—</td><td>—</td></tr>
+      <tr><td>Totem</td><td class="cost">1 gp</td><td class="wt">—</td><td>—</td></tr>
+      <tr><td>Wooden staff</td><td class="cost">5 gp</td><td class="wt">—</td><td>Can also be used as a quarterstaff</td></tr>
+      <tr><td>Yew wand</td><td class="cost">10 gp</td><td class="wt">—</td><td>—</td></tr>
+    </tbody>
+  </table></div>
+  <div class="footer-orn">&#9876; · · · &#9876; · · · &#9876;</div>
+</div></div>
 
-      <div class="pack-card">
-        <div class="pack-name">Diplomat's Pack</div>
-        <div class="pack-cost">39 gp</div>
-        <div class="pack-contents">A chest, 2 cases for maps and scrolls, a set of fine clothes, a bottle of ink, an ink pen, a lamp, 2 flasks of oil, 5 sheets of paper, a vial of perfume, sealing wax, and soap.</div>
-        <a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Diplomat%27s%20Pack#content" target="_blank">↗ More info</a>
-      </div>
+<!-- ══════ TOOLS & INSTRUMENTS ══════ -->
+<div id="tab-tools" class="tab-page"><div class="tome">
+  <div class="sec-title"><span>&#128295;</span> Tools &amp; Instruments</div>
+  <div class="prose" style="margin-bottom:1.1rem;"><p>Proficiency with a tool lets you add your proficiency bonus to ability checks using that tool. Your background or class may grant proficiency — but you still need to own the tool to use it.</p></div>
 
-      <div class="pack-card">
-        <div class="pack-name">Dungeoneer's Pack</div>
-        <div class="pack-cost">12 gp</div>
-        <div class="pack-contents">A backpack, a crowbar, a hammer, 10 pitons, 10 torches, a tinderbox, 10 days of rations, a waterskin, and 50 feet of hempen rope strapped to the side.</div>
-        <a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Dungeoneer%27s%20Pack#content" target="_blank">↗ More info</a>
-      </div>
+  <div class="sub-title">Artisan's Tools</div>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th>Tool</th><th>Cost</th><th class="wt">Weight</th></tr></thead>
+    <tbody>
+      <tr><td>Alchemist's supplies</td><td class="cost">50 gp</td><td class="wt">—</td></tr>
+      <tr><td>Brewer's supplies</td><td class="cost">20 gp</td><td class="wt">—</td></tr>
+      <tr><td>Calligrapher's supplies</td><td class="cost">10 gp</td><td class="wt">—</td></tr>
+      <tr><td>Carpenter's tools</td><td class="cost">8 gp</td><td class="wt">—</td></tr>
+      <tr><td>Cartographer's tools</td><td class="cost">15 gp</td><td class="wt">—</td></tr>
+      <tr><td>Cobbler's tools</td><td class="cost">5 gp</td><td class="wt">—</td></tr>
+      <tr><td>Cook's utensils</td><td class="cost">1 gp</td><td class="wt">—</td></tr>
+      <tr><td>Glassblower's tools</td><td class="cost">30 gp</td><td class="wt">—</td></tr>
+      <tr><td>Jeweler's tools</td><td class="cost">25 gp</td><td class="wt">—</td></tr>
+      <tr><td>Leatherworker's tools</td><td class="cost">5 gp</td><td class="wt">—</td></tr>
+      <tr><td>Mason's tools</td><td class="cost">10 gp</td><td class="wt">—</td></tr>
+      <tr><td>Painter's supplies</td><td class="cost">10 gp</td><td class="wt">—</td></tr>
+      <tr><td>Potter's tools</td><td class="cost">10 gp</td><td class="wt">—</td></tr>
+      <tr><td>Smith's tools</td><td class="cost">20 gp</td><td class="wt">—</td></tr>
+      <tr><td>Tinker's tools</td><td class="cost">50 gp</td><td class="wt">—</td></tr>
+      <tr><td>Weaver's tools</td><td class="cost">1 gp</td><td class="wt">—</td></tr>
+      <tr><td>Woodcarver's tools</td><td class="cost">1 gp</td><td class="wt">—</td></tr>
+    </tbody>
+  </table></div>
 
-      <div class="pack-card">
-        <div class="pack-name">Entertainer's Pack</div>
-        <div class="pack-cost">40 gp</div>
-        <div class="pack-contents">A backpack, a bedroll, 2 costumes, 5 candles, 5 days of rations, a waterskin, and a disguise kit.</div>
-        <a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Entertainer%27s%20Pack#content" target="_blank">↗ More info</a>
-      </div>
+  <div class="sub-title">Adventuring &amp; Specialist Tools</div>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th>Tool</th><th>Cost</th><th class="wt">Weight</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Climber's kit</td><td class="cost">25 gp</td><td class="wt">—</td><td>Pitons, boot tips, gloves, harness</td></tr>
+      <tr><td>Disguise kit</td><td class="cost">25 gp</td><td class="wt">—</td><td>Cosmetics, hair dye, small props</td></tr>
+      <tr><td>Forgery kit</td><td class="cost">15 gp</td><td class="wt">—</td><td>Inks, papers, seals, wax</td></tr>
+      <tr><td>Healer's kit</td><td class="cost">5 gp</td><td class="wt">—</td><td>10 uses; stabilise a creature at 0 hp without a roll</td></tr>
+      <tr><td>Herbalism kit</td><td class="cost">5 gp</td><td class="wt">—</td><td>Craft antitoxins and potions of healing</td></tr>
+      <tr><td>Mess kit</td><td class="cost">2 sp</td><td class="wt">—</td><td>Cooking equipment for one person</td></tr>
+      <tr><td>Navigator's tools</td><td class="cost">25 gp</td><td class="wt">—</td><td>Sextant, compass, charts</td></tr>
+      <tr><td>Poisoner's kit</td><td class="cost">50 gp</td><td class="wt">—</td><td>Craft and apply poisons</td></tr>
+      <tr><td>Thieves' tools</td><td class="cost">25 gp</td><td class="wt">—</td><td>Pick locks and disable traps</td></tr>
+    </tbody>
+  </table></div>
 
-      <div class="pack-card">
-        <div class="pack-name">Explorer's Pack</div>
-        <div class="pack-cost">10 gp</div>
-        <div class="pack-contents">A backpack, a bedroll, a mess kit, a tinderbox, 10 torches, 10 days of rations, a waterskin, and 50 feet of hempen rope strapped to the side.</div>
-        <a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Explorer%27s%20Pack#content" target="_blank">↗ More info</a>
-      </div>
+  <div class="sub-title">Gaming Sets</div>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th>Set</th><th>Cost</th><th class="wt">Weight</th></tr></thead>
+    <tbody>
+      <tr><td>Dice set</td><td class="cost">1 sp</td><td class="wt">—</td></tr>
+      <tr><td>Dragonchess set</td><td class="cost">1 gp</td><td class="wt">—</td></tr>
+      <tr><td>Playing card set</td><td class="cost">5 sp</td><td class="wt">—</td></tr>
+      <tr><td>Three-Dragon Ante set</td><td class="cost">1 gp</td><td class="wt">—</td></tr>
+    </tbody>
+  </table></div>
 
-      <div class="pack-card">
-        <div class="pack-name">Priest's Pack</div>
-        <div class="pack-cost">19 gp</div>
-        <div class="pack-contents">A backpack, a blanket, 10 candles, a tinderbox, an alms box, 2 blocks of incense, a censer, vestments, 2 days of rations, and a waterskin.</div>
-        <a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Priest%27s%20Pack#content" target="_blank">↗ More info</a>
-      </div>
+  <div class="sub-title">Musical Instruments</div>
+  <div class="prose" style="margin-bottom:.8rem;"><p>Bards may use musical instruments as spellcasting focuses. Proficiency lets you play the instrument and add your proficiency bonus to any associated checks.</p></div>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th>Instrument</th><th>Cost</th><th class="wt">Weight</th></tr></thead>
+    <tbody>
+      <tr><td>Bagpipes</td><td class="cost">30 gp</td><td class="wt">—</td></tr>
+      <tr><td>Drum</td><td class="cost">6 gp</td><td class="wt">—</td></tr>
+      <tr><td>Dulcimer</td><td class="cost">25 gp</td><td class="wt">—</td></tr>
+      <tr><td>Flute</td><td class="cost">2 gp</td><td class="wt">—</td></tr>
+      <tr><td>Horn</td><td class="cost">3 gp</td><td class="wt">—</td></tr>
+      <tr><td>Lute</td><td class="cost">35 gp</td><td class="wt">—</td></tr>
+      <tr><td>Lyre</td><td class="cost">30 gp</td><td class="wt">—</td></tr>
+      <tr><td>Pan flute</td><td class="cost">12 gp</td><td class="wt">—</td></tr>
+      <tr><td>Shawm</td><td class="cost">2 gp</td><td class="wt">—</td></tr>
+      <tr><td>Viol</td><td class="cost">30 gp</td><td class="wt">—</td></tr>
+    </tbody>
+  </table></div>
+  <div class="footer-orn">&#9876; · · · &#9876; · · · &#9876;</div>
+</div></div>
 
-      <div class="pack-card">
-        <div class="pack-name">Scholar's Pack</div>
-        <div class="pack-cost">40 gp</div>
-        <div class="pack-contents">A backpack, a book of lore, a bottle of ink, an ink pen, 10 sheets of parchment, a little bag of sand, and a small knife.</div>
-        <a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Scholar%27s%20Pack#content" target="_blank">↗ More info</a>
-      </div>
-
-    </div>
-    <div class="footer-ornament">✦ · · · ✦ · · · ✦</div>
+<!-- ══════ ADVENTURER KITS ══════ -->
+<div id="tab-packs" class="tab-page"><div class="tome">
+  <div class="sec-title"><span>&#128230;</span> Adventurer Kits</div>
+  <div class="prose" style="margin-bottom:1.1rem;">
+    <p>When creating your character you can choose a class equipment package that includes one of these packs. If you are buying your own starting equipment you can also purchase a pack outright — usually cheaper than buying items individually.</p>
+    <p><strong>Packs are topped up at the start of each session</strong> — you never need to track individual rations, torches, or candles.</p>
   </div>
-</div>
+  <div class="pack-grid">
+    <div class="pack"><div class="pack-name">Burglar's Pack</div><div class="pack-cost">16 gp</div><div class="pack-contents">Backpack, 1,000 ball bearings, 10 ft string, bell, 5 candles, crowbar, hammer, 10 pitons, hooded lantern, 2 flasks oil, 5 days rations, tinderbox, waterskin, 50 ft hempen rope.</div><a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Burglar%27s%20Pack#content" target="_blank">&#8599; More info</a></div>
+    <div class="pack"><div class="pack-name">Diplomat's Pack</div><div class="pack-cost">39 gp</div><div class="pack-contents">Chest, 2 map/scroll cases, fine clothes, ink, ink pen, lamp, 2 flasks oil, 5 sheets paper, perfume, sealing wax, soap.</div><a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Diplomat%27s%20Pack#content" target="_blank">&#8599; More info</a></div>
+    <div class="pack"><div class="pack-name">Dungeoneer's Pack</div><div class="pack-cost">12 gp</div><div class="pack-contents">Backpack, crowbar, hammer, 10 pitons, 10 torches, tinderbox, 10 days rations, waterskin, 50 ft hempen rope.</div><a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Dungeoneer%27s%20Pack#content" target="_blank">&#8599; More info</a></div>
+    <div class="pack"><div class="pack-name">Entertainer's Pack</div><div class="pack-cost">40 gp</div><div class="pack-contents">Backpack, bedroll, 2 costumes, 5 candles, 5 days rations, waterskin, disguise kit.</div><a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Entertainer%27s%20Pack#content" target="_blank">&#8599; More info</a></div>
+    <div class="pack"><div class="pack-name">Explorer's Pack</div><div class="pack-cost">10 gp</div><div class="pack-contents">Backpack, bedroll, mess kit, tinderbox, 10 torches, 10 days rations, waterskin, 50 ft hempen rope.</div><a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Explorer%27s%20Pack#content" target="_blank">&#8599; More info</a></div>
+    <div class="pack"><div class="pack-name">Priest's Pack</div><div class="pack-cost">19 gp</div><div class="pack-contents">Backpack, blanket, 10 candles, tinderbox, alms box, 2 blocks incense, censer, vestments, 2 days rations, waterskin.</div><a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Priest%27s%20Pack#content" target="_blank">&#8599; More info</a></div>
+    <div class="pack"><div class="pack-name">Scholar's Pack</div><div class="pack-cost">40 gp</div><div class="pack-contents">Backpack, book of lore, ink, ink pen, 10 sheets parchment, small bag of sand, small knife.</div><a class="pack-link" href="https://roll20.net/compendium/dnd5e/Items:Scholar%27s%20Pack#content" target="_blank">&#8599; More info</a></div>
+  </div>
+  <div class="footer-orn">&#9876; · · · &#9876; · · · &#9876;</div>
+</div></div>
 
-</div><!-- end page-wrapper -->
-
+</div><!-- end page -->
 <script>
-function showTab(name) {
-  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
+function showTab(name,btn){
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
 }
 </script>
 </body>

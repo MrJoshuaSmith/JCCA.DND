@@ -3,432 +3,646 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Noticeboard — The Adventurer's Emporium</title>
+<title>The Quest Board — D&D Club</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
+/* ─── TWO VISUAL ZONES ─────────────────────────────────────
+   Login / chrome  = dark D&D red/brown
+   Quest board     = timber + parchment
+─────────────────────────────────────────────────────────── */
 :root{
-  --void:#0d0618;--arcane-border:#6b3fa0;
-  --crystal:#c8a8f8;--crystal-bright:#e8d8ff;--crystal-dim:#8a68c8;
-  --gold:#f0c848;--gold-dim:#a88020;--silver:#d0c8e8;--silver-dim:#9890b8;
-  --teal:#40d8c8;--red:#ff4488;--green:#60c870;--amber:#f0a030;
-  --bg-card:rgba(29,12,56,0.95);--bg-input:rgba(13,6,24,0.8);
+  --red:#c41e1e; --red-d:#8b1010; --gold:#c8952a; --gold-d:#7a5818;
+  --text:#e0d8c8; --text-m:#b0a898; --text-d:#786858;
+  --board-bg:#1c1008;
+  --p0:#f4e6c0; --pw:#f0d8a0; --pe:#e8efdc; --pi:#eeeade;
+  --ink:#2a1208; --ink-m:#5a3820; --ink-l:#8a6040;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--void);background-image:radial-gradient(ellipse 80% 50% at 50% 0%,#2d1054 0%,transparent 70%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--silver);}
-#stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
-.star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--d,3s) var(--dl,0s) infinite alternate ease-in-out;}
-@keyframes twinkle{from{opacity:.08;}to{opacity:.85;}}
-.page{position:relative;z-index:1;}
+body{background:var(--board-bg);background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 18px,rgba(255,200,100,.025) 18px,rgba(255,200,100,.025) 19px),radial-gradient(ellipse at 30% 0%,#2a1a08,transparent 55%),radial-gradient(ellipse at 70% 100%,#180e05,transparent 55%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--ink);}
 
-/* AUTH */
-.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;}
-.auth-card{background:var(--bg-card);border:1px solid var(--arcane-border);border-radius:8px;padding:2.5rem;width:100%;max-width:400px;position:relative;}
-.auth-card::before{content:'';position:absolute;inset:5px;border:1px solid rgba(107,63,160,.18);border-radius:5px;pointer-events:none;}
-.auth-logo{text-align:center;margin-bottom:1.8rem;}
-.auth-logo h1{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:900;color:var(--crystal-bright);line-height:1.2;}
-.auth-logo h1 span{color:var(--gold);}
-.auth-logo p{font-style:italic;color:var(--crystal-dim);font-size:.88rem;margin-top:.4rem;}
+/* ── LOGIN ── */
+#screen-login{min-height:100vh;display:none;align-items:center;justify-content:center;padding:2rem;background:#0e0b09;background-image:radial-gradient(ellipse 70% 50% at 50% 0%,#1f0a08,transparent 70%);}
+#screen-login.show{display:flex;}
+.lc{background:#1e1610;border:1px solid rgba(196,30,30,.35);border-radius:8px;padding:2.5rem;width:100%;max-width:400px;position:relative;}
+.lc::before{content:'';position:absolute;inset:5px;border:1px solid rgba(196,30,30,.1);border-radius:5px;pointer-events:none;}
+.lc-logo{text-align:center;margin-bottom:1.8rem;}
+.lc-logo h1{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:900;color:var(--text);line-height:1.2;}
+.lc-logo h1 b{color:var(--red);}
+.lc-logo p{font-style:italic;color:var(--text-d);font-size:.88rem;margin-top:.4rem;}
+.fg{margin-bottom:.9rem;}
+.fl{display:block;font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.1em;color:var(--text-m);margin-bottom:.3rem;text-transform:uppercase;}
+.fi{width:100%;background:rgba(13,6,4,.7);border:1px solid rgba(196,30,30,.28);border-radius:4px;padding:.58rem .85rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:1rem;outline:none;}
+.fi:focus{border-color:rgba(196,30,30,.55);}
+.fi::placeholder{color:var(--text-d);opacity:.6;}
+.fe{font-size:.76rem;color:var(--red);margin-bottom:.5rem;display:none;}
+.lbtn{width:100%;font-family:'Cinzel',serif;font-size:.78rem;font-weight:600;letter-spacing:.1em;padding:.65rem;border-radius:4px;cursor:pointer;background:rgba(196,30,30,.25);border:1px solid var(--red-d);color:var(--text);margin-top:.2rem;transition:all .2s;}
+.lbtn:hover{background:rgba(196,30,30,.4);}
+.lbtn:disabled{opacity:.4;cursor:not-allowed;}
+.ll{display:flex;justify-content:space-between;margin-top:1rem;flex-wrap:wrap;gap:.4rem;}
+.ll a{font-family:'Cinzel',serif;font-size:.68rem;color:var(--text-d);text-decoration:none;transition:color .2s;}
+.ll a:hover{color:var(--gold);}
 
-/* TOPBAR */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1.5rem;background:rgba(13,6,24,.85);border-bottom:1px solid rgba(107,63,160,.35);backdrop-filter:blur(8px);position:sticky;top:0;z-index:100;}
-.topbar-brand{font-family:'Cinzel',serif;font-size:.9rem;font-weight:600;color:var(--crystal-bright);}
-.topbar-brand span{color:var(--gold);}
-.topbar-right{display:flex;align-items:center;gap:.7rem;}
+/* ── APP / TOPBAR ── */
+#screen-app{display:none;}
+#screen-app.show{display:block;}
+.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding:.65rem 1.5rem;background:rgba(14,9,4,.9);border-bottom:2px solid rgba(180,110,40,.22);backdrop-filter:blur(8px);position:sticky;top:0;z-index:200;}
+.tb-brand{font-family:'Cinzel',serif;font-size:.95rem;font-weight:900;color:var(--text);}
+.tb-brand b{color:var(--red);}
+.view-btns{display:flex;gap:.3rem;}
+.vbtn{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.05em;padding:.38rem 1rem;border:1px solid rgba(180,110,40,.3);border-radius:4px;background:transparent;color:var(--text-m);cursor:pointer;transition:all .2s;}
+.vbtn:hover{background:rgba(196,30,30,.15);border-color:rgba(196,30,30,.4);color:var(--text);}
+.vbtn.active{background:rgba(180,110,40,.18);border-color:var(--gold-d);color:var(--text);}
+.tb-right{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;}
+.tb-user{font-family:'Cinzel',serif;font-size:.66rem;color:var(--text-d);}
 
-/* LAYOUT */
-.main{max-width:800px;margin:0 auto;padding:1.5rem 1rem 4rem;}
-.page-header{margin-bottom:1.8rem;}
-.page-title{font-family:'Cinzel',serif;font-size:1.6rem;font-weight:900;color:var(--crystal-bright);margin-bottom:.3rem;}
-.page-sub{font-style:italic;color:var(--crystal-dim);font-size:.9rem;}
+/* ── BUTTONS ── */
+.btn{font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;letter-spacing:.06em;padding:.38rem .9rem;border-radius:4px;cursor:pointer;border:1px solid;transition:all .2s;display:inline-flex;align-items:center;gap:.25rem;}
+.btn-red{background:rgba(196,30,30,.2);border-color:var(--red-d);color:var(--text);}
+.btn-red:hover{background:rgba(196,30,30,.38);}
+.btn-gold{background:rgba(180,110,40,.15);border-color:var(--gold-d);color:var(--gold);}
+.btn-gold:hover{background:rgba(180,110,40,.28);}
+.btn-ghost{background:transparent;border-color:rgba(180,110,40,.3);color:var(--text-m);}
+.btn-ghost:hover{border-color:rgba(180,110,40,.5);color:var(--text);}
+.btn-danger{background:rgba(196,30,30,.1);border-color:rgba(196,30,30,.4);color:var(--red);}
+.btn-danger:hover{background:rgba(196,30,30,.25);}
+.btn-sm{padding:.24rem .6rem;font-size:.62rem;}
 
-/* NOTICES */
-.pinned-notice{background:linear-gradient(135deg,rgba(240,200,72,.06),rgba(107,63,160,.12));border:2px solid rgba(240,200,72,.4);border-radius:8px;padding:1.4rem 1.6rem;margin-bottom:1rem;position:relative;overflow:hidden;}
-.pinned-notice::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(240,200,72,.04),transparent);animation:shimmer 5s linear infinite;}
-@keyframes shimmer{0%{transform:translateX(-100%);}100%{transform:translateX(100%)}}
-.pin-icon{font-family:'Cinzel',serif;font-size:.62rem;font-weight:600;letter-spacing:.1em;color:var(--gold);border:1px solid rgba(240,200,72,.4);padding:2px 7px;border-radius:3px;display:inline-block;margin-bottom:.6rem;}
-.notice-title{font-family:'Cinzel',serif;font-size:1.05rem;font-weight:600;color:var(--crystal-bright);margin-bottom:.45rem;}
-.notice-body{font-size:.95rem;color:var(--silver);line-height:1.75;}
-.notice-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.8rem;flex-wrap:wrap;gap:.4rem;}
-.notice-date{font-size:.73rem;color:var(--silver-dim);}
-.notice-author{font-size:.73rem;color:var(--crystal-dim);font-family:'Cinzel',serif;}
-.notice-card{background:var(--bg-card);border:1px solid rgba(107,63,160,.3);border-radius:6px;padding:1.2rem 1.4rem;margin-bottom:.8rem;transition:border-color .2s;}
-.notice-card:hover{border-color:var(--arcane-border);}
-.notice-card.warn{border-color:rgba(240,160,48,.35);}
-.notice-card.info{border-color:rgba(64,216,200,.25);}
-.notice-card.event{border-color:rgba(107,63,160,.5);}
-.type-pill{display:inline-block;font-family:'Cinzel',serif;font-size:.6rem;font-weight:600;letter-spacing:.1em;padding:2px 8px;border-radius:3px;border:1px solid;margin-bottom:.5rem;}
-.type-announcement{border-color:var(--crystal-dim);color:var(--crystal-dim);}
-.type-warning{border-color:var(--amber);color:var(--amber);}
-.type-info{border-color:var(--teal);color:var(--teal);}
-.type-event{border-color:var(--crystal);color:var(--crystal);}
+/* ════════════════════════════════════════════════════
+   QUEST BOARD
+════════════════════════════════════════════════════ */
+.board-wrap{max-width:1200px;margin:0 auto;padding:1.8rem 2rem 5rem;}
 
-/* DM POST FORM */
-.post-form{background:rgba(107,63,160,.06);border:1px solid rgba(107,63,160,.25);border-radius:6px;padding:1.4rem 1.6rem;margin-bottom:1.5rem;}
-.post-form-title{font-family:'Cinzel',serif;font-size:.85rem;font-weight:600;color:var(--crystal-bright);margin-bottom:1rem;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.8rem;}
-@media(max-width:600px){.form-row{grid-template-columns:1fr;}}
-.form-group{margin-bottom:.8rem;}
-.form-label{display:block;font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.1em;color:var(--crystal-dim);margin-bottom:.3rem;text-transform:uppercase;}
-.form-input{width:100%;background:var(--bg-input);border:1px solid rgba(107,63,160,.4);border-radius:4px;padding:.52rem .8rem;color:var(--crystal-bright);font-family:'Crimson Pro',serif;font-size:.95rem;outline:none;}
-.form-input:focus{border-color:var(--crystal-dim);}
-textarea.form-input{resize:vertical;min-height:80px;}
+/* NEXT SESSION — parchment scroll */
+.scroll-outer{margin-bottom:2.2rem;position:relative;}
+.scroll-roller{height:18px;background:linear-gradient(180deg,#d4a030,#8a5810 40%,#6a3808 55%,#8a5810 70%,#c89028);border-radius:4px;box-shadow:0 3px 10px rgba(0,0,0,.5),inset 0 1px 2px rgba(255,220,100,.3);position:relative;z-index:2;}
+.scroll-body{background:#f9f0d5;background-image:linear-gradient(180deg,rgba(200,155,50,.12) 0%,transparent 15%,transparent 85%,rgba(200,155,50,.12) 100%),radial-gradient(ellipse at 0% 50%,rgba(160,110,30,.14),transparent 40%),radial-gradient(ellipse at 100% 50%,rgba(160,110,30,.12),transparent 40%);border-left:3px solid rgba(100,70,20,.35);border-right:3px solid rgba(100,70,20,.35);padding:1.6rem 3rem 1.6rem 2.5rem;position:relative;z-index:1;}
+@media(max-width:600px){.scroll-body{padding:1.2rem 1.2rem;}}
+.ns-seal{position:absolute;right:1.2rem;top:50%;transform:translateY(-50%);width:52px;height:52px;background:radial-gradient(circle at 40% 38%,#e04040,#6a0808);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.4),inset 0 1px 3px rgba(255,150,150,.2);font-size:1.2rem;}
+@media(max-width:600px){.ns-seal{display:none;}}
+.ns-eyebrow{font-family:'Cinzel',serif;font-size:.65rem;font-weight:600;letter-spacing:.28em;color:var(--red-d);text-transform:uppercase;text-align:center;margin-bottom:.6rem;}
+.ns-title{font-family:'Cinzel',serif;font-size:1.55rem;font-weight:900;color:var(--ink);text-align:center;margin-bottom:.8rem;}
+.ns-details{display:flex;justify-content:center;align-items:center;gap:2rem;flex-wrap:wrap;}
+.ns-det{text-align:center;}
+.ns-det-lbl{font-family:'Cinzel',serif;font-size:.59rem;letter-spacing:.12em;color:var(--ink-l);text-transform:uppercase;margin-bottom:.15rem;}
+.ns-det-val{font-family:'Cinzel',serif;font-size:1.05rem;font-weight:600;color:var(--ink-m);}
+.ns-countdown{font-family:'Cinzel',serif;font-size:.95rem;font-weight:600;letter-spacing:.04em;text-align:center;margin-top:.8rem;padding-top:.8rem;border-top:1px solid rgba(100,70,20,.2);color:var(--red-d);}
+.ns-empty{text-align:center;font-style:italic;color:var(--ink-l);font-size:1rem;padding:.5rem 0;}
 
-/* BUTTONS */
-.btn{font-family:'Cinzel',serif;font-size:.73rem;font-weight:600;letter-spacing:.08em;padding:.48rem 1.1rem;border-radius:4px;cursor:pointer;transition:all .2s;border:1px solid;display:inline-flex;align-items:center;gap:.3rem;}
-.btn-primary{background:rgba(107,63,160,.3);border-color:var(--arcane-border);color:var(--crystal-bright);}
-.btn-primary:hover{background:rgba(107,63,160,.5);}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
-.btn-gold{background:rgba(240,200,72,.15);border-color:var(--gold-dim);color:var(--gold);}
-.btn-gold:hover{background:rgba(240,200,72,.28);}
-.btn-danger{background:rgba(255,68,136,.1);border-color:#c03060;color:var(--red);}
-.btn-danger:hover{background:rgba(255,68,136,.22);}
-.btn-sm{padding:.28rem .7rem;font-size:.66rem;}
+/* NOTICES COLUMN GRID */
+.board-divider{font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(200,160,80,.35);text-align:center;margin:0 0 1.5rem;}
+.notices-grid{columns:3 240px;column-gap:1.8rem;}
 
-/* MISC */
-.spinner{width:28px;height:28px;border:2px solid rgba(107,63,160,.3);border-top-color:var(--crystal-dim);border-radius:50%;animation:spin .8s linear infinite;margin:2rem auto;display:block;}
+/* NOTICE CARD with pin */
+.nw{break-inside:avoid;display:inline-block;width:100%;margin-bottom:1.8rem;padding-top:14px;position:relative;}
+/* The thumbtack pin */
+.npin{position:absolute;top:0;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;box-shadow:0 2px 7px rgba(0,0,0,.5),inset 0 1px 2px rgba(255,255,255,.18);z-index:3;}
+.npin.r{background:radial-gradient(circle at 38% 35%,#ff9090,#8b1010);}
+.npin.g{background:radial-gradient(circle at 38% 35%,#ffe090,#8b6010);}
+.npin.gr{background:radial-gradient(circle at 38% 35%,#90e090,#206010);}
+/* Parchment card */
+.nc{padding:1.1rem 1rem .9rem;position:relative;box-shadow:3px 5px 14px rgba(0,0,0,.45),1px 2px 4px rgba(0,0,0,.2);}
+.nc.announcement{background:var(--p0);background-image:radial-gradient(circle at 0% 0%,rgba(160,110,50,.18),transparent 40%),radial-gradient(circle at 100% 100%,rgba(140,90,30,.14),transparent 40%),repeating-linear-gradient(87deg,transparent,transparent 4px,rgba(100,70,20,.025) 4px,rgba(100,70,20,.025) 5px);}
+.nc.warning{background:var(--pw);background-image:radial-gradient(circle at 0% 0%,rgba(180,100,20,.2),transparent 40%),radial-gradient(circle at 100% 100%,rgba(160,80,10,.16),transparent 40%),repeating-linear-gradient(87deg,transparent,transparent 4px,rgba(100,60,10,.03) 4px,rgba(100,60,10,.03) 5px);}
+.nc.event{background:var(--pe);background-image:radial-gradient(circle at 0% 0%,rgba(80,120,50,.15),transparent 40%),radial-gradient(circle at 100% 100%,rgba(60,100,30,.12),transparent 40%),repeating-linear-gradient(87deg,transparent,transparent 4px,rgba(60,90,20,.025) 4px,rgba(60,90,20,.025) 5px);}
+.nc.info{background:var(--pi);background-image:radial-gradient(circle at 0% 0%,rgba(100,80,140,.12),transparent 40%),radial-gradient(circle at 100% 100%,rgba(80,60,120,.1),transparent 40%),repeating-linear-gradient(87deg,transparent,transparent 4px,rgba(80,60,120,.02) 4px,rgba(80,60,120,.02) 5px);}
+.nc.pinned{box-shadow:3px 5px 14px rgba(0,0,0,.45),0 0 0 2px rgba(180,130,30,.5),1px 2px 4px rgba(0,0,0,.2);}
+
+.nc-tag{font-family:'Cinzel',serif;font-size:.58rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-m);margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem;}
+.nc-tag::after{content:'';flex:1;height:1px;background:rgba(100,70,20,.22);}
+.nc-title{font-family:'Cinzel',serif;font-size:.92rem;font-weight:600;color:var(--ink);margin-bottom:.4rem;line-height:1.3;}
+.nc-body{font-size:.87rem;color:var(--ink-m);line-height:1.65;white-space:pre-wrap;}
+.nc-footer{display:flex;align-items:flex-end;justify-content:space-between;margin-top:.65rem;padding-top:.5rem;border-top:1px solid rgba(100,70,20,.18);flex-wrap:wrap;gap:.3rem;}
+.nc-meta{font-size:.66rem;color:var(--ink-l);font-style:italic;}
+.nc-actions{display:flex;gap:.3rem;}
+.pin-stamp{font-family:'Cinzel',serif;font-size:.56rem;font-weight:600;letter-spacing:.1em;color:rgba(140,90,20,.75);border:1px solid rgba(140,90,20,.35);padding:1px 5px;border-radius:2px;}
+.board-empty{text-align:center;padding:4rem 2rem;font-style:italic;color:rgba(200,160,80,.3);font-size:1.1rem;font-family:'Cinzel',serif;letter-spacing:.04em;}
+
+/* ════════════════════════════════════════════════════
+   SESSIONS CALENDAR
+════════════════════════════════════════════════════ */
+.cal-wrap{max-width:820px;margin:0 auto;padding:1.8rem 2rem 5rem;}
+.cal-parchment{background:#f4e6c0;background-image:radial-gradient(ellipse at 50% 0%,rgba(200,155,50,.12),transparent 55%),repeating-linear-gradient(87deg,transparent,transparent 4px,rgba(100,70,20,.02) 4px,rgba(100,70,20,.02) 5px);border:2px solid rgba(100,70,20,.28);border-radius:2px;padding:2rem 2.5rem;box-shadow:0 8px 32px rgba(0,0,0,.5),inset 0 0 40px rgba(100,70,20,.04);position:relative;}
+.cal-parchment::before{content:'';position:absolute;inset:8px;border:1px solid rgba(100,70,20,.12);border-radius:1px;pointer-events:none;}
+@media(max-width:600px){.cal-parchment{padding:1.2rem 1rem;}}
+.cal-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;margin-bottom:1.4rem;}
+.cal-title{font-family:'Cinzel',serif;font-size:1.4rem;font-weight:600;color:var(--ink);letter-spacing:.04em;}
+.cal-navs{display:flex;gap:.4rem;align-items:center;}
+.cal-nav-btn{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;padding:.32rem .8rem;background:rgba(100,70,20,.1);border:1px solid rgba(100,70,20,.28);border-radius:3px;color:var(--ink-m);cursor:pointer;transition:all .2s;}
+.cal-nav-btn:hover{background:rgba(196,30,30,.1);border-color:rgba(196,30,30,.3);color:var(--red-d);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:1.4rem;}
+.cal-dh{font-family:'Cinzel',serif;font-size:.62rem;font-weight:600;letter-spacing:.05em;text-align:center;color:var(--ink-l);padding:.4rem 0;border-bottom:1px solid rgba(100,70,20,.18);}
+.cal-d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:2px;font-size:.87rem;color:var(--ink-m);position:relative;transition:background .12s;}
+.cal-d.other{color:rgba(100,70,20,.2);}
+.cal-d.today{background:rgba(100,70,20,.12);font-weight:600;color:var(--ink);}
+.cal-d.session{background:rgba(139,16,16,.12);color:var(--red-d);font-weight:700;cursor:default;border:1px solid rgba(139,16,16,.3);}
+.cal-d.session::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:5px;height:5px;background:var(--red-d);border-radius:50%;}
+.sess-list-title{font-family:'Cinzel',serif;font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-m);border-bottom:1px solid rgba(100,70,20,.22);padding-bottom:.35rem;margin-bottom:.8rem;}
+.sess-row{display:flex;align-items:flex-start;gap:1rem;padding:.65rem 0;border-bottom:1px solid rgba(100,70,20,.1);}
+.sess-row:last-child{border-bottom:none;}
+.sess-date{font-family:'Cinzel',serif;font-size:.88rem;font-weight:600;color:var(--red-d);min-width:88px;}
+.sess-info{flex:1;}
+.sess-name{font-family:'Cinzel',serif;font-size:.85rem;font-weight:600;color:var(--ink);margin-bottom:.12rem;}
+.sess-detail{font-size:.8rem;color:var(--ink-m);}
+.sess-notes{font-size:.76rem;color:var(--ink-l);font-style:italic;margin-top:.1rem;}
+.cal-empty{text-align:center;font-style:italic;color:var(--ink-l);padding:1rem 0;font-size:.9rem;}
+
+/* ── MODALS ── */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500;align-items:center;justify-content:center;padding:1rem;}
+.mbg.open{display:flex;}
+.mc{background:#1e1610;border:1px solid rgba(180,110,40,.4);border-radius:6px;padding:1.8rem;width:100%;max-width:500px;position:relative;max-height:85vh;overflow-y:auto;}
+.mc-title{font-family:'Cinzel',serif;font-size:.95rem;font-weight:600;color:var(--text);border-bottom:1px solid rgba(180,110,40,.28);padding-bottom:.5rem;margin-bottom:1.1rem;}
+.mc-close{position:absolute;top:.9rem;right:.9rem;background:transparent;border:none;color:var(--text-d);font-size:1.1rem;cursor:pointer;}
+.mc-close:hover{color:var(--text);}
+.mfg{margin-bottom:.85rem;}
+.mfl{display:block;font-family:'Cinzel',serif;font-size:.64rem;letter-spacing:.1em;color:var(--text-m);margin-bottom:.28rem;text-transform:uppercase;}
+.mfi{width:100%;background:rgba(13,6,4,.7);border:1px solid rgba(180,110,40,.32);border-radius:4px;padding:.52rem .8rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:.95rem;outline:none;}
+.mfi:focus{border-color:rgba(180,110,40,.6);}
+textarea.mfi{resize:vertical;min-height:80px;}
+.two-col-form{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}
+@media(max-width:480px){.two-col-form{grid-template-columns:1fr;}}
+.mc-actions{display:flex;gap:.6rem;margin-top:1.1rem;}
+.mfe{font-size:.74rem;color:var(--red);margin-bottom:.5rem;display:none;}
+.ck-label{display:flex;align-items:center;gap:.4rem;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.07em;color:var(--text-m);cursor:pointer;}
+
+/* ── TOASTS ── */
+.toasts{position:fixed;bottom:1.5rem;right:1.5rem;z-index:600;display:flex;flex-direction:column;gap:.4rem;}
+.toast{background:#1e1610;border:1px solid;border-radius:4px;padding:.6rem 1rem;font-size:.84rem;min-width:200px;animation:tin .25s ease;}
+@keyframes tin{from{opacity:0;transform:translateY(8px);}to{opacity:1;}}
+.toast.success{border-color:#4a8030;color:#80c060;}
+.toast.error{border-color:var(--red-d);color:var(--red);}
+.toast.info{border-color:var(--gold-d);color:var(--gold);}
+.spinner{width:26px;height:26px;border:2px solid rgba(200,160,80,.2);border-top-color:rgba(200,160,80,.5);border-radius:50%;animation:spin .8s linear infinite;margin:2rem auto;display:block;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.empty-state{text-align:center;padding:2.5rem;color:var(--silver-dim);font-style:italic;}
-.section-divider{display:flex;align-items:center;gap:1rem;margin:1.5rem 0;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.15em;color:var(--crystal-dim);}
-.section-divider::before,.section-divider::after{content:'';flex:1;height:1px;background:rgba(107,63,160,.25);}
-.form-error{font-size:.78rem;color:var(--red);margin-bottom:.6rem;}
-
-/* TOAST */
-.toast-wrap{position:fixed;bottom:1.5rem;right:1.5rem;z-index:300;display:flex;flex-direction:column;gap:.5rem;}
-.toast{background:var(--bg-card);border:1px solid;border-radius:5px;padding:.65rem 1rem;font-size:.85rem;min-width:200px;animation:toast-in .25s ease;}
-@keyframes toast-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
-.toast-success{border-color:var(--green);color:var(--green);}
-.toast-error{border-color:var(--red);color:var(--red);}
-.toast-info{border-color:var(--crystal-dim);color:var(--crystal);}
 </style>
 </head>
 <body>
-<div id="stars"></div>
 
-<!-- LOGIN SCREEN -->
-<div id="screen-login" class="auth-wrap">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <h1>The Adventurer's<br><span>Emporium</span></h1>
-      <p>Sign in to view the noticeboard</p>
+<!-- LOGIN -->
+<div id="screen-login">
+  <div class="lc">
+    <div class="lc-logo">
+      <h1>The <b>Quest Board</b></h1>
+      <p>Sign in to view notices &amp; sessions</p>
     </div>
-    <div class="form-group">
-      <label class="form-label">Username</label>
-      <input class="form-input" id="login-user" type="text" placeholder="Your username" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
-      <input class="form-input" id="login-pass" type="password" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
-    <p class="form-error" id="login-err" style="display:none;margin-bottom:.6rem;"></p>
-    <button class="btn btn-primary" id="btn-login" onclick="doLogin()" style="width:100%;margin-top:.4rem;justify-content:center;">Sign In →</button>
-    <div style="display:flex;justify-content:space-between;margin-top:1rem;flex-wrap:wrap;gap:.5rem;">
-      <a href="register.html" style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--crystal-dim);text-decoration:none;">Request account</a>
-      <a href="index.html"    style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--crystal-dim);text-decoration:none;">← Back to Emporium</a>
+    <div class="fg"><label class="fl">Username</label>
+      <input class="fi" id="l-user" type="text" placeholder="Your username" autocomplete="username"
+        onkeydown="if(event.key==='Enter')document.getElementById('l-pass').focus()"></div>
+    <div class="fg"><label class="fl">Password</label>
+      <input class="fi" id="l-pass" type="password" placeholder="Your password" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <p class="fe" id="l-err"></p>
+    <button class="lbtn" id="l-btn" onclick="doLogin()">Enter the Quest Board →</button>
+    <div class="ll">
+      <a href="register.html">Request account</a>
+      <a href="index.html">← Back to Emporium</a>
     </div>
   </div>
 </div>
 
-<!-- MAIN APP -->
-<div id="screen-app" style="display:none">
-<div class="page">
-
+<!-- APP -->
+<div id="screen-app">
   <div class="topbar">
-    <div class="topbar-brand">Mr. <span>Smith's</span> Emporium</div>
-    <div class="topbar-right">
-      <span id="topbar-user" style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--crystal-dim);"></span>
-      <button class="btn btn-sm btn-primary" onclick="doSignOut()">Sign Out</button>
-      <a href="shop_portal.html" style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--crystal-dim);text-decoration:none;border:1px solid rgba(107,63,160,.3);padding:.28rem .7rem;border-radius:4px;">Portal</a>
-      <a href="index.html" style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--crystal-dim);text-decoration:none;border:1px solid rgba(107,63,160,.3);padding:.28rem .7rem;border-radius:4px;">&#8592; Home</a>
+    <div class="tb-brand">The <b>Quest Board</b></div>
+    <div class="view-btns">
+      <button class="vbtn active" id="vb-board"    onclick="switchView('board')">&#128218; Notices</button>
+      <button class="vbtn"        id="vb-calendar" onclick="switchView('calendar')">&#128197; Sessions</button>
+    </div>
+    <div class="tb-right">
+      <span class="tb-user" id="tb-user"></span>
+      <button class="btn btn-red btn-sm" id="btn-post" style="display:none" onclick="openPostModal()">+ Post Notice</button>
+      <button class="btn btn-ghost btn-sm" onclick="doSignOut()">Sign Out</button>
+      <a href="index.html" class="btn btn-ghost btn-sm">&#8592; Home</a>
     </div>
   </div>
 
-  <div class="main">
-
-    <div class="page-header">
-      <div class="page-title">&#128196; Noticeboard</div>
-      <div class="page-sub">Announcements, reminders, and session news from your DM</div>
+  <!-- BOARD VIEW -->
+  <div id="view-board" class="board-wrap">
+    <!-- Next Session Scroll -->
+    <div class="scroll-outer">
+      <div class="scroll-roller"></div>
+      <div class="scroll-body" id="next-session-body"><div class="spinner"></div></div>
+      <div class="scroll-roller"></div>
     </div>
+    <!-- Notices -->
+    <div class="board-divider">&#9878; &nbsp; Posted Notices &nbsp; &#9878;</div>
+    <div class="notices-grid" id="notices-grid"><div class="spinner"></div></div>
+  </div>
 
-    <!-- DM POST FORM (only visible to DMs) -->
-    <div id="dm-post-form" style="display:none">
-      <div class="post-form">
-        <div class="post-form-title">&#9998; Post a Notice</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Title</label>
-            <input class="form-input" id="new-title" type="text" maxlength="80" placeholder="Notice title">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Type</label>
-            <select class="form-input" id="new-type">
-              <option value="announcement">Announcement</option>
-              <option value="event">Event</option>
-              <option value="info">Info</option>
-              <option value="warning">Warning</option>
-            </select>
-          </div>
+  <!-- CALENDAR VIEW -->
+  <div id="view-calendar" style="display:none" class="cal-wrap">
+    <div class="cal-parchment">
+      <div class="cal-header">
+        <div class="cal-navs">
+          <button class="cal-nav-btn" onclick="calMove(-1)">&#8249; Prev</button>
+          <div class="cal-title" id="cal-title"></div>
+          <button class="cal-nav-btn" onclick="calMove(1)">Next &#8250;</button>
         </div>
-        <div class="form-group">
-          <label class="form-label">Message</label>
-          <textarea class="form-input" id="new-body" rows="4" placeholder="Write your notice here..."></textarea>
-        </div>
-        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
-          <label style="display:flex;align-items:center;gap:.4rem;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.08em;color:var(--crystal-dim);cursor:pointer;">
-            <input type="checkbox" id="new-pinned"> PIN TO TOP
-          </label>
-          <p class="form-error" id="post-err" style="display:none;margin:0;"></p>
-          <button class="btn btn-gold" onclick="postNotice()">Post Notice</button>
-        </div>
+        <button class="btn btn-gold btn-sm" id="btn-add-session" style="display:none" onclick="openSessionModal()">+ Schedule Session</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="sess-list-title">Sessions This Month</div>
+      <div id="sess-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: POST NOTICE (DM only) -->
+<div class="mbg" id="m-post">
+  <div class="mc">
+    <button class="mc-close" onclick="closeModal('m-post')">&#x2715;</button>
+    <div class="mc-title">Post a Notice</div>
+    <div class="mfg"><label class="mfl">Title</label><input class="mfi" id="pn-title" type="text" maxlength="80" placeholder="Notice heading"></div>
+    <div class="two-col-form">
+      <div class="mfg"><label class="mfl">Type</label>
+        <select class="mfi" id="pn-type">
+          <option value="announcement">Announcement</option>
+          <option value="event">Event</option>
+          <option value="info">Info / Rule</option>
+          <option value="warning">Warning</option>
+        </select>
+      </div>
+      <div class="mfg" style="display:flex;align-items:flex-end;padding-bottom:.05rem;">
+        <label class="ck-label"><input type="checkbox" id="pn-pinned"> &nbsp;PIN TO TOP</label>
       </div>
     </div>
-
-    <!-- PINNED NOTICES -->
-    <div id="pinned-wrap"></div>
-
-    <div class="section-divider">&#10022; &nbsp; LATEST NOTICES &nbsp; &#10022;</div>
-
-    <!-- REGULAR NOTICES -->
-    <div id="notices-wrap">
-      <div class="spinner"></div>
+    <div class="mfg"><label class="mfl">Message</label><textarea class="mfi" id="pn-body" rows="5" placeholder="Write your notice here..."></textarea></div>
+    <p class="mfe" id="pn-err"></p>
+    <div class="mc-actions">
+      <button class="btn btn-ghost" onclick="closeModal('m-post')">Cancel</button>
+      <button class="btn btn-red" onclick="submitNotice()">Post Notice</button>
     </div>
-
   </div>
 </div>
+
+<!-- MODAL: ADD SESSION (DM only) -->
+<div class="mbg" id="m-session">
+  <div class="mc">
+    <button class="mc-close" onclick="closeModal('m-session')">&#x2715;</button>
+    <div class="mc-title">Schedule a Session</div>
+    <div class="mfg"><label class="mfl">Session Title</label><input class="mfi" id="ss-title" type="text" placeholder="e.g. Session 12 — The Dark Citadel"></div>
+    <div class="two-col-form">
+      <div class="mfg"><label class="mfl">Date</label><input class="mfi" id="ss-date" type="date"></div>
+      <div class="mfg"><label class="mfl">Time</label><input class="mfi" id="ss-time" type="text" placeholder="e.g. 3:30 PM – 5:00 PM"></div>
+    </div>
+    <div class="mfg"><label class="mfl">Location (optional)</label><input class="mfi" id="ss-loc" type="text" placeholder="e.g. Room 24"></div>
+    <div class="mfg"><label class="mfl">Notes (optional)</label><textarea class="mfi" id="ss-notes" rows="2" placeholder="Any extra info for players..."></textarea></div>
+    <p class="mfe" id="ss-err"></p>
+    <div class="mc-actions">
+      <button class="btn btn-ghost" onclick="closeModal('m-session')">Cancel</button>
+      <button class="btn btn-gold" onclick="submitSession()">Schedule Session</button>
+    </div>
+  </div>
 </div>
 
-<div class="toast-wrap" id="toasts"></div>
+<div class="toasts" id="toasts"></div>
 
 <script>
-const firebaseConfig = {
+// ═══════════════════════════════════════════════════
+//  FIREBASE
+// ═══════════════════════════════════════════════════
+firebase.initializeApp({
   apiKey:'AIzaSyAWpUnUirhcI3nhW9WF_7aqDInOCvIbsIY',
   authDomain:'jcca-dnd.firebaseapp.com',
   projectId:'jcca-dnd',
   storageBucket:'jcca-dnd.firebasestorage.app',
   messagingSenderId:'128758977152',
   appId:'1:128758977152:web:f43ef158eedf82614ccc65',
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db   = firebase.firestore();
+});
+const auth=firebase.auth(), db=firebase.firestore();
 
-const HASH_ITERATIONS = 200000;
-
-async function verifyPassword(password, stored) {
-  const enc=new TextEncoder(), [saltB64,hashB64]=stored.split(':');
+async function verifyPassword(pw,stored){
+  const enc=new TextEncoder(),[saltB64,hashB64]=stored.split(':');
   const fromB64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-  const key=await crypto.subtle.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveBits']);
-  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:fromB64(saltB64),iterations:HASH_ITERATIONS,hash:'SHA-256'},key,256);
+  const key=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:fromB64(saltB64),iterations:200000,hash:'SHA-256'},key,256);
   return btoa(String.fromCharCode(...new Uint8Array(bits)))===hashB64;
 }
 
-let loggedInUsername = null;
-let loggedInRole     = null;
-let loggedInName     = null;
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+let user=null, role=null, name=null;
+let notices=[], sessions=[];
+let calMonth=new Date(); calMonth.setDate(1);
+const ROTS=[-2.1,1.4,-0.8,2.3,-1.5,0.9,-2.7,1.2,-0.4,1.9,-1.1,2.5,-1.8,0.6];
+const TYPE_TAG={announcement:'📢 Announcement',info:'📋 Info',warning:'⚠ Warning',event:'📅 Event'};
+const PIN_COL={announcement:'r',info:'g',warning:'r',event:'gr'};
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS_SHORT=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
-// ================================================================
-//  BOOT
-// ================================================================
-async function boot() {
-  makeStars();
-  try { await auth.signInAnonymously(); } catch(e) { console.error(e); }
-
-  // Check session
-  const saved = sessionStorage.getItem('dnd_username');
-  if (saved) {
-    try {
-      const doc = await db.collection('Users').doc(saved).get();
-      if (doc.exists) {
-        const d = doc.data();
-        loggedInUsername = saved;
-        loggedInRole     = d.role;
-        loggedInName     = d.playerName || saved;
-        showApp();
-        loadNotices();
-        return;
-      }
-    } catch(e) { console.error(e); }
+// ═══════════════════════════════════════════════════
+//  BOOT / AUTH
+// ═══════════════════════════════════════════════════
+async function boot(){
+  try{await auth.signInAnonymously();}catch(e){console.error(e);}
+  for(const k of['dnd_username','dm_username']){
+    const saved=sessionStorage.getItem(k);
+    if(!saved)continue;
+    try{
+      const doc=await db.collection('Users').doc(saved).get();
+      if(doc.exists){const d=doc.data();user=saved;role=d.role;name=d.playerName||saved;showApp();return;}
+    }catch(e){console.error(e);}
   }
-
-  // Try DM session too
-  const savedDM = sessionStorage.getItem('dm_username');
-  if (savedDM) {
-    try {
-      const doc = await db.collection('Users').doc(savedDM).get();
-      if (doc.exists && doc.data().role === 'dm') {
-        loggedInUsername = savedDM;
-        loggedInRole     = 'dm';
-        loggedInName     = doc.data().playerName || savedDM;
-        showApp();
-        loadNotices();
-        return;
-      }
-    } catch(e) { console.error(e); }
-  }
-
-  document.getElementById('screen-login').style.display = 'flex';
+  document.getElementById('screen-login').classList.add('show');
 }
 
-async function doLogin() {
-  const username = document.getElementById('login-user').value.trim();
-  const password = document.getElementById('login-pass').value;
-  const errEl    = document.getElementById('login-err');
-  const btn      = document.getElementById('btn-login');
-  errEl.style.display = 'none';
-  if (!username || !password) {
-    errEl.textContent = 'Please enter your username and password.';
-    errEl.style.display = 'block'; return;
-  }
-  btn.disabled = true; btn.textContent = 'Signing in...';
-  try {
-    const doc = await db.collection('Users').doc(username).get();
-    if (!doc.exists) {
-      errEl.textContent = 'Username not found.'; errEl.style.display = 'block';
-      btn.disabled = false; btn.textContent = 'Sign In →'; return;
-    }
-    const d = doc.data();
-    const ok = await verifyPassword(password, d.passwordHash);
-    if (!ok) {
-      errEl.textContent = 'Incorrect password.'; errEl.style.display = 'block';
-      btn.disabled = false; btn.textContent = 'Sign In →'; return;
-    }
-    loggedInUsername = username;
-    loggedInRole     = d.role;
-    loggedInName     = d.playerName || username;
-    // Store in appropriate session key
-    if (d.role === 'dm') sessionStorage.setItem('dm_username', username);
-    else                  sessionStorage.setItem('dnd_username', username);
+async function doLogin(){
+  const u=document.getElementById('l-user').value.trim();
+  const p=document.getElementById('l-pass').value;
+  const errEl=document.getElementById('l-err'),btn=document.getElementById('l-btn');
+  errEl.style.display='none';
+  if(!u||!p){errEl.textContent='Please enter username and password.';errEl.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Signing in...';
+  try{
+    const doc=await db.collection('Users').doc(u).get();
+    if(!doc.exists){errEl.textContent='Username not found.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter the Quest Board →';return;}
+    const d=doc.data();
+    if(!await verifyPassword(p,d.passwordHash)){errEl.textContent='Incorrect password.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter the Quest Board →';return;}
+    user=u;role=d.role;name=d.playerName||u;
+    sessionStorage.setItem(d.role==='dm'?'dm_username':'dnd_username',u);
     showApp();
-    loadNotices();
-  } catch(e) {
-    console.error(e);
-    errEl.textContent = 'Login failed. Please try again.'; errEl.style.display = 'block';
-    btn.disabled = false; btn.textContent = 'Sign In →';
+  }catch(e){console.error(e);errEl.textContent='Login failed.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter the Quest Board →';}
+}
+
+function doSignOut(){
+  ['dnd_username','dm_username'].forEach(k=>sessionStorage.removeItem(k));
+  user=null;
+  document.getElementById('screen-app').classList.remove('show');
+  document.getElementById('screen-login').classList.add('show');
+}
+
+function showApp(){
+  document.getElementById('screen-login').classList.remove('show');
+  document.getElementById('screen-app').classList.add('show');
+  document.getElementById('tb-user').textContent=name;
+  if(role==='dm'){
+    document.getElementById('btn-post').style.display='inline-flex';
+    document.getElementById('btn-add-session').style.display='inline-flex';
   }
+  loadAll();
 }
 
-function doSignOut() {
-  sessionStorage.removeItem('dnd_username');
-  sessionStorage.removeItem('dm_username');
-  loggedInUsername = null;
-  document.getElementById('screen-app').style.display = 'none';
-  document.getElementById('screen-login').style.display = 'flex';
+// ═══════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════
+async function loadAll(){await Promise.all([loadNotices(),loadSessions()]);}
+
+async function loadNotices(){
+  try{
+    const snap=await db.collection('Notices').orderBy('createdAt','desc').get();
+    notices=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderNextSession();
+    renderBoard();
+  }catch(e){console.error(e);}
 }
 
-function showApp() {
-  document.getElementById('screen-login').style.display = 'none';
-  document.getElementById('screen-app').style.display   = 'block';
-  document.getElementById('topbar-user').textContent = loggedInName;
-  if (loggedInRole === 'dm') document.getElementById('dm-post-form').style.display = 'block';
+async function loadSessions(){
+  try{
+    const snap=await db.collection('Sessions').orderBy('date','asc').get();
+    sessions=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderNextSession();
+    if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();
+  }catch(e){console.error(e);}
 }
 
-// ================================================================
-//  NOTICES
-// ================================================================
-async function loadNotices() {
-  try {
-    const snap = await db.collection('Notices')
-      .orderBy('createdAt', 'desc').get();
-    const notices = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderPinned(notices.filter(n => n.pinned));
-    renderNotices(notices.filter(n => !n.pinned));
-  } catch(e) {
-    console.error(e);
-    document.getElementById('notices-wrap').innerHTML =
-      '<p style="color:var(--red);font-size:.85rem;text-align:center;">Failed to load notices.</p>';
-  }
+// ═══════════════════════════════════════════════════
+//  NEXT SESSION SCROLL
+// ═══════════════════════════════════════════════════
+function getNextSession(){
+  const now=new Date();now.setHours(0,0,0,0);
+  return sessions.filter(s=>new Date(s.date)>=now).sort((a,b)=>new Date(a.date)-new Date(b.date))[0]||null;
+}
+function countdown(dateStr){
+  const now=new Date();now.setHours(0,0,0,0);
+  const d=new Date(dateStr);d.setHours(0,0,0,0);
+  const diff=Math.round((d-now)/86400000);
+  if(diff===0)return'📅 TODAY!';
+  if(diff===1)return'📅 Tomorrow!';
+  if(diff<0)return`${Math.abs(diff)} days ago`;
+  return`📅 In ${diff} day${diff!==1?'s':''}`;
 }
 
-function renderPinned(notices) {
-  const wrap = document.getElementById('pinned-wrap');
-  if (!notices.length) { wrap.innerHTML = ''; return; }
-  wrap.innerHTML = notices.map(n => `
-    <div class="pinned-notice">
-      <div class="pin-icon">&#128204; PINNED</div>
-      <div class="notice-title">${esc(n.title)}</div>
-      <div class="notice-body">${escNewlines(n.body)}</div>
-      <div class="notice-footer">
-        <span class="notice-date">${formatDate(n.createdAt)}</span>
-        <span class="notice-author">Posted by ${esc(n.authorName||n.authorId)}</span>
-        ${loggedInRole==='dm'?`<button class="btn btn-sm btn-danger" onclick="deleteNotice('${n.id}')">&#10005; Delete</button>`:''}
+function renderNextSession(){
+  const ns=getNextSession();
+  const body=document.getElementById('next-session-body');
+  if(!ns){body.innerHTML='<div class="ns-empty">No sessions scheduled yet — check back soon!</div>';return;}
+  const d=new Date(ns.date+'T12:00:00');
+  const dayName=d.toLocaleDateString('en-AU',{weekday:'long'});
+  const dateStr=d.toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
+  const deleteBtn=role==='dm'?`<div style="text-align:right;margin-top:.7rem;"><button class="btn btn-danger btn-sm" onclick="deleteSession('${ns.id}')">Remove Session</button></div>`:'';
+  body.innerHTML=`
+    <div class="ns-seal" style="position:absolute;right:1.2rem;top:50%;transform:translateY(-50%);">&#9876;</div>
+    <div class="ns-eyebrow">Next Session</div>
+    <div class="ns-title">${esc(ns.title||'D&amp;D Session')}</div>
+    <div class="ns-details">
+      <div class="ns-det"><div class="ns-det-lbl">Day</div><div class="ns-det-val">${dayName}</div></div>
+      <div class="ns-det"><div class="ns-det-lbl">Date</div><div class="ns-det-val">${dateStr}</div></div>
+      ${ns.time?`<div class="ns-det"><div class="ns-det-lbl">Time</div><div class="ns-det-val">${esc(ns.time)}</div></div>`:''}
+      ${ns.location?`<div class="ns-det"><div class="ns-det-lbl">Where</div><div class="ns-det-val">${esc(ns.location)}</div></div>`:''}
+    </div>
+    <div class="ns-countdown">${countdown(ns.date)}</div>
+    ${ns.notes?`<p style="text-align:center;font-size:.85rem;color:var(--ink-m);margin-top:.65rem;font-style:italic;">${esc(ns.notes)}</p>`:''}
+    ${deleteBtn}`;
+}
+
+// ═══════════════════════════════════════════════════
+//  NOTICES BOARD
+// ═══════════════════════════════════════════════════
+function sortNotices(arr){
+  const pinned=arr.filter(n=>n.pinned).sort((a,b)=>new Date(b.pinnedAt||b.createdAt)-new Date(a.pinnedAt||a.createdAt));
+  const regular=arr.filter(n=>!n.pinned).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  return[...pinned,...regular];
+}
+
+function renderBoard(){
+  const sorted=sortNotices(notices);
+  const grid=document.getElementById('notices-grid');
+  if(!sorted.length){grid.innerHTML='<div class="board-empty">No notices have been posted yet.<br>Check back after your next session!</div>';return;}
+  grid.innerHTML=sorted.map((n,i)=>{
+    const rot=ROTS[i%ROTS.length];
+    const pin=PIN_COL[n.type||'announcement']||'r';
+    const type=n.type||'announcement';
+    const pinnedClass=n.pinned?' pinned':'';
+    const dmBtns=role==='dm'?`
+      <div class="nc-actions">
+        <button class="btn btn-sm ${n.pinned?'btn-gold':'btn-ghost'}" onclick="togglePin('${n.id}',${!!n.pinned})">
+          ${n.pinned?'📌 Unpin':'📌 Pin'}
+        </button>
+        <button class="btn btn-sm btn-danger" onclick="deleteNotice('${n.id}')">✕</button>
+      </div>`:'';
+    const pinnedStamp=n.pinned?'<span class="pin-stamp">PINNED</span>':'';
+    const dateStr=n.createdAt?new Date(n.createdAt).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}):'';
+    return`<div class="nw" style="transform:rotate(${rot}deg)">
+      <div class="npin ${pin}"></div>
+      <div class="nc ${type}${pinnedClass}">
+        <div class="nc-tag">${TYPE_TAG[type]||type} ${pinnedStamp}</div>
+        <div class="nc-title">${esc(n.title)}</div>
+        <div class="nc-body">${escNL(n.body)}</div>
+        <div class="nc-footer">
+          <div class="nc-meta">${esc(n.authorName||n.authorId)} &middot; ${dateStr}</div>
+          ${dmBtns}
+        </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
-function renderNotices(notices) {
-  const wrap = document.getElementById('notices-wrap');
-  if (!notices.length) {
-    wrap.innerHTML = '<div class="empty-state">No notices yet. Check back after your next session!</div>';
-    return;
+// ═══════════════════════════════════════════════════
+//  CALENDAR
+// ═══════════════════════════════════════════════════
+function renderCalendar(){
+  const y=calMonth.getFullYear(), m=calMonth.getMonth();
+  document.getElementById('cal-title').textContent=`${MONTHS[m]} ${y}`;
+
+  // Map session days in this month
+  const sessMap={};
+  sessions.forEach(s=>{
+    const d=new Date(s.date+'T12:00:00');
+    if(d.getFullYear()===y&&d.getMonth()===m){const day=d.getDate();(sessMap[day]=sessMap[day]||[]).push(s);}
+  });
+
+  // Mon-first offset
+  const firstDow=new Date(y,m,1).getDay();
+  const offset=(firstDow+6)%7;
+  const daysInM=new Date(y,m+1,0).getDate();
+  const today=new Date();today.setHours(0,0,0,0);
+
+  let html=DAYS_SHORT.map(d=>`<div class="cal-dh">${d}</div>`).join('');
+  for(let b=0;b<offset;b++)html+=`<div class="cal-d other"></div>`;
+  for(let day=1;day<=daysInM;day++){
+    const cellDate=new Date(y,m,day);cellDate.setHours(0,0,0,0);
+    let cls='cal-d';
+    if(+cellDate===+today)cls+=' today';
+    if(sessMap[day])cls+=' session';
+    html+=`<div class="${cls}">${day}</div>`;
   }
-  wrap.innerHTML = notices.map(n => `
-    <div class="notice-card ${n.type||''}">
-      <span class="type-pill type-${n.type||'announcement'}">${(n.type||'announcement').toUpperCase()}</span>
-      <div class="notice-title">${esc(n.title)}</div>
-      <div class="notice-body">${escNewlines(n.body)}</div>
-      <div class="notice-footer">
-        <span class="notice-date">${formatDate(n.createdAt)}</span>
-        <span class="notice-author">Posted by ${esc(n.authorName||n.authorId)}</span>
-        ${loggedInRole==='dm'?`<button class="btn btn-sm btn-danger" onclick="deleteNotice('${n.id}')">&#10005; Delete</button>`:''}
+  document.getElementById('cal-grid').innerHTML=html;
+
+  // Session list
+  const monthSess=sessions.filter(s=>{const d=new Date(s.date+'T12:00:00');return d.getFullYear()===y&&d.getMonth()===m;}).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const listEl=document.getElementById('sess-list');
+  if(!monthSess.length){listEl.innerHTML='<div class="cal-empty">No sessions scheduled this month.</div>';return;}
+  listEl.innerHTML=monthSess.map(s=>{
+    const d=new Date(s.date+'T12:00:00');
+    const label=d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
+    const delBtn=role==='dm'?`<button class="btn btn-sm btn-danger" onclick="deleteSession('${s.id}')" style="margin-left:.5rem;">Remove</button>`:'';
+    return`<div class="sess-row">
+      <div class="sess-date">${label}</div>
+      <div class="sess-info">
+        <div class="sess-name">${esc(s.title||'D&D Session')}${delBtn}</div>
+        ${s.time?`<div class="sess-detail">${esc(s.time)}</div>`:''}
+        ${s.location?`<div class="sess-notes">&#128205; ${esc(s.location)}</div>`:''}
+        ${s.notes?`<div class="sess-notes">${esc(s.notes)}</div>`:''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
-async function postNotice() {
-  const title  = document.getElementById('new-title').value.trim();
-  const body   = document.getElementById('new-body').value.trim();
-  const type   = document.getElementById('new-type').value;
-  const pinned = document.getElementById('new-pinned').checked;
-  const errEl  = document.getElementById('post-err');
-  errEl.style.display = 'none';
+function calMove(dir){calMonth.setMonth(calMonth.getMonth()+dir);renderCalendar();}
 
-  if (!title || !body) {
-    errEl.textContent = 'Please enter a title and message.';
-    errEl.style.display = 'block'; return;
-  }
+// ═══════════════════════════════════════════════════
+//  VIEW SWITCH
+// ═══════════════════════════════════════════════════
+function switchView(v){
+  document.getElementById('view-board').style.display   =v==='board'   ?'block':'none';
+  document.getElementById('view-calendar').style.display=v==='calendar'?'block':'none';
+  document.getElementById('vb-board').classList.toggle('active',v==='board');
+  document.getElementById('vb-calendar').classList.toggle('active',v==='calendar');
+  if(v==='calendar')renderCalendar();
+}
 
-  try {
+// ═══════════════════════════════════════════════════
+//  POST NOTICE
+// ═══════════════════════════════════════════════════
+function openPostModal(){
+  document.getElementById('pn-title').value='';
+  document.getElementById('pn-body').value='';
+  document.getElementById('pn-pinned').checked=false;
+  document.getElementById('pn-err').style.display='none';
+  openModal('m-post');
+}
+
+async function submitNotice(){
+  const title=document.getElementById('pn-title').value.trim();
+  const body=document.getElementById('pn-body').value.trim();
+  const type=document.getElementById('pn-type').value;
+  const pinned=document.getElementById('pn-pinned').checked;
+  const errEl=document.getElementById('pn-err');
+  errEl.style.display='none';
+  if(!title||!body){errEl.textContent='Please fill in title and message.';errEl.style.display='block';return;}
+  try{
     await db.collection('Notices').add({
-      title, body, type, pinned,
-      authorId:   loggedInUsername,
-      authorName: loggedInName,
-      createdAt:  new Date().toISOString(),
+      title,body,type,pinned,
+      pinnedAt:pinned?new Date().toISOString():null,
+      authorId:user,authorName:name,
+      createdAt:new Date().toISOString(),
     });
-    document.getElementById('new-title').value  = '';
-    document.getElementById('new-body').value   = '';
-    document.getElementById('new-pinned').checked = false;
-    toast('Notice posted!', 'success');
+    closeModal('m-post');
+    toast('Notice posted!','success');
     loadNotices();
-  } catch(e) {
-    console.error(e);
-    errEl.textContent = 'Failed to post notice.';
-    errEl.style.display = 'block';
-  }
+  }catch(e){console.error(e);errEl.textContent='Failed to post.';errEl.style.display='block';}
 }
 
-async function deleteNotice(id) {
-  if (!confirm('Delete this notice? This cannot be undone.')) return;
-  try {
-    await db.collection('Notices').doc(id).delete();
-    toast('Notice deleted.', 'info');
+// ═══════════════════════════════════════════════════
+//  PIN / DELETE NOTICE
+// ═══════════════════════════════════════════════════
+async function togglePin(id,wasPinned){
+  try{
+    await db.collection('Notices').doc(id).update({pinned:!wasPinned,pinnedAt:!wasPinned?new Date().toISOString():null});
+    toast(wasPinned?'Notice unpinned.':'Notice pinned to top.','info');
     loadNotices();
-  } catch(e) { toast('Failed to delete.', 'error'); }
+  }catch(e){toast('Failed to update pin.','error');}
 }
 
-// ================================================================
+async function deleteNotice(id){
+  if(!confirm('Delete this notice? This cannot be undone.'))return;
+  try{await db.collection('Notices').doc(id).delete();toast('Notice deleted.','info');loadNotices();}
+  catch(e){toast('Failed to delete.','error');}
+}
+
+// ═══════════════════════════════════════════════════
+//  SESSIONS
+// ═══════════════════════════════════════════════════
+function openSessionModal(){
+  ['ss-title','ss-date','ss-time','ss-loc','ss-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ss-err').style.display='none';
+  openModal('m-session');
+}
+
+async function submitSession(){
+  const title=document.getElementById('ss-title').value.trim();
+  const date=document.getElementById('ss-date').value;
+  const time=document.getElementById('ss-time').value.trim();
+  const loc=document.getElementById('ss-loc').value.trim();
+  const notes=document.getElementById('ss-notes').value.trim();
+  const errEl=document.getElementById('ss-err');
+  errEl.style.display='none';
+  if(!date){errEl.textContent='Please select a date.';errEl.style.display='block';return;}
+  try{
+    await db.collection('Sessions').add({title:title||'D&D Session',date,time,location:loc,notes,createdAt:new Date().toISOString(),createdBy:user});
+    closeModal('m-session');
+    toast('Session scheduled!','success');
+    loadSessions();
+  }catch(e){console.error(e);errEl.textContent='Failed to schedule session.';errEl.style.display='block';}
+}
+
+async function deleteSession(id){
+  if(!confirm('Remove this session?'))return;
+  try{await db.collection('Sessions').doc(id).delete();toast('Session removed.','info');loadSessions();}
+  catch(e){toast('Failed to remove.','error');}
+}
+
+// ═══════════════════════════════════════════════════
 //  UTILS
-// ================================================================
-function formatDate(iso) {
-  if (!iso) return '';
-  try { return new Date(iso).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}); }
-  catch(e) { return iso; }
-}
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function escNewlines(s) { return esc(s).replace(/\n/g,'<br>'); }
-function toast(msg,type='info'){const w=document.getElementById('toasts');const el=document.createElement('div');el.className=`toast toast-${type}`;el.textContent=msg;w.appendChild(el);setTimeout(()=>el.remove(),4000);}
-function makeStars(){const el=document.getElementById('stars');for(let i=0;i<65;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2+.4;s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;--dl:-${(Math.random()*5).toFixed(1)}s;opacity:${(Math.random()*.4+.08).toFixed(2)}`;el.appendChild(s);}}
+// ═══════════════════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function toast(msg,type='info'){const w=document.getElementById('toasts'),el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;w.appendChild(el);setTimeout(()=>el.remove(),4000);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escNL(s){return esc(s).replace(/\n/g,'<br>');}
 
 boot();
 </script>
