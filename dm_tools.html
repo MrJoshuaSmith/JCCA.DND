@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DM Tools — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --void:#0d0618;--arcane:#1a0a2e;--arcane-border:#6b3fa0;
+  --crystal:#c8a8f8;--crystal-bright:#e8d8ff;--crystal-dim:#8a68c8;
+  --gold:#f0c848;--gold-dim:#a88020;--silver:#d0c8e8;--silver-dim:#9890b8;
+  --teal:#40d8c8;--red:#ff4488;--green:#60c870;--amber:#f0a030;
+  --bg-card:rgba(29,12,56,0.95);--bg-input:rgba(13,6,24,0.8);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--void);background-image:radial-gradient(ellipse 80% 50% at 50% 0%,#2d1054 0%,transparent 70%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--silver);}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--d,3s) var(--dl,0s) infinite alternate ease-in-out;}
+@keyframes twinkle{from{opacity:.08;}to{opacity:.85;}}
+.page{position:relative;z-index:1;}
+/* AUTH */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;}
+.auth-card{background:var(--bg-card);border:1px solid var(--arcane-border);border-radius:8px;padding:2.5rem;width:100%;max-width:400px;position:relative;}
+.auth-card::before{content:'';position:absolute;inset:5px;border:1px solid rgba(107,63,160,.18);border-radius:5px;pointer-events:none;}
+.auth-logo{text-align:center;margin-bottom:1.8rem;}
+.auth-logo h1{font-family:'Cinzel',serif;font-size:1.4rem;font-weight:900;color:var(--crystal-bright);}
+.auth-logo h1 span{color:var(--gold);}
+.auth-logo p{font-style:italic;color:var(--crystal-dim);font-size:.88rem;margin-top:.3rem;}
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.5rem;background:rgba(13,6,24,.85);border-bottom:1px solid rgba(107,63,160,.35);backdrop-filter:blur(8px);position:sticky;top:0;z-index:100;}
+.topbar-brand{font-family:'Cinzel',serif;font-size:.92rem;font-weight:600;color:var(--crystal-bright);}
+.topbar-brand span{color:var(--gold);}
+.dm-badge{font-family:'Cinzel',serif;font-size:.65rem;font-weight:600;letter-spacing:.1em;background:rgba(240,200,72,.12);border:1px solid rgba(240,200,72,.35);color:var(--gold);padding:.25rem .7rem;border-radius:3px;}
+/* MAIN */
+.main{max-width:1100px;margin:0 auto;padding:1.5rem 1rem 4rem;}
+.nav-tabs{display:flex;gap:.3rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+.nav-tab{font-family:'Cinzel',serif;font-size:.75rem;font-weight:600;letter-spacing:.07em;padding:.5rem 1.1rem;background:rgba(107,63,160,.1);border:1px solid rgba(107,63,160,.3);color:var(--crystal-dim);border-radius:4px 4px 0 0;cursor:pointer;transition:all .2s;}
+.nav-tab:hover{background:rgba(107,63,160,.22);color:var(--crystal);}
+.nav-tab.active{background:var(--bg-card);border-color:var(--arcane-border);border-bottom-color:var(--bg-card);color:var(--crystal-bright);position:relative;top:1px;}
+.tab-border{border-top:1px solid var(--arcane-border);margin-top:-1px;margin-bottom:1.5rem;}
+.badge-count{display:inline-flex;align-items:center;justify-content:center;background:var(--red);color:white;border-radius:50%;width:16px;height:16px;font-size:.6rem;font-weight:600;margin-left:.3rem;}
+/* CARDS */
+.card{background:var(--bg-card);border:1px solid var(--arcane-border);border-radius:6px;padding:1.6rem 1.8rem;position:relative;margin-bottom:1.2rem;}
+.card::before{content:'';position:absolute;inset:4px;border:1px solid rgba(107,63,160,.12);border-radius:3px;pointer-events:none;}
+.card-title{font-family:'Cinzel',serif;font-size:1rem;font-weight:600;color:var(--crystal-bright);border-bottom:1px solid rgba(107,63,160,.3);padding-bottom:.5rem;margin-bottom:1.1rem;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.8rem;margin-bottom:1.5rem;}
+.stat-card{background:rgba(107,63,160,.08);border:1px solid rgba(107,63,160,.25);border-radius:5px;padding:.9rem 1rem;text-align:center;}
+.stat-label{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--crystal-dim);margin-bottom:.3rem;}
+.stat-value{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:600;color:var(--crystal-bright);}
+.stat-value.gold{color:var(--gold);}
+.stat-value.teal{color:var(--teal);}
+.stat-value.amber{color:var(--amber);}
+.stat-value.red{color:var(--red);}
+/* TABLE */
+.dm-table{width:100%;border-collapse:collapse;font-size:.86rem;}
+.dm-table th{font-family:'Cinzel',serif;font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:var(--crystal-dim);background:rgba(107,63,160,.1);padding:.5rem .8rem;border-bottom:1px solid rgba(107,63,160,.3);text-align:left;white-space:nowrap;}
+.dm-table td{padding:.5rem .8rem;border-bottom:1px solid rgba(107,63,160,.08);color:var(--silver);vertical-align:middle;}
+.dm-table tr:hover td{background:rgba(107,63,160,.07);}
+.lv-badge{font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;padding:2px 7px;border-radius:3px;border:1px solid rgba(64,216,200,.4);color:var(--teal);background:rgba(64,216,200,.07);}
+.xp-bar{height:4px;background:rgba(107,63,160,.25);border-radius:2px;overflow:hidden;margin-top:3px;min-width:60px;}
+.xp-fill{height:100%;background:var(--teal);border-radius:2px;}
+/* REQUEST CARDS */
+.req-card{border:1px solid rgba(107,63,160,.3);border-radius:5px;padding:1rem 1.2rem;margin-bottom:.7rem;background:rgba(13,6,24,.5);}
+.req-card.pending{border-color:rgba(240,160,48,.4);}
+.req-card.reg{border-color:rgba(64,216,200,.3);}
+.req-name{font-family:'Cinzel',serif;font-size:.9rem;color:var(--crystal-bright);font-weight:600;margin-bottom:.2rem;}
+.req-details{font-size:.82rem;color:var(--silver-dim);margin-bottom:.5rem;}
+.req-email{font-size:.75rem;color:var(--crystal-dim);font-style:italic;}
+/* OVERRIDE */
+.override-row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem;padding:.7rem .9rem;background:rgba(13,6,24,.5);border:1px solid rgba(107,63,160,.2);border-radius:5px;}
+.override-name{font-family:'Cinzel',serif;font-size:.8rem;color:var(--crystal-bright);font-weight:600;min-width:130px;}
+.num-input{background:var(--bg-input);border:1px solid rgba(107,63,160,.4);border-radius:4px;padding:.32rem .6rem;color:var(--crystal-bright);font-family:'Crimson Pro',serif;font-size:.9rem;width:80px;outline:none;}
+.num-input:focus{border-color:var(--crystal-dim);}
+.op-select{background:var(--bg-input);border:1px solid rgba(107,63,160,.35);border-radius:4px;padding:.32rem .5rem;color:var(--crystal-dim);font-family:'Cinzel',serif;font-size:.65rem;outline:none;cursor:pointer;}
+/* FORMS */
+.form-group{margin-bottom:.9rem;}
+.form-label{display:block;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.1em;color:var(--crystal-dim);margin-bottom:.35rem;text-transform:uppercase;}
+.form-input{width:100%;background:var(--bg-input);border:1px solid rgba(107,63,160,.4);border-radius:4px;padding:.55rem .8rem;color:var(--crystal-bright);font-family:'Crimson Pro',serif;font-size:.95rem;outline:none;}
+.form-input:focus{border-color:var(--crystal-dim);}
+.form-error{font-size:.78rem;color:var(--red);margin-top:.3rem;}
+/* BUTTONS */
+.btn{font-family:'Cinzel',serif;font-size:.73rem;font-weight:600;letter-spacing:.08em;padding:.48rem 1.1rem;border-radius:4px;cursor:pointer;transition:all .2s;border:1px solid;display:inline-flex;align-items:center;gap:.3rem;}
+.btn-primary{background:rgba(107,63,160,.3);border-color:var(--arcane-border);color:var(--crystal-bright);}
+.btn-primary:hover{background:rgba(107,63,160,.5);}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-gold{background:rgba(240,200,72,.15);border-color:var(--gold-dim);color:var(--gold);}
+.btn-gold:hover{background:rgba(240,200,72,.28);}
+.btn-success{background:rgba(96,200,112,.12);border-color:#30a040;color:var(--green);}
+.btn-success:hover{background:rgba(96,200,112,.25);}
+.btn-danger{background:rgba(255,68,136,.1);border-color:#c03060;color:var(--red);}
+.btn-danger:hover{background:rgba(255,68,136,.22);}
+.btn-sm{padding:.28rem .7rem;font-size:.66rem;}
+.btn-block{width:100%;}
+.scroll-x{overflow-x:auto;}
+.empty-state{text-align:center;padding:2rem;color:var(--silver-dim);font-style:italic;font-size:.88rem;}
+.spinner{width:28px;height:28px;border:2px solid rgba(107,63,160,.3);border-top-color:var(--crystal-dim);border-radius:50%;animation:spin .8s linear infinite;margin:1.5rem auto;}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* TOAST */
+.toast-wrap{position:fixed;bottom:1.5rem;right:1.5rem;z-index:300;display:flex;flex-direction:column;gap:.5rem;}
+.toast{background:var(--bg-card);border:1px solid;border-radius:5px;padding:.65rem 1rem;font-size:.85rem;min-width:200px;animation:toast-in .25s ease;}
+@keyframes toast-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.toast-success{border-color:var(--green);color:var(--green);}
+.toast-error{border-color:var(--red);color:var(--red);}
+.toast-info{border-color:var(--crystal-dim);color:var(--crystal);}
+/* MODAL */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;padding:1rem;}
+.modal-backdrop.open{display:flex;}
+.modal{background:var(--bg-card);border:1px solid var(--arcane-border);border-radius:8px;padding:1.8rem;width:100%;max-width:480px;position:relative;max-height:80vh;overflow-y:auto;}
+.modal-title{font-family:'Cinzel',serif;font-size:.95rem;font-weight:600;color:var(--crystal-bright);margin-bottom:1.2rem;border-bottom:1px solid rgba(107,63,160,.3);padding-bottom:.5rem;}
+.modal-close{position:absolute;top:1rem;right:1rem;background:transparent;border:none;color:var(--silver-dim);font-size:1.2rem;cursor:pointer;}
+.modal-close:hover{color:var(--crystal);}
+/* REWARD GENERATOR */
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;border:1px solid rgba(107,63,160,.4);color:var(--silver-dim);}
+.step-dot.active{background:rgba(107,63,160,.35);border-color:var(--crystal-dim);color:var(--crystal-bright);}
+.step-dot.done{background:rgba(64,216,200,.2);border-color:var(--teal);color:var(--teal);}
+.step-line{flex:1;height:1px;background:rgba(107,63,160,.25);}
+.r-step{display:none;}
+.r-step.active{display:block;}
+.r-player-row{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;padding:.6rem .9rem;border:1px solid rgba(107,63,160,.2);border-radius:5px;margin-bottom:.5rem;background:rgba(13,6,24,.4);}
+.r-player-row.ok{border-color:rgba(64,216,200,.3);}
+.r-player-row.err{border-color:rgba(255,68,136,.3);background:rgba(255,68,136,.04);}
+.r-player-row.warn{border-color:rgba(240,200,72,.3);}
+.r-player-name{font-family:'Cinzel',serif;font-size:.78rem;color:var(--crystal-bright);}
+.r-player-email{font-size:.72rem;color:var(--crystal-dim);}
+.r-player-err{font-size:.72rem;color:var(--red);}
+.r-chest-sel{background:var(--bg-input);border:1px solid rgba(107,63,160,.4);border-radius:4px;padding:.28rem .6rem;color:var(--crystal-dim);font-family:'Cinzel',serif;font-size:.68rem;outline:none;cursor:pointer;}
+.r-chest-sel.dm{border-color:rgba(240,200,72,.5);color:var(--gold);}
+.r-sum-row{display:flex;justify-content:space-between;font-size:.84rem;padding:.2rem 0;}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+
+<!-- LOGIN SCREEN -->
+<div id="screen-login" class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <h1>DM <span>Tools</span></h1>
+      <p>Admin access only</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input class="form-input" id="login-user" type="text" placeholder="DM username" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="login-pass" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <p class="form-error" id="login-err" style="display:none;margin-bottom:.6rem;"></p>
+    <button class="btn btn-gold btn-block" id="btn-login" onclick="doLogin()" style="margin-top:.4rem;">Enter DM Tools →</button>
+    <a href="index.html" style="display:block;text-align:center;margin-top:1rem;font-family:'Cinzel',serif;font-size:.7rem;color:var(--crystal-dim);text-decoration:none;">← Back to Emporium</a>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="screen-app" style="display:none">
+<div class="page">
+<div class="topbar">
+  <div class="topbar-brand">Mr. <span>Smith's</span> Emporium &mdash; <span style="color:var(--crystal-dim)">DM Tools</span></div>
+  <div style="display:flex;align-items:center;gap:.8rem;">
+    <div class="dm-badge">&#9876; ADMIN</div>
+    <button class="btn btn-sm btn-primary" onclick="doSignOut()">Sign Out</button>
+    <a href="index.html" style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--crystal-dim);text-decoration:none;border:1px solid rgba(107,63,160,.3);padding:.28rem .7rem;border-radius:4px;">&#8592; Back</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="ntab-overview"  onclick="switchTab('overview')">Overview</button>
+    <button class="nav-tab"        id="ntab-accounts"  onclick="switchTab('accounts')">Account Requests <span class="badge-count" id="badge-accounts" style="display:none">0</span></button>
+    <button class="nav-tab"        id="ntab-chars"     onclick="switchTab('chars')">Character Requests <span class="badge-count" id="badge-chars" style="display:none">0</span></button>
+    <button class="nav-tab"        id="ntab-override"  onclick="switchTab('override')">Gold &amp; XP</button>
+    <button class="nav-tab"        id="ntab-rewards"   onclick="switchTab('rewards')">&#127381; Reward Generator</button>
+  </div>
+  <div class="tab-border"></div>
+
+  <!-- OVERVIEW -->
+  <div id="tab-overview">
+    <div class="stat-grid" id="stat-grid"><div class="spinner"></div></div>
+    <div class="card">
+      <div class="card-title">All Players &amp; Characters</div>
+      <div class="scroll-x"><table class="dm-table" id="players-table"><tbody><tr><td colspan="6"><div class="spinner"></div></td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- ACCOUNT REQUESTS -->
+  <div id="tab-accounts" style="display:none">
+    <div class="card">
+      <div class="card-title">Pending Account Requests</div>
+      <div id="pending-accounts"><div class="spinner"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--crystal-dim);">Recently Reviewed</div>
+      <div id="reviewed-accounts"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- CHARACTER REQUESTS -->
+  <div id="tab-chars" style="display:none">
+    <div class="card">
+      <div class="card-title">Pending Character Requests</div>
+      <div id="pending-chars"><div class="spinner"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--crystal-dim);">Recently Reviewed</div>
+      <div id="reviewed-chars"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- GOLD & XP OVERRIDE -->
+  <div id="tab-override" style="display:none">
+    <div class="card">
+      <div class="card-title">Manual Gold &amp; XP Adjustment</div>
+      <p style="font-size:.86rem;color:var(--silver-dim);margin-bottom:1.2rem;font-style:italic;">Correct mistakes, grant bonuses, or deduct gold for in-game purchases.</p>
+      <div id="override-list"><div class="spinner"></div></div>
+      <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(107,63,160,.2);">
+        <button class="btn btn-gold" onclick="applyAllOverrides()">Apply All Changes</button>
+        <span style="font-size:.76rem;color:var(--silver-dim);margin-left:.8rem;font-style:italic;">Changes are applied immediately.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- REWARD GENERATOR -->
+  <div id="tab-rewards" style="display:none">
+    <!-- Step indicator -->
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1.5rem;">
+      <div class="step-dot active" id="rsd-1">1</div><div class="step-line"></div>
+      <div class="step-dot" id="rsd-2">2</div><div class="step-line"></div>
+      <div class="step-dot" id="rsd-3">3</div><div class="step-line"></div>
+      <div class="step-dot" id="rsd-4">4</div>
+    </div>
+
+    <!-- Step 1: Config -->
+    <div class="r-step active" id="rstep-1">
+      <div class="card">
+        <div class="card-title">Step 1 — Session Config</div>
+        <p style="font-size:.84rem;color:var(--silver-dim);margin-bottom:1rem;font-style:italic;">Set XP and gold reward amounts. Standard chests get 1 item (5% chance of bonus). DM chests always get 2 items.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;">
+          <div class="form-group">
+            <label class="form-label">Scheduled Session</label>
+            <select class="form-input" id="r-session-id" onchange="rOnSessionSelect(this)">
+              <option value="">— Loading sessions… —</option>
+            </select>
+            <input class="form-input" id="r-session" type="text" placeholder="Or type custom note" style="margin-top:.4rem;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">XP Reward (per player)</label>
+            <input class="form-input" id="r-xp" type="number" min="0" max="9999" value="150">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gold Min (standard chest)</label>
+            <input class="form-input" id="r-gold-min" type="number" min="0" max="1000" value="10">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gold Max (standard chest)</label>
+            <input class="form-input" id="r-gold-max" type="number" min="0" max="1000" value="25">
+          </div>
+        </div>
+        <button class="btn btn-gold" onclick="rGoStep(2)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Emails -->
+    <div class="r-step" id="rstep-2">
+      <div class="card">
+        <div class="card-title">Step 2 — Attendance Emails</div>
+        <p style="font-size:.84rem;color:var(--silver-dim);margin-bottom:1rem;font-style:italic;">Paste the email column from your attendance form CSV. One email per line. Commas and semicolons are treated as line breaks.</p>
+        <div class="form-group">
+          <label class="form-label">Player Emails</label>
+          <textarea class="form-input" id="r-emails" rows="8" placeholder="student1@student.education.wa.edu.au&#10;student2@student.education.wa.edu.au"></textarea>
+        </div>
+        <div style="display:flex;gap:.6rem;">
+          <button class="btn btn-primary" onclick="rGoStep(1)">← Back</button>
+          <button class="btn btn-gold" onclick="rLookupPlayers()">Look Up Players →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Review -->
+    <div class="r-step" id="rstep-3">
+      <div class="card">
+        <div class="card-title">Step 3 — Review &amp; Assign</div>
+        <p style="font-size:.84rem;color:var(--silver-dim);margin-bottom:1rem;font-style:italic;">Promote players to DM Chest if they ran the session. Unmatched emails are shown in red.</p>
+        <div id="r-player-rows"></div>
+        <div id="r-summary" style="background:rgba(107,63,160,.08);border:1px solid rgba(107,63,160,.25);border-radius:5px;padding:.9rem 1.1rem;margin-top:1rem;"></div>
+        <div style="display:flex;gap:.6rem;margin-top:1.2rem;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="rGoStep(2)">← Back</button>
+          <button class="btn btn-gold" id="btn-r-dispatch" onclick="rDispatch()">&#127381; Roll &amp; Dispatch Rewards →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Done -->
+    <div class="r-step" id="rstep-4">
+      <div class="card">
+        <div class="card-title" style="color:var(--green);">&#10003; Rewards Dispatched!</div>
+        <p style="font-size:.86rem;color:var(--silver-dim);margin-bottom:1.2rem;">All chests saved to Firebase. Players will see them on next login to the portal.</p>
+        <div id="r-dispatch-summary"></div>
+        <button class="btn btn-primary" onclick="rReset()" style="margin-top:1.2rem;">New Session →</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- APPROVE ACCOUNT MODAL -->
+<div class="modal-backdrop" id="modal-approve-acct">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-approve-acct')">&#x2715;</button>
+    <div class="modal-title">Approve Account Request</div>
+    <div id="modal-approve-acct-body"></div>
+    <div style="display:flex;gap:.6rem;margin-top:1.2rem;">
+      <button class="btn btn-primary" onclick="closeModal('modal-approve-acct')">Cancel</button>
+      <button class="btn btn-success" id="btn-confirm-acct" onclick="confirmApproveAccount()">Approve &amp; Activate Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- REJECT ACCOUNT MODAL -->
+<div class="modal-backdrop" id="modal-reject-acct">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-reject-acct')">&#x2715;</button>
+    <div class="modal-title">Reject Account Request</div>
+    <div id="modal-reject-acct-body"></div>
+    <div style="display:flex;gap:.6rem;margin-top:1.2rem;">
+      <button class="btn btn-primary" onclick="closeModal('modal-reject-acct')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmRejectAccount()">Reject Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- APPROVE CHARACTER MODAL -->
+<div class="modal-backdrop" id="modal-approve-char">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-approve-char')">&#x2715;</button>
+    <div class="modal-title">Approve Character Request</div>
+    <div id="modal-approve-char-body"></div>
+    <div style="display:flex;gap:.6rem;margin-top:1.2rem;">
+      <button class="btn btn-primary" onclick="closeModal('modal-approve-char')">Cancel</button>
+      <button class="btn btn-success" onclick="confirmApproveChar()">Approve &amp; Create Character</button>
+    </div>
+  </div>
+</div>
+
+<!-- REJECT CHARACTER MODAL -->
+<div class="modal-backdrop" id="modal-reject-char">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-reject-char')">&#x2715;</button>
+    <div class="modal-title">Reject Character Request</div>
+    <div id="modal-reject-char-body"></div>
+    <div class="form-group" style="margin-top:1rem;">
+      <label class="form-label">Reason (shown to player)</label>
+      <input class="form-input" id="reject-char-reason" type="text" placeholder="e.g. Please choose a different name">
+    </div>
+    <div style="display:flex;gap:.6rem;margin-top:.8rem;">
+      <button class="btn btn-primary" onclick="closeModal('modal-reject-char')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmRejectChar()">Reject Request</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+// ================================================================
+//  FIREBASE
+// ================================================================
+const firebaseConfig = {
+  apiKey:'AIzaSyAWpUnUirhcI3nhW9WF_7aqDInOCvIbsIY',
+  authDomain:'jcca-dnd.firebaseapp.com',
+  projectId:'jcca-dnd',
+  storageBucket:'jcca-dnd.firebasestorage.app',
+  messagingSenderId:'128758977152',
+  appId:'1:128758977152:web:f43ef158eedf82614ccc65',
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+const HASH_ITERATIONS = 200000;
+const XP_TABLE = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
+
+async function verifyPassword(password, stored) {
+  const enc=new TextEncoder(), [saltB64,hashB64]=stored.split(':');
+  const fromB64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+  const key=await crypto.subtle.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveBits']);
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:fromB64(saltB64),iterations:HASH_ITERATIONS,hash:'SHA-256'},key,256);
+  return btoa(String.fromCharCode(...new Uint8Array(bits)))===hashB64;
+}
+
+function xpToLevel(xp){for(let i=XP_TABLE.length-1;i>=0;i--)if(xp>=XP_TABLE[i])return i+1;return 1;}
+function xpProgress(xp){const lv=xpToLevel(xp);if(lv>=20)return{pct:100,label:'MAX'};const base=XP_TABLE[lv-1],next=XP_TABLE[lv];return{pct:Math.round((xp-base)/(next-base)*100),label:`${xp} / ${next} XP`};}
+
+// ================================================================
+//  STATE
+// ================================================================
+let dmUsername = null;
+let allChars   = [];
+let allUsers   = [];
+let pendingAcctId = null;
+let pendingCharId = null;
+
+const AL_GOLD = {Barbarian:50,Bard:125,Cleric:125,Druid:50,Fighter:175,Monk:25,Paladin:175,Ranger:125,Rogue:100,Sorcerer:75,Warlock:100,Wizard:100};
+
+// ================================================================
+//  AUTH
+// ================================================================
+async function boot() {
+  makeStars();
+  try { await auth.signInAnonymously(); } catch(e) { console.error(e); }
+  const saved = sessionStorage.getItem('dm_username');
+  if (saved) { dmUsername=saved; showApp(); loadAll(); }
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value;
+  const errEl    = document.getElementById('login-err');
+  const btn      = document.getElementById('btn-login');
+  errEl.style.display='none';
+  if (!username||!password){errEl.textContent='Please enter username and password.';errEl.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Checking...';
+  try {
+    const doc=await db.collection('Users').doc(username).get();
+    if (!doc.exists){errEl.textContent='Username not found.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter DM Tools →';return;}
+    const data=doc.data();
+    if (data.role!=='dm'){errEl.textContent='This account does not have admin access.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter DM Tools →';return;}
+    const ok=await verifyPassword(password,data.passwordHash);
+    if (!ok){errEl.textContent='Incorrect password.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter DM Tools →';return;}
+    sessionStorage.setItem('dm_username',username);
+    dmUsername=username;
+    showApp();
+    loadAll();
+  } catch(e){
+    console.error(e);errEl.textContent='Login failed. Please try again.';errEl.style.display='block';
+    btn.disabled=false;btn.textContent='Enter DM Tools →';
+  }
+}
+
+function doSignOut(){
+  sessionStorage.removeItem('dm_username');
+  dmUsername=null;
+  document.getElementById('screen-app').style.display='none';
+  document.getElementById('screen-login').style.display='flex';
+}
+
+function showApp(){
+  document.getElementById('screen-login').style.display='none';
+  document.getElementById('screen-app').style.display='block';
+}
+
+// ================================================================
+//  LOAD ALL DATA
+// ================================================================
+async function loadAll() {
+  await Promise.all([loadOverview(), loadAccountRequests(), loadCharRequests(), loadOverride()]);
+}
+
+// ================================================================
+//  OVERVIEW
+// ================================================================
+async function loadOverview() {
+  try {
+    const [charSnap, userSnap] = await Promise.all([
+      db.collection('Characters').where('status','==','Active').get(),
+      db.collection('Users').get(),
+    ]);
+    allChars = charSnap.docs.map(d=>({id:d.id,...d.data()}));
+    allUsers = userSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+    const pendingAccts = await db.collection('RegistrationRequests').where('status','==','Pending').get();
+    const pendingChars = await db.collection('CharacterRequests').where('status','==','Pending').get();
+    const totalGold    = allChars.reduce((s,c)=>s+(c.gold||0),0);
+
+    // Update badges
+    updateBadge('accounts', pendingAccts.size);
+    updateBadge('chars',    pendingChars.size);
+
+    document.getElementById('stat-grid').innerHTML =
+      stat('Players', allUsers.filter(u=>u.role!=='dm').length, '') +
+      stat('Active Characters', allChars.length, 'teal') +
+      stat('Pending Acct Requests', pendingAccts.size, pendingAccts.size>0?'red':'') +
+      stat('Pending Char Requests', pendingChars.size, pendingChars.size>0?'amber':'') +
+      stat('Total Gold in Circulation', totalGold+' gp', 'gold');
+
+    const rows = allChars.map(c=>{
+      const user=allUsers.find(u=>u.id===c.playerId)||{playerName:'?'};
+      const lv=xpToLevel(c.xp||0), prog=xpProgress(c.xp||0);
+      return `<tr>
+        <td style="font-family:'Cinzel',serif;font-size:.8rem;color:var(--crystal-bright);">${esc(c.characterName)}</td>
+        <td style="color:var(--crystal-dim);font-size:.8rem;">${esc(user.playerName||user.id)}</td>
+        <td>${esc(c.class||'—')} / ${esc(c.race||'—')}</td>
+        <td><span class="lv-badge">Lv ${lv}</span>
+          <div class="xp-bar"><div class="xp-fill" style="width:${prog.pct}%"></div></div>
+          <div style="font-size:.62rem;color:var(--silver-dim);margin-top:1px;">${prog.label}</div></td>
+        <td style="color:var(--gold);font-family:'Cinzel',serif;font-weight:600;">${c.gold??0} gp</td>
+        <td><button class="btn btn-sm btn-primary" onclick="quickOverride('${c.id}')">Adjust</button></td>
+      </tr>`;
+    }).join('');
+    document.getElementById('players-table').innerHTML=
+      `<thead><tr><th>Character</th><th>Player</th><th>Class / Race</th><th>Level &amp; XP</th><th>Gold</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty-state">No active characters yet.</td></tr>'}</tbody>`;
+  } catch(e){ console.error(e); }
+}
+
+function stat(label,value,colour){
+  return `<div class="stat-card"><div class="stat-label">${label}</div><div class="stat-value ${colour}">${value}</div></div>`;
+}
+
+function updateBadge(tab, count) {
+  const el=document.getElementById(`badge-${tab}`);
+  if (!el) return;
+  el.textContent=count;
+  el.style.display=count>0?'inline-flex':'none';
+}
+
+function quickOverride(charId){
+  switchTab('override');
+  setTimeout(()=>{const el=document.getElementById(`ogold-${charId}`);if(el)el.focus();},200);
+}
+
+// ================================================================
+//  ACCOUNT REQUESTS
+// ================================================================
+async function loadAccountRequests() {
+  try {
+    const snap = await db.collection('RegistrationRequests').orderBy('requestedAt','desc').get();
+    const all  = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const pending  = all.filter(r=>r.status==='Pending');
+    const reviewed = all.filter(r=>r.status!=='Pending');
+
+    const pWrap=document.getElementById('pending-accounts');
+    pWrap.innerHTML = pending.length ? pending.map(r=>`
+      <div class="req-card reg">
+        <div class="req-name">${esc(r.firstName)} ${esc(r.surname)}</div>
+        <div class="req-email">${esc(r.email)}</div>
+        <div class="req-details" style="margin-top:.3rem;">Requested ${new Date(r.requestedAt).toLocaleDateString('en-AU')}</div>
+        <div style="display:flex;gap:.5rem;margin-top:.7rem;">
+          <button class="btn btn-success btn-sm" onclick="openApproveAccount('${r.id}')">&#10003; Approve</button>
+          <button class="btn btn-danger  btn-sm" onclick="openRejectAccount('${r.id}')">&#10007; Reject</button>
+        </div>
+      </div>`).join('') : '<p class="empty-state">No pending account requests.</p>';
+
+    const rWrap=document.getElementById('reviewed-accounts');
+    rWrap.innerHTML = reviewed.length ? reviewed.slice(0,10).map(r=>{
+      const ok=r.status==='Approved';
+      return `<div class="req-card" style="opacity:.65;border-color:${ok?'rgba(96,200,112,.3)':'rgba(255,68,136,.2)'}">
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <span style="font-family:'Cinzel',serif;font-size:.62rem;font-weight:600;padding:2px 7px;border-radius:3px;border:1px solid;${ok?'border-color:var(--green);color:var(--green)':'border-color:var(--red);color:var(--red)'}">${r.status.toUpperCase()}</span>
+          <span class="req-name" style="font-size:.85rem;">${esc(r.firstName)} ${esc(r.surname)}</span>
+        </div>
+        <div class="req-email" style="margin-top:.2rem;">${esc(r.email)}</div>
+      </div>`;
+    }).join('') : '<p class="empty-state">No reviewed requests yet.</p>';
+
+  } catch(e){ console.error(e); }
+}
+
+function openApproveAccount(id) {
+  const reqs=[];
+  db.collection('RegistrationRequests').doc(id).get().then(doc=>{
+    if (!doc.exists) return;
+    const r={id:doc.id,...doc.data()};
+    pendingAcctId=id;
+    // Derive username from email — strip trailing numbers from surname
+    const local=r.email.split('@')[0];
+    const parts=local.split('.');
+    const surname=(parts[1]||'').replace(/\d+$/,'');
+    const suggestedUsername=(parts[0]+'.'+surname).toLowerCase().replace(/[^a-z0-9.]/g,'');
+    document.getElementById('modal-approve-acct-body').innerHTML=`
+      <div style="background:rgba(64,216,200,.06);border:1px solid rgba(64,216,200,.2);border-radius:5px;padding:1rem;margin-bottom:1rem;">
+        <p style="font-family:'Cinzel',serif;font-size:.92rem;color:var(--crystal-bright);margin-bottom:.3rem;">${esc(r.firstName)} ${esc(r.surname)}</p>
+        <p style="font-size:.82rem;color:var(--crystal-dim);">${esc(r.email)}</p>
+      </div>
+      <p style="font-size:.85rem;color:var(--silver-dim);margin-bottom:1rem;">
+        Approving this request will create a login account. The student will be able to sign in immediately with their chosen password.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Username (auto-generated — can edit)</label>
+        <input class="form-input" id="acct-username-inp" value="${esc(suggestedUsername)}" maxlength="24">
+        <p style="font-size:.75rem;color:var(--silver-dim);margin-top:.2rem;font-style:italic;">Letters, numbers, underscores and dots only.</p>
+      </div>`;
+    openModal('modal-approve-acct');
+  });
+}
+
+async function confirmApproveAccount() {
+  const btn=document.getElementById('btn-confirm-acct');
+  btn.disabled=true; btn.textContent='Creating...';
+  try {
+    const reqDoc=await db.collection('RegistrationRequests').doc(pendingAcctId).get();
+    const r=reqDoc.data();
+    const username=document.getElementById('acct-username-inp').value.trim();
+    if (!username){toast('Username cannot be empty.','error');btn.disabled=false;btn.textContent='Approve & Activate Account';return;}
+
+    // Check username not taken
+    const existing=await db.collection('Users').doc(username).get();
+    if (existing.exists){toast('That username is already taken. Edit it and try again.','error');btn.disabled=false;btn.textContent='Approve & Activate Account';return;}
+
+    // Create Users document
+    await db.collection('Users').doc(username).set({
+      passwordHash:     r.passwordHash,
+      playerName:       `${r.firstName} ${r.surname}`,
+      email:            r.email,
+      role:             'player',
+      activeCharacterId:'',
+      joinedDate:       new Date().toISOString(),
+      createdAt:        new Date().toISOString(),
+    });
+
+    // Mark request as approved
+    await db.collection('RegistrationRequests').doc(pendingAcctId).update({
+      status:'Approved', approvedAt:new Date().toISOString(), approvedBy:dmUsername, username,
+    });
+
+    closeModal('modal-approve-acct');
+    toast(`Account created for ${r.firstName} ${r.surname} (${username})`, 'success');
+    loadAccountRequests(); loadOverview();
+  } catch(e){
+    console.error(e); toast('Failed to create account.','error');
+  }
+  btn.disabled=false; btn.textContent='Approve & Activate Account';
+  pendingAcctId=null;
+}
+
+function openRejectAccount(id) {
+  pendingAcctId=id;
+  db.collection('RegistrationRequests').doc(id).get().then(doc=>{
+    const r=doc.data();
+    document.getElementById('modal-reject-acct-body').innerHTML=
+      `<p style="font-size:.9rem;color:var(--silver);margin-bottom:.5rem;">Rejecting request from <strong style="color:var(--crystal)">${esc(r.firstName)} ${esc(r.surname)}</strong> (${esc(r.email)}).</p>`;
+    openModal('modal-reject-acct');
+  });
+}
+
+async function confirmRejectAccount() {
+  try {
+    await db.collection('RegistrationRequests').doc(pendingAcctId).update({
+      status:'Rejected', rejectedAt:new Date().toISOString(), rejectedBy:dmUsername,
+    });
+    closeModal('modal-reject-acct');
+    toast('Account request rejected.','info');
+    loadAccountRequests(); loadOverview();
+  } catch(e){ toast('Failed to reject request.','error'); }
+  pendingAcctId=null;
+}
+
+// ================================================================
+//  CHARACTER REQUESTS
+// ================================================================
+async function loadCharRequests() {
+  try {
+    const snap=await db.collection('CharacterRequests').orderBy('requestDate','desc').get();
+    const all=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const pending=all.filter(r=>r.status==='Pending');
+    const reviewed=all.filter(r=>r.status!=='Pending');
+
+    const pWrap=document.getElementById('pending-chars');
+    pWrap.innerHTML = pending.length ? pending.map(r=>`
+      <div class="req-card pending">
+        <div class="req-name">${esc(r.requestedCharacterName)}</div>
+        <div class="req-details">${esc(r.class)} &#183; ${esc(r.race)} &#183; ${esc(r.background)}</div>
+        <div class="req-email">Player: <strong style="color:var(--crystal-dim)">${esc(r.playerId)}</strong> &#183; ${new Date(r.requestDate).toLocaleDateString('en-AU')}</div>
+        <div style="display:flex;gap:.5rem;margin-top:.7rem;">
+          <button class="btn btn-success btn-sm" onclick="openApproveChar('${r.id}')">&#10003; Approve</button>
+          <button class="btn btn-danger  btn-sm" onclick="openRejectChar('${r.id}')">&#10007; Reject</button>
+        </div>
+      </div>`).join('') : '<p class="empty-state">No pending character requests.</p>';
+
+    const rWrap=document.getElementById('reviewed-chars');
+    rWrap.innerHTML = reviewed.length ? reviewed.slice(0,10).map(r=>{
+      const ok=r.status==='Approved';
+      return `<div class="req-card" style="opacity:.65;border-color:${ok?'rgba(96,200,112,.3)':'rgba(255,68,136,.2)'}">
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <span style="font-family:'Cinzel',serif;font-size:.62rem;font-weight:600;padding:2px 7px;border-radius:3px;border:1px solid;${ok?'border-color:var(--green);color:var(--green)':'border-color:var(--red);color:var(--red)'}">${r.status.toUpperCase()}</span>
+          <span class="req-name" style="font-size:.85rem;">${esc(r.requestedCharacterName)}</span>
+        </div>
+        <div class="req-details" style="font-size:.78rem;">${esc(r.playerId)} &#183; ${esc(r.class)}, ${esc(r.race)}</div>
+        ${r.dmNotes?`<div style="font-size:.75rem;color:var(--amber);font-style:italic;margin-top:.2rem;">Note: ${esc(r.dmNotes)}</div>`:''}
+      </div>`;
+    }).join('') : '<p class="empty-state">No reviewed requests yet.</p>';
+
+  } catch(e){ console.error(e); }
+}
+
+function openApproveChar(id) {
+  pendingCharId=id;
+  db.collection('CharacterRequests').doc(id).get().then(doc=>{
+    const r={id:doc.id,...doc.data()};
+    const sg=AL_GOLD[r.class]||50;
+    document.getElementById('modal-approve-char-body').innerHTML=`
+      <div style="background:rgba(96,200,112,.07);border:1px solid rgba(96,200,112,.2);border-radius:5px;padding:1rem;margin-bottom:1rem;">
+        <p style="font-family:'Cinzel',serif;font-size:.92rem;color:var(--crystal-bright);margin-bottom:.3rem;">${esc(r.requestedCharacterName)}</p>
+        <p style="font-size:.82rem;color:var(--silver-dim);">${esc(r.class)} &#183; ${esc(r.race)} &#183; ${esc(r.background)}</p>
+        <p style="font-size:.78rem;color:var(--crystal-dim);margin-top:.3rem;">Player: ${esc(r.playerId)}</p>
+      </div>
+      <p style="font-size:.85rem;color:var(--silver);margin-bottom:.5rem;">On approval this character will be created with:</p>
+      <table style="width:100%;font-size:.85rem;">
+        <tr><td style="color:var(--silver-dim);padding:.25rem 0;">Starting gold</td><td style="text-align:right;color:var(--gold);font-weight:600;">${sg} gp <span style="font-size:.7rem;color:var(--silver-dim)">(AL ${r.class})</span></td></tr>
+        <tr><td style="color:var(--silver-dim);padding:.25rem 0;">Level</td><td style="text-align:right;color:var(--teal);">1</td></tr>
+      </table>
+      <p style="font-size:.78rem;color:var(--silver-dim);margin-top:.8rem;font-style:italic;">The player will choose their equipment when they first switch to this character.</p>`;
+    openModal('modal-approve-char');
+  });
+}
+
+async function confirmApproveChar() {
+  try {
+    const doc=await db.collection('CharacterRequests').doc(pendingCharId).get();
+    const r=doc.data();
+    const sg=AL_GOLD[r.class]||50;
+
+    await db.collection('Characters').add({
+      characterName:r.requestedCharacterName, playerId:r.playerId,
+      class:r.class, race:r.race, background:r.background,
+      level:1, xp:0, gold:sg, status:'Active',
+      createdAt:new Date().toISOString(),
+      sheet:{ abilityScores:{str:null,dex:null,con:null,int:null,wis:null,cha:null}, hp:null, maxHp:null, ac:null, savingThrows:{}, skills:{}, spells:[], features:[] },
+    });
+
+    await db.collection('CharacterRequests').doc(pendingCharId).update({
+      status:'Approved', approvedAt:new Date().toISOString(), approvedBy:dmUsername,
+    });
+
+    closeModal('modal-approve-char');
+    toast(`${r.requestedCharacterName} approved!`,'success');
+    loadCharRequests(); loadOverview(); loadOverride();
+  } catch(e){ console.error(e); toast('Failed to approve character.','error'); }
+  pendingCharId=null;
+}
+
+function openRejectChar(id) {
+  pendingCharId=id;
+  db.collection('CharacterRequests').doc(id).get().then(doc=>{
+    const r=doc.data();
+    document.getElementById('modal-reject-char-body').innerHTML=
+      `<p style="font-size:.9rem;color:var(--silver);">Rejecting request for <strong style="color:var(--crystal)">${esc(r.requestedCharacterName)}</strong> by ${esc(r.playerId)}.</p>`;
+    document.getElementById('reject-char-reason').value='';
+    openModal('modal-reject-char');
+  });
+}
+
+async function confirmRejectChar() {
+  const reason=document.getElementById('reject-char-reason').value.trim()||'No reason given.';
+  try {
+    await db.collection('CharacterRequests').doc(pendingCharId).update({
+      status:'Rejected', dmNotes:reason, rejectedAt:new Date().toISOString(), rejectedBy:dmUsername,
+    });
+    closeModal('modal-reject-char');
+    toast('Character request rejected.','info');
+    loadCharRequests();
+  } catch(e){ toast('Failed to reject.','error'); }
+  pendingCharId=null;
+}
+
+// ================================================================
+//  GOLD & XP OVERRIDE
+// ================================================================
+async function loadOverride() {
+  const wrap=document.getElementById('override-list');
+  try {
+    const snap=await db.collection('Characters').where('status','==','Active').get();
+    allChars=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if (!allChars.length){wrap.innerHTML='<p class="empty-state">No active characters.</p>';return;}
+    wrap.innerHTML=allChars.map(c=>{
+      const lv=xpToLevel(c.xp||0);
+      return `<div class="override-row">
+        <div style="min-width:170px;">
+          <div class="override-name">${esc(c.characterName)}</div>
+          <div style="font-size:.72rem;color:var(--silver-dim);">${esc(c.playerId)} &#183; Lv ${lv}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;">
+          <span style="font-size:.68rem;color:var(--gold);font-family:'Cinzel',serif;">GOLD:</span>
+          <select class="op-select" id="ogold-op-${c.id}"><option value="add">+</option><option value="sub">&#8722;</option><option value="set">set</option></select>
+          <input class="num-input" id="ogold-${c.id}" type="number" min="0" max="1000" placeholder="0" value="0">
+          <span style="font-size:.72rem;color:var(--silver-dim);">Current: <strong style="color:var(--gold)">${c.gold??0} gp</strong></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;">
+          <span style="font-size:.68rem;color:var(--teal);font-family:'Cinzel',serif;">XP:</span>
+          <select class="op-select" id="oxp-op-${c.id}"><option value="add">+</option><option value="sub">&#8722;</option><option value="set">set</option></select>
+          <input class="num-input" id="oxp-${c.id}" type="number" min="0" placeholder="0" value="0">
+          <span style="font-size:.72rem;color:var(--silver-dim);">Current: <strong style="color:var(--teal)">${c.xp??0} XP</strong></span>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e){ wrap.innerHTML='<p style="color:var(--red);font-size:.85rem;">Failed to load characters.</p>'; }
+}
+
+async function applyAllOverrides() {
+  let changed=0, errors=0;
+  const updates=[];
+  for (const c of allChars) {
+    const gv=parseFloat(document.getElementById(`ogold-${c.id}`)?.value)||0;
+    const xv=parseFloat(document.getElementById(`oxp-${c.id}`)?.value)||0;
+    const gOp=document.getElementById(`ogold-op-${c.id}`)?.value||'add';
+    const xOp=document.getElementById(`oxp-op-${c.id}`)?.value||'add';
+    const data={};
+    if (gv!==0||gOp==='set') {
+      let ng=c.gold??0;
+      if(gOp==='add')ng=Math.min(1000,ng+gv);
+      else if(gOp==='sub')ng=Math.max(0,ng-gv);
+      else ng=Math.min(1000,Math.max(0,gv));
+      if(ng!==(c.gold??0)){data.gold=ng;changed++;}
+    }
+    if (xv!==0||xOp==='set') {
+      let nx=c.xp??0;
+      if(xOp==='add')nx=Math.max(0,nx+xv);
+      else if(xOp==='sub')nx=Math.max(0,nx-xv);
+      else nx=Math.max(0,xv);
+      if(nx!==(c.xp??0)){data.xp=nx;changed++;}
+    }
+    if (Object.keys(data).length) updates.push({id:c.id,data});
+  }
+  if (!updates.length){toast('No changes to apply.','info');return;}
+  try {
+    const batch=db.batch();
+    updates.forEach(u=>batch.update(db.collection('Characters').doc(u.id),u.data));
+    await batch.commit();
+    toast(`${changed} value${changed!==1?'s':''} updated.`,'success');
+    loadOverride(); loadOverview();
+  } catch(e){ console.error(e); toast('Failed to apply changes.','error'); }
+}
+
+// ================================================================
+//  TAB SWITCHING
+// ================================================================
+function switchTab(name) {
+  ['overview','accounts','chars','override','rewards'].forEach(t=>{
+    document.getElementById(`tab-${t}`).style.display=t===name?'block':'none';
+    document.getElementById(`ntab-${t}`).classList.toggle('active',t===name);
+  });
+  if (name === 'rewards') rEnsureInit();
+}
+
+// ================================================================
+//  REWARD GENERATOR
+// ================================================================
+// ── AL TIER 1 LOOT TABLES (levels 1-4, Adventurers League) ──
+const AL_LOOT = {
+  commonConsumable: [
+    {name:'Potion of Healing',cat:'Potion'},
+    {name:'Potion of Climbing',cat:'Potion'},
+    {name:'Spell Scroll (Cantrip)',cat:'Scroll'},
+    {name:'Spell Scroll (1st Level)',cat:'Scroll'},
+  ],
+  commonPermanent: [
+    {name:'Moon-Touched Sword',cat:'Weapon'},
+    {name:'Staff of Flowers',cat:'Staff'},
+    {name:'Staff of Bird Calls',cat:'Staff'},
+    {name:'Rope of Mending',cat:'Adventuring Gear'},
+    {name:'Wand of Pyrotechnics',cat:'Wand'},
+    {name:'Wand of Conducting',cat:'Wand'},
+    {name:'Wand of Smiles',cat:'Wand'},
+    {name:'Cloak of Billowing',cat:'Wondrous Item'},
+    {name:'Cloak of Many Fashions',cat:'Wondrous Item'},
+    {name:'Shield of Expression',cat:'Armor'},
+    {name:'Horn of Silent Alarm',cat:'Wondrous Item'},
+    {name:'Mystery Key',cat:'Wondrous Item'},
+    {name:'Tankard of Sobriety',cat:'Wondrous Item'},
+    {name:'Dread Helm',cat:'Wondrous Item'},
+    {name:'Hat of Vermin',cat:'Wondrous Item'},
+    {name:'Unbreakable Arrow',cat:'Ammunition'},
+  ],
+  uncommonConsumable: [
+    {name:'Potion of Greater Healing',cat:'Potion'},
+    {name:'Potion of Fire Breath',cat:'Potion'},
+    {name:'Potion of Animal Friendship',cat:'Potion'},
+    {name:'Potion of Growth',cat:'Potion'},
+    {name:'Potion of Hill Giant Strength',cat:'Potion'},
+    {name:'Spell Scroll (2nd Level)',cat:'Scroll'},
+    {name:'Spell Scroll (3rd Level)',cat:'Scroll'},
+    {name:'Dust of Disappearance',cat:'Wondrous Item'},
+    {name:'Necklace of Fireballs (1 bead)',cat:'Wondrous Item'},
+  ],
+  uncommonPermanent: [
+    {name:'Bag of Holding',cat:'Wondrous Item'},
+    {name:'Cloak of Protection',cat:'Wondrous Item'},
+    {name:'Goggles of Night',cat:'Wondrous Item'},
+    {name:'Rope of Climbing',cat:'Adventuring Gear'},
+    {name:'Boots of Elvenkind',cat:'Wondrous Item'},
+    {name:'Helm of Comprehending Languages',cat:'Wondrous Item'},
+    {name:'Immovable Rod',cat:'Rod'},
+    {name:'Ring of Warmth',cat:'Ring'},
+    {name:'Ring of Jumping',cat:'Ring'},
+    {name:'Ring of Swimming',cat:'Ring'},
+    {name:'Wand of Magic Missiles',cat:'Wand'},
+    {name:'Wand of Secrets',cat:'Wand'},
+    {name:'Driftglobe',cat:'Wondrous Item'},
+    {name:'Sending Stones (pair)',cat:'Wondrous Item'},
+    {name:'Weapon +1',cat:'Weapon'},
+    {name:'Shield +1',cat:'Armor'},
+    {name:'Slippers of Spider Climbing',cat:'Wondrous Item'},
+    {name:'Eyes of the Eagle',cat:'Wondrous Item'},
+    {name:'Javelin of Lightning',cat:'Weapon'},
+    {name:'Pearl of Power',cat:'Wondrous Item'},
+    {name:'Winged Boots',cat:'Wondrous Item'},
+  ],
+};
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+function rRollItem(isDm=false){
+  const r=Math.random();
+  if(isDm){
+    if(r<0.02)   return{...pick(AL_LOOT.uncommonPermanent), rarity:'Uncommon',permanent:true};
+    if(r<0.27)   return{...pick(AL_LOOT.uncommonConsumable),rarity:'Uncommon',permanent:false};
+    if(r<0.57)   return{...pick(AL_LOOT.commonPermanent),   rarity:'Common',  permanent:true};
+    return{...pick(AL_LOOT.commonConsumable),rarity:'Common',permanent:false};
+  }else{
+    if(r<0.005)  return{...pick(AL_LOOT.uncommonPermanent), rarity:'Uncommon',permanent:true};
+    if(r<0.125)  return{...pick(AL_LOOT.uncommonConsumable),rarity:'Uncommon',permanent:false};
+    if(r<0.425)  return{...pick(AL_LOOT.commonPermanent),   rarity:'Common',  permanent:true};
+    return{...pick(AL_LOOT.commonConsumable),rarity:'Common',permanent:false};
+  }
+}
+
+let rResolvedPlayers = [], rSessionRsvps = [], rSessionIdSelected = '';
+
+function rRollChest(type){
+  const isDm=type==='dm';
+  const items=[rRollItem(isDm)];
+  if(isDm) items.push(rRollItem(isDm));
+  else if(Math.random()<0.05) items.push(rRollItem(false));
+  return items;
+}
+
+function rRand(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+
+function rEnsureInit(){} // placeholder — could lazy-load data
+
+function rGoStep(n) {
+  for(let i=1;i<=4;i++){
+    document.getElementById(`rstep-${i}`).classList.toggle('active',i===n);
+    const dot=document.getElementById(`rsd-${i}`);
+    dot.classList.toggle('active',i===n);
+    dot.classList.toggle('done',i<n);
+    if(i<n)dot.textContent='✓'; else if(i>n)dot.textContent=i;
+  }
+  if(n===1) rPopulateSessions();
+}
+
+async function rPopulateSessions(){
+  try{
+    const now=new Date(); now.setHours(0,0,0,0);
+    const snap=await db.collection('Sessions').orderBy('date','desc').get();
+    const sess=snap.docs.map(d=>({id:d.id,...d.data()})).filter(s=>{
+      const d=new Date(s.date+'T12:00:00'); const diff=Math.round((now-d)/86400000);
+      return diff<=14; // within 14 days past or upcoming
+    });
+    const sel=document.getElementById('r-session-id');
+    if(!sel)return;
+    sel.innerHTML='<option value="">— No scheduled session —</option>'+
+      sess.map(s=>{
+        const d=new Date(s.date+'T12:00:00');
+        const label=d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
+        return `<option value="${s.id}">${label}: ${s.title||'D&D Session'}</option>`;
+      }).join('');
+  }catch(e){console.error(e);}
+}
+
+function rOnSessionSelect(sel){
+  rSessionIdSelected=sel.value;
+  // Auto-fill text note field
+  const opt=sel.options[sel.selectedIndex];
+  if(sel.value) document.getElementById('r-session').value=opt.text;
+}
+
+async function rLookupPlayers() {
+  const raw=document.getElementById('r-emails').value;
+  const lines=raw.split(/[\n,;]+/).map(l=>l.trim().toLowerCase()).filter(Boolean);
+  if(!lines.length){toast('Paste at least one email.','error');return;}
+
+  let users=[];
+  try{
+    const snap=await db.collection('Users').get();
+    users=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){toast('Failed to load users.','error');return;}
+
+  // Fetch RSVPs for the selected session
+  rSessionRsvps=[];
+  if(rSessionIdSelected){
+    try{
+      const rsnap=await db.collection('SessionRSVPs').where('sessionId','==',rSessionIdSelected).get();
+      rSessionRsvps=rsnap.docs.map(d=>({id:d.id,...d.data()}));
+    }catch(e){console.error('RSVP fetch failed:',e);}
+  }
+
+  const seen=new Set();
+  rResolvedPlayers=[];
+  for(const email of lines){
+    if(seen.has(email)){rResolvedPlayers.push({email,status:'warn',player:null,chestType:'standard',rsvp:null,msg:'Duplicate — skipped'});continue;}
+    seen.add(email);
+    if(!email.includes('@')){rResolvedPlayers.push({email,status:'err',player:null,chestType:'standard',rsvp:null,msg:'Invalid email format'});continue;}
+    const match=users.find(u=>u.email&&u.email.toLowerCase()===email);
+    const rsvp=match?rSessionRsvps.find(r=>r.playerId===match.id)||null:null;
+    if(match)rResolvedPlayers.push({email,status:'ok',player:match,chestType:'standard',rsvp,msg:''});
+    else rResolvedPlayers.push({email,status:'err',player:null,chestType:'standard',rsvp:null,msg:'No account found for this email'});
+  }
+  rRenderStep3();
+  rGoStep(3);
+}
+
+function rRenderStep3() {
+  const xp=parseInt(document.getElementById('r-xp').value)||0;
+  const gMin=parseInt(document.getElementById('r-gold-min').value)||0;
+  const gMax=parseInt(document.getElementById('r-gold-max').value)||gMin;
+  const okCount=rResolvedPlayers.filter(p=>p.status==='ok').length;
+  const errCount=rResolvedPlayers.filter(p=>p.status==='err').length;
+
+  const rsvpCount=rResolvedPlayers.filter(p=>p.status==='ok'&&p.rsvp).length;
+  document.getElementById('r-player-rows').innerHTML=rResolvedPlayers.map((r,i)=>{
+    if(r.status==='ok'){
+      const rsvpBadge=r.rsvp
+        ?`<span title="Signed up as ${r.rsvp.role}" style="font-size:.65rem;font-family:'Cinzel',serif;font-weight:600;letter-spacing:.07em;background:rgba(64,216,200,.12);border:1px solid rgba(64,216,200,.4);color:var(--teal);border-radius:3px;padding:1px 6px;margin-right:.4rem;">${r.rsvp.role==='dm'?'🎲 DM':'⚔️ RSVP'} +BONUS</span>`
+        :'';
+      return `<div class="r-player-row ok">
+        <div style="flex:1"><div class="r-player-name">${rsvpBadge}${esc(r.player.playerName||r.player.id)}</div><div class="r-player-email">${esc(r.email)}</div></div>
+        <select class="r-chest-sel" id="rchest-${i}" onchange="rSetChest(${i},this)">
+          <option value="standard">Standard Chest</option>
+          <option value="dm">DM Chest</option>
+        </select></div>`;
+    }
+    if(r.status==='warn') return `<div class="r-player-row warn"><div><div class="r-player-email">${esc(r.email)}</div><div class="r-player-err">${esc(r.msg)}</div></div></div>`;
+    return `<div class="r-player-row err"><div><div class="r-player-email">${esc(r.email)}</div><div class="r-player-err">${esc(r.msg)}</div></div></div>`;
+  }).join('');
+
+  document.getElementById('r-summary').innerHTML=`
+    <div class="r-sum-row"><span style="color:var(--silver-dim)">Players matched</span><span style="color:var(--teal);font-family:'Cinzel',serif">${okCount}</span></div>
+    <div class="r-sum-row"><span style="color:var(--silver-dim)">Unmatched / errors</span><span style="color:${errCount?'var(--red)':'var(--silver-dim)'};font-family:'Cinzel',serif">${errCount}</span></div>
+    ${rSessionIdSelected?`<div class="r-sum-row"><span style="color:var(--silver-dim)">Attendance bonus eligible</span><span style="color:var(--teal);font-family:'Cinzel',serif">${rsvpCount} player${rsvpCount!==1?'s':''}</span></div>`:''}
+    <div class="r-sum-row"><span style="color:var(--silver-dim)">XP per player</span><span style="color:var(--crystal)">${xp} XP</span></div>
+    <div class="r-sum-row"><span style="color:var(--silver-dim)">Gold range (standard)</span><span style="color:var(--gold)">${gMin}–${gMax} gp</span></div>
+    ${!rSessionIdSelected?'<div style="font-size:.74rem;color:var(--silver-dim);font-style:italic;margin-top:.4rem;">⚠ No session selected — attendance bonuses will not be applied.</div>':''}`;
+}
+
+function rSetChest(i,sel){
+  rResolvedPlayers[i].chestType=sel.value;
+  sel.className='r-chest-sel'+(sel.value==='dm'?' dm':'');
+}
+
+async function rDispatch(){
+  const btn=document.getElementById('btn-r-dispatch');
+  btn.disabled=true; btn.textContent='Dispatching...';
+  const xp=parseInt(document.getElementById('r-xp').value)||0;
+  const gMin=parseInt(document.getElementById('r-gold-min').value)||0;
+  const gMax=parseInt(document.getElementById('r-gold-max').value)||gMin;
+  const session=document.getElementById('r-session').value.trim()||'Session Reward';
+  const ok=rResolvedPlayers.filter(p=>p.status==='ok');
+
+  try{
+    const batch=db.batch();
+    const log=[];
+    for(const p of ok){
+      const type=p.chestType;
+      const gold=type==='dm'?rRand(gMin*2,gMax*2):rRand(gMin,gMax);
+      const items=rRollChest(type);
+      // Attendance bonus: guaranteed extra uncommon consumable if player RSVP'd
+      let attendanceBonus=false;
+      if(p.rsvp){
+        const bonusItem={...pick(AL_LOOT.uncommonConsumable),rarity:'Uncommon',permanent:false};
+        items.push(bonusItem);
+        attendanceBonus=true;
+      }
+      const ref=db.collection('PendingChests').doc();
+      batch.set(ref,{playerId:p.player.id,chestType:type,xp,gold,items,notes:session,attendanceBonus,claimed:false,createdAt:new Date().toISOString(),createdBy:dmUsername});
+      log.push({name:p.player.playerName||p.player.id,type,gold,xp,items,bonus:attendanceBonus});
+    }
+    await batch.commit();
+
+    document.getElementById('r-dispatch-summary').innerHTML=`
+      <table style="width:100%;font-size:.83rem;border-collapse:collapse;">
+        <thead><tr>
+          ${['Player','Chest','XP','Gold','Bonus','Items'].map(h=>`<th style="font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;color:var(--crystal-dim);background:rgba(107,63,160,.1);padding:.4rem .6rem;text-align:left;border-bottom:1px solid rgba(107,63,160,.2);">${h}</th>`).join('')}
+        </tr></thead>
+        <tbody>${log.map(c=>`<tr>
+          <td style="padding:.4rem .6rem;border-bottom:1px solid rgba(107,63,160,.07);color:var(--crystal-bright);font-family:'Cinzel',serif;font-size:.76rem;">${esc(c.name)}</td>
+          <td style="padding:.4rem .6rem;border-bottom:1px solid rgba(107,63,160,.07);color:${c.type==='dm'?'var(--gold)':'var(--crystal-dim)'};font-size:.73rem;">${c.type==='dm'?'DM':'Standard'}</td>
+          <td style="padding:.4rem .6rem;border-bottom:1px solid rgba(107,63,160,.07);color:var(--teal)">+${c.xp}</td>
+          <td style="padding:.4rem .6rem;border-bottom:1px solid rgba(107,63,160,.07);color:var(--gold)">+${c.gold} gp</td>
+          <td style="padding:.4rem .6rem;border-bottom:1px solid rgba(107,63,160,.07);color:${c.bonus?'var(--teal)':'var(--silver-dim)'};font-size:.73rem;">${c.bonus?'✓ +1 item':'-'}</td>
+          <td style="padding:.4rem .6rem;border-bottom:1px solid rgba(107,63,160,.07);color:var(--silver-dim);font-size:.73rem">${c.items.map(i=>esc(i.name)).join(', ')}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+    rGoStep(4);
+    toast(`${log.length} chests dispatched!`,'success');
+  }catch(e){ console.error(e); toast('Failed to dispatch.','error'); }
+  btn.disabled=false; btn.textContent='Roll & Dispatch Rewards →';
+}
+
+function rReset(){
+  rResolvedPlayers=[]; rSessionRsvps=[]; rSessionIdSelected='';
+  document.getElementById('r-emails').value='';
+  document.getElementById('r-session').value='';
+  rGoStep(1);
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function toast(msg,type='info'){const w=document.getElementById('toasts');const el=document.createElement('div');el.className=`toast toast-${type}`;el.textContent=msg;w.appendChild(el);setTimeout(()=>el.remove(),4500);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function makeStars(){const el=document.getElementById('stars');for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2+.4;s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;--dl:-${(Math.random()*5).toFixed(1)}s;opacity:${(Math.random()*.4+.08).toFixed(2)}`;el.appendChild(s);}}
+
+boot();
+</script>
+</body>
+</html>
