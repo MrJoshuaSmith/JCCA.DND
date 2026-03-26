@@ -90,6 +90,22 @@ body{background:var(--board-bg);background-image:repeating-linear-gradient(90deg
 .ns-det-val{font-family:'Cinzel',serif;font-size:1.05rem;font-weight:600;color:var(--ink-m);}
 .ns-countdown{font-family:'Cinzel',serif;font-size:.95rem;font-weight:600;letter-spacing:.04em;text-align:center;margin-top:.8rem;padding-top:.8rem;border-top:1px solid rgba(100,70,20,.2);color:var(--red-d);}
 .ns-empty{text-align:center;font-style:italic;color:var(--ink-l);font-size:1rem;padding:.5rem 0;}
+/* ── RSVP PANEL ── */
+.rsvp-panel{margin-top:1rem;padding-top:.9rem;border-top:1px solid rgba(100,70,20,.2);}
+.rsvp-title{font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-l);text-align:center;margin-bottom:.6rem;}
+.rsvp-btns{display:flex;justify-content:center;gap:.7rem;flex-wrap:wrap;margin-bottom:.65rem;}
+.rsvp-btn{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.06em;padding:.42rem 1.1rem;border-radius:4px;cursor:pointer;border:1px solid;transition:all .2s;}
+.rsvp-btn.player{background:rgba(100,70,20,.1);border-color:rgba(100,70,20,.4);color:var(--ink-m);}
+.rsvp-btn.player:hover,.rsvp-btn.player.active{background:rgba(100,70,20,.22);border-color:var(--ink-m);color:var(--ink);}
+.rsvp-btn.dm-role{background:rgba(196,30,30,.08);border-color:rgba(196,30,30,.35);color:var(--red-d);}
+.rsvp-btn.dm-role:hover,.rsvp-btn.dm-role.active{background:rgba(196,30,30,.2);border-color:var(--red-d);color:var(--red-d);}
+.rsvp-btn.cancel{background:transparent;border-color:rgba(100,70,20,.25);color:var(--ink-l);font-size:.65rem;}
+.rsvp-btn.cancel:hover{border-color:rgba(196,30,30,.4);color:var(--red-d);}
+.rsvp-counts{display:flex;justify-content:center;gap:1.5rem;font-size:.8rem;color:var(--ink-m);}
+.rsvp-count b{font-family:'Cinzel',serif;font-weight:600;color:var(--ink);}
+.rsvp-my-status{text-align:center;font-size:.76rem;font-style:italic;color:var(--ink-l);margin-top:.3rem;}
+.rsvp-list{font-size:.8rem;color:var(--ink-m);margin-top:.5rem;text-align:center;line-height:1.7;}
+.rsvp-list-item-dm{color:var(--red-d);font-weight:600;}
 
 /* NOTICES COLUMN GRID */
 .board-divider{font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(200,160,80,.35);text-align:center;margin:0 0 1.5rem;}
@@ -325,7 +341,7 @@ async function verifyPassword(pw,stored){
 //  STATE
 // ═══════════════════════════════════════════════════
 let user=null, role=null, name=null;
-let notices=[], sessions=[];
+let notices=[], sessions=[], sessionRsvps=[], myRsvp=null;
 let calMonth=new Date(); calMonth.setDate(1);
 const ROTS=[-2.1,1.4,-0.8,2.3,-1.5,0.9,-2.7,1.2,-0.4,1.9,-1.1,2.5,-1.8,0.6];
 const TYPE_TAG={announcement:'📢 Announcement',info:'📋 Info',warning:'⚠ Warning',event:'📅 Event'};
@@ -403,9 +419,19 @@ async function loadSessions(){
   try{
     const snap=await db.collection('Sessions').orderBy('date','asc').get();
     sessions=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const ns=getNextSession();
+    if(ns) await loadRsvps(ns.id);
     renderNextSession();
     if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();
   }catch(e){console.error(e);}
+}
+
+async function loadRsvps(sessionId){
+  try{
+    const snap=await db.collection('SessionRSVPs').where('sessionId','==',sessionId).get();
+    sessionRsvps=snap.docs.map(d=>({id:d.id,...d.data()}));
+    myRsvp=sessionRsvps.find(r=>r.playerId===user)||null;
+  }catch(e){console.error(e);sessionRsvps=[];myRsvp=null;}
 }
 
 // ═══════════════════════════════════════════════════
@@ -433,6 +459,54 @@ function renderNextSession(){
   const dayName=d.toLocaleDateString('en-AU',{weekday:'long'});
   const dateStr=d.toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
   const deleteBtn=role==='dm'?`<div style="text-align:right;margin-top:.7rem;"><button class="btn btn-danger btn-sm" onclick="deleteSession('${ns.id}')">Remove Session</button></div>`:'';
+
+  // RSVP counts
+  const playerCount=sessionRsvps.filter(r=>r.role==='player').length;
+  const dmCount=sessionRsvps.filter(r=>r.role==='dm').length;
+  const myStatus=myRsvp?`You're signed up as <strong>${myRsvp.role==='dm'?'Dungeon Master':'Player'}</strong> ✓`:'';
+
+  // RSVP buttons (players only — DMs use DM Tools for attendance)
+  let rsvpPanel='';
+  if(role!=='dm'){
+    const isPlayer=myRsvp&&myRsvp.role==='player';
+    const isDmR=myRsvp&&myRsvp.role==='dm';
+    rsvpPanel=`<div class="rsvp-panel">
+      <div class="rsvp-title">Will you be there?</div>
+      <div class="rsvp-btns">
+        <button class="rsvp-btn player${isPlayer?' active':''}" onclick="doRsvp('${ns.id}','player')">
+          ⚔️ I'll attend as a Player
+        </button>
+        <button class="rsvp-btn dm-role${isDmR?' active':''}" onclick="doRsvp('${ns.id}','dm')">
+          🎲 I'm available to DM
+        </button>
+        ${myRsvp?`<button class="rsvp-btn cancel" onclick="cancelRsvp('${ns.id}')">Remove my sign-up</button>`:''}
+      </div>
+      ${myStatus?`<div class="rsvp-my-status">${myStatus}</div>`:''}
+      <div class="rsvp-counts">
+        <span>⚔️ <b>${playerCount}</b> player${playerCount!==1?'s':''}</span>
+        <span>🎲 <b>${dmCount}</b> DM${dmCount!==1?'s':''}</span>
+      </div>
+      <div style="text-align:center;font-size:.72rem;color:var(--ink-l);font-style:italic;margin-top:.35rem;">
+        Signing up earns you a bonus item in your reward chest!
+      </div>
+    </div>`;
+  } else {
+    // DM view: see who signed up
+    const playerNames=sessionRsvps.filter(r=>r.role==='player').map(r=>`<span>${esc(r.playerName||r.playerId)}</span>`).join(', ');
+    const dmNames=sessionRsvps.filter(r=>r.role==='dm').map(r=>`<span class="rsvp-list-item-dm">${esc(r.playerName||r.playerId)}</span>`).join(', ');
+    rsvpPanel=`<div class="rsvp-panel">
+      <div class="rsvp-title">Sign-ups</div>
+      <div class="rsvp-counts">
+        <span>⚔️ <b>${playerCount}</b> player${playerCount!==1?'s':''}</span>
+        <span>🎲 <b>${dmCount}</b> DM${dmCount!==1?'s':''}</span>
+      </div>
+      ${sessionRsvps.length?`<div class="rsvp-list">
+        ${dmNames?`<div>🎲 DM available: ${dmNames}</div>`:''}
+        ${playerNames?`<div>⚔️ Players: ${playerNames}</div>`:''}
+      </div>`:'<div style="text-align:center;font-size:.78rem;color:var(--ink-l);font-style:italic;margin-top:.4rem;">No sign-ups yet.</div>'}
+    </div>`;
+  }
+
   body.innerHTML=`
     <div class="ns-seal" style="position:absolute;right:1.2rem;top:50%;transform:translateY(-50%);">&#9876;</div>
     <div class="ns-eyebrow">Next Session</div>
@@ -445,6 +519,7 @@ function renderNextSession(){
     </div>
     <div class="ns-countdown">${countdown(ns.date)}</div>
     ${ns.notes?`<p style="text-align:center;font-size:.85rem;color:var(--ink-m);margin-top:.65rem;font-style:italic;">${esc(ns.notes)}</p>`:''}
+    ${rsvpPanel}
     ${deleteBtn}`;
 }
 
@@ -627,6 +702,37 @@ async function submitSession(){
     toast('Session scheduled!','success');
     loadSessions();
   }catch(e){console.error(e);errEl.textContent='Failed to schedule session.';errEl.style.display='block';}
+}
+
+async function doRsvp(sessionId, rsvpRole){
+  try{
+    // Remove any existing RSVP first
+    const existing=sessionRsvps.find(r=>r.playerId===user);
+    if(existing){
+      if(existing.role===rsvpRole){
+        // Same role — treat as cancel toggle
+        await cancelRsvp(sessionId); return;
+      }
+      await db.collection('SessionRSVPs').doc(existing.id).delete();
+    }
+    await db.collection('SessionRSVPs').add({
+      sessionId, playerId:user, playerName:name, role:rsvpRole,
+      signedUpAt:new Date().toISOString()
+    });
+    toast(rsvpRole==='dm'?'Signed up as DM! Bonus reward incoming.':'Signed up as player! Bonus reward incoming.','success');
+    await loadRsvps(sessionId);
+    renderNextSession();
+  }catch(e){console.error(e);toast('Failed to sign up.','error');}
+}
+
+async function cancelRsvp(sessionId){
+  try{
+    const existing=sessionRsvps.find(r=>r.playerId===user);
+    if(existing) await db.collection('SessionRSVPs').doc(existing.id).delete();
+    toast('Sign-up removed.','info');
+    await loadRsvps(sessionId);
+    renderNextSession();
+  }catch(e){toast('Failed to remove sign-up.','error');}
 }
 
 async function deleteSession(id){

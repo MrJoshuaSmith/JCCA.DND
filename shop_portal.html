@@ -605,6 +605,8 @@ body {
     <div class="topbar">
       <div class="topbar-brand">Mr. <span>Smith's</span> Magical Emporium</div>
       <div class="topbar-right">
+        <a href="index.html" style="font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.07em;color:var(--silver-dim);text-decoration:none;border:1px solid rgba(107,63,160,.25);padding:.3rem .7rem;border-radius:4px;transition:all .2s;white-space:nowrap;" onmouseover="this.style.color='var(--crystal)';this.style.borderColor='var(--arcane-border)'" onmouseout="this.style.color='var(--silver-dim)';this.style.borderColor='rgba(107,63,160,.25)'">&#8962; Home</a>
+        <a href="noticeboard.html" style="font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.07em;color:var(--silver-dim);text-decoration:none;border:1px solid rgba(107,63,160,.25);padding:.3rem .7rem;border-radius:4px;transition:all .2s;white-space:nowrap;" onmouseover="this.style.color='var(--crystal)';this.style.borderColor='var(--arcane-border)'" onmouseout="this.style.color='var(--silver-dim)';this.style.borderColor='rgba(107,63,160,.25)'">&#128196; Quest Board</a>
         <div class="char-badge" onclick="openCharModal()">
           <span style="font-size:14px;">&#9881;</span>
           <span class="char-name" id="tb-charname">Loading...</span>
@@ -1139,8 +1141,10 @@ async function getInventory(charId) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-async function addInventoryItem(charId, item, source) {
-  // Check for existing stack (same item name)
+async function addInventoryItem(charId, item, source, pricePaid) {
+  // Inventory docs store only a lightweight reference: characterId, itemName, quantity, source, acquiredDate.
+  // Full item details (category, price, description, rarity) are resolved from ItemPool at render time.
+  // Items awarded from chests or as starting equipment are never purchased, so no price data is stored here.
   const snap = await db.collection('Inventory')
     .where('characterId', '==', charId)
     .where('itemName', '==', item.itemName).get();
@@ -1149,17 +1153,15 @@ async function addInventoryItem(charId, item, source) {
     const existing = snap.docs[0];
     await existing.ref.update({ quantity: (existing.data().quantity || 1) + 1 });
   } else {
-    await db.collection('Inventory').add({
+    const doc = {
       characterId:  charId,
       itemName:     item.itemName,
-      itemId:       item.id || '',
       quantity:     1,
-      isMagical:    item.isMagical || false,
-      category:     item.category || 'Adventuring Gear',
-      basePrice:    item.basePrice || 0,
-      source:       source,
+      source:       source || 'Unknown',
       acquiredDate: new Date().toISOString(),
-    });
+    };
+    if (pricePaid !== undefined) doc.pricePaid = pricePaid;
+    await db.collection('Inventory').add(doc);
   }
 }
 
@@ -1243,10 +1245,8 @@ async function claimChest(chestId, chest) {
   // Add items to inventory
   if (chest.items && chest.items.length && activeChar) {
     for (const item of chest.items) {
-      await addInventoryItem(activeChar.id, {
-        itemName: item.name, basePrice: 0, isMagical: item.rarity !== 'Common',
-        category: item.category || 'Adventuring Gear',
-      }, 'Chest Reward');
+      // Only itemName is needed — details resolved from ItemPool at render time
+      await addInventoryItem(activeChar.id, { itemName: item.name }, 'Chest Reward');
     }
   }
   updateTopBar(activeChar);
@@ -1394,9 +1394,9 @@ async function confirmBuy() {
     // Deduct gold
     const newGold = await updateCharGold(activeChar.id, gold - price);
 
-    // Add to inventory
+    // Add to inventory — lean schema. pricePaid tracked only for purchased items.
     const source = item.isMagical ? 'Emporium' : 'Shop';
-    await addInventoryItem(activeChar.id, item, source);
+    await addInventoryItem(activeChar.id, item, source, price);
 
     // Decrement emporium stock
     if (item.isMagical) {
@@ -1422,6 +1422,35 @@ async function confirmBuy() {
 //  INVENTORY TAB
 // ================================================================
 
+// itemPoolCache: itemName → ItemPool doc data (lazy-loaded, app-lifetime cache)
+const itemPoolCache = {};
+
+async function resolveItemPoolRefs(invItems) {
+  // Collect names not yet in cache
+  const missing = [...new Set(invItems.map(i => i.itemName))].filter(n => !itemPoolCache[n]);
+  // Firestore 'in' query is limited to 30 values per call — chunk if needed
+  for (let i = 0; i < missing.length; i += 30) {
+    const chunk = missing.slice(i, i + 30);
+    if (!chunk.length) break;
+    try {
+      const snap = await db.collection('ItemPool').where('itemName', 'in', chunk).get();
+      snap.docs.forEach(d => { itemPoolCache[d.data().itemName] = d.data(); });
+    } catch(e) { console.error('ItemPool resolve error:', e); }
+  }
+  // Merge resolved data onto each inventory item
+  return invItems.map(inv => {
+    const ref = itemPoolCache[inv.itemName] || {};
+    return {
+      ...inv,
+      category:   ref.category    || 'Adventuring Gear',
+      isMagical:  ref.isMagical   || false,
+      rarity:     ref.rarity      || 'Common',
+      basePrice:  ref.basePrice   || 0,
+      description: ref.description || '',
+    };
+  });
+}
+
 async function loadInventory() {
   const wrap = document.getElementById('inv-table-wrap');
   if (!activeChar) {
@@ -1433,7 +1462,8 @@ async function loadInventory() {
   wrap.innerHTML = '<div class="spinner"></div>';
 
   try {
-    inventoryItems = await getInventory(activeChar.id);
+    const leanItems = await getInventory(activeChar.id);
+    inventoryItems  = await resolveItemPoolRefs(leanItems);
     renderInventory();
   } catch(e) {
     console.error(e);
@@ -1466,22 +1496,31 @@ function renderInventory() {
   }
 
   const rows = items.map(item => {
-    const sellVal = Math.floor((item.basePrice || 0) / 2);
-    const payload  = JSON.stringify({ id: item.id, itemName: item.itemName,
-      basePrice: item.basePrice || 0, quantity: item.quantity || 1, isMagical: !!item.isMagical });
+    // Sell value: 50% of price paid (if purchased) or base price from ItemPool, or 0 for chest/starting rewards
+    const referencePrice = item.pricePaid !== undefined ? item.pricePaid : (item.basePrice || 0);
+    const canSell   = referencePrice > 0;
+    const sellVal   = Math.floor(referencePrice / 2);
+    const sourceTag = item.source === 'Chest Reward' ? '<span style="font-size:.64rem;color:var(--teal-magic);margin-left:3px;">🎁 Reward</span>'
+                    : item.source === 'Starting Equipment' ? '<span style="font-size:.64rem;color:var(--silver-dim);margin-left:3px;">⚔️ Starting</span>'
+                    : '';
+    const rarityClass = item.rarity === 'Uncommon' ? 'r-uncommon' : item.rarity === 'Rare' ? 'r-rare' : 'r-common';
+    const payload = JSON.stringify({ id: item.id, itemName: item.itemName,
+      pricePaid: item.pricePaid || 0, basePrice: item.basePrice || 0,
+      quantity: item.quantity || 1, isMagical: !!item.isMagical });
     return `
     <tr>
-      <td style="font-family:'Cinzel',serif;font-size:.85rem;color:var(--crystal-bright);">${esc(item.itemName)}</td>
+      <td style="font-family:'Cinzel',serif;font-size:.85rem;color:var(--crystal-bright);">
+        ${esc(item.itemName)}${sourceTag}
+        ${item.description ? `<div style="font-size:.74rem;color:var(--silver-dim);font-style:italic;margin-top:.15rem;">${esc(item.description.slice(0,80))}${item.description.length>80?'…':''}</div>` : ''}
+      </td>
       <td style="text-align:center;">${item.quantity || 1}</td>
       <td>
-        <span class="rarity-badge r-common" style="font-size:.68rem;">${esc(item.category || '—')}</span>
+        <span class="rarity-badge ${rarityClass}" style="font-size:.68rem;">${esc(item.category || '—')}</span>
         ${item.isMagical ? `<span class="rarity-badge r-uncommon" style="font-size:.68rem;margin-left:3px;">Magical</span>` : ''}
       </td>
-      <td style="color:var(--gold-magic);font-size:.82rem;">${sellVal} gp</td>
+      <td style="color:${canSell ? 'var(--gold-magic)' : 'var(--silver-dim)'};font-size:.82rem;">${canSell ? sellVal+' gp' : '—'}</td>
       <td>
-        <button class="btn btn-danger btn-sm" onclick='openSellModal(${JSON.stringify(payload)})'>
-          Sell
-        </button>
+        ${canSell ? `<button class="btn btn-danger btn-sm" onclick='openSellModal(${JSON.stringify(payload)})'>Sell</button>` : ''}
       </td>
     </tr>`;
   }).join('');
@@ -1503,7 +1542,8 @@ function renderInventory() {
 function openSellModal(itemJSON) {
   const item    = typeof itemJSON === 'string' ? JSON.parse(itemJSON) : itemJSON;
   pendingSell   = item;
-  const sellVal = Math.floor((item.basePrice || 0) / 2);
+  const refPrice = item.pricePaid !== undefined ? item.pricePaid : (item.basePrice || 0);
+  const sellVal = Math.floor(refPrice / 2);
   const gold    = activeChar.gold ?? 0;
   const newGold = Math.min(gold + sellVal, CONFIG.goldCap);
   const capped  = (gold + sellVal) > CONFIG.goldCap;
@@ -1511,7 +1551,7 @@ function openSellModal(itemJSON) {
   document.getElementById('modal-sell-content').innerHTML = `
     <div style="background:rgba(255,68,136,.08);border:1px solid rgba(255,68,136,.25);border-radius:5px;padding:1rem;margin-bottom:1rem;">
       <p style="font-family:'Cinzel',serif;font-size:.95rem;color:var(--crystal-bright);margin-bottom:.3rem;">${esc(item.itemName)}</p>
-      <p style="font-size:.82rem;color:var(--silver-dim);">Trade value: <strong style="color:var(--gold-magic)">${sellVal} gp</strong> (50% of base price)</p>
+      <p style="font-size:.82rem;color:var(--silver-dim);">Trade value: <strong style="color:var(--gold-magic)">${sellVal} gp</strong> (50% of ${item.pricePaid !== undefined ? 'purchase price' : 'base price'})</p>
       ${item.isMagical ? `<p style="font-size:.78rem;color:var(--crystal-dim);margin-top:.4rem;font-style:italic;">This is a magical item — it will be returned to Mr. Smith's stock at full price.</p>` : ''}
     </div>
     <table style="width:100%;font-size:.9rem;">
@@ -1532,8 +1572,9 @@ async function confirmSell() {
   const btn   = document.getElementById('btn-confirm-sell');
   btn.disabled = true;
 
-  const item    = pendingSell;
-  const sellVal = Math.floor((item.basePrice || 0) / 2);
+  const item     = pendingSell;
+  const refPrice = item.pricePaid !== undefined ? item.pricePaid : (item.basePrice || 0);
+  const sellVal  = Math.floor(refPrice / 2);
   const gold    = activeChar.gold ?? 0;
   const newGold = Math.min(gold + sellVal, CONFIG.goldCap);
 
@@ -2066,10 +2107,13 @@ async function createCharacter() {
     if (equipChoice==='package') {
       const allItems=[...(DND5E.classEquipment[cls]||[]),...(DND5E.backgroundEquipment[bg]||[])];
       for (const entry of allItems) {
+        // Lean schema — itemName + quantity only, details resolved from ItemPool at render time
         await db.collection('Inventory').add({
-          characterId:charRef.id, itemName:entry.item, itemId:'', quantity:entry.qty||1,
-          isMagical:false, category:'Starting Gear', basePrice:0,
-          source:'Starting Equipment', acquiredDate:new Date().toISOString(),
+          characterId:  charRef.id,
+          itemName:     entry.item,
+          quantity:     entry.qty || 1,
+          source:       'Starting Equipment',
+          acquiredDate: new Date().toISOString(),
         });
       }
     }
