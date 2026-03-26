@@ -1847,8 +1847,51 @@ function makeStars() {
 
 const DND5E = {
   classes: ['Barbarian','Bard','Cleric','Druid','Fighter','Monk','Paladin','Ranger','Rogue','Sorcerer','Warlock','Wizard'],
-  races:   ['Dragonborn','Drow (Dark Elf)','Forest Gnome','Half-Elf','Half-Orc','High Elf','Hill Dwarf','Human','Kobold','Lightfoot Halfling','Mountain Dwarf','Rock Gnome','Stout Halfling','Tiefling','Wood Elf'],
-  backgrounds: ['Acolyte','Charlatan','Criminal','Entertainer','Folk Hero','Guild Artisan','Hermit','Noble','Outlander','Sage','Sailor','Soldier','Urchin'],
+
+  // Races from PHB 2014+2024, Xanathar's, Tasha's, Mordenkainen's, MMotM, and supplements
+  // Latest rules used where PHB 2014 and 2024 conflict. No duplicates.
+  races: [
+    // ── PHB Core ──
+    'Dragonborn','Dwarf (Hill)','Dwarf (Mountain)','Elf (High)','Elf (Wood)',
+    'Gnome (Forest)','Gnome (Rock)','Half-Elf','Half-Orc',
+    'Halfling (Lightfoot)','Halfling (Stout)','Human','Tiefling',
+    // ── PHB 2024 additions ──
+    'Aasimar','Ardling','Goliath','Orc',
+    // ── SCAG / Mordenkainen's ──
+    'Drow (Dark Elf)','Duergar (Grey Dwarf)','Deep Gnome (Svirfneblin)',
+    'Eladrin','Sea Elf','Shadar-kai (Shadow Elf)',
+    // ── Volo's / MMotM ──
+    'Aarakocra','Bugbear','Firbolg','Goblin','Hobgoblin',
+    'Kenku','Kobold','Lizardfolk','Tabaxi','Triton','Yuan-ti Pureblood',
+    // ── Mordenkainen's Tome of Foes / MMotM ──
+    'Githyanki','Githzerai','Leonin','Satyr',
+    // ── Elemental Evil ──
+    'Genasi (Air)','Genasi (Earth)','Genasi (Fire)','Genasi (Water)',
+    // ── Wild Beyond the Witchlight / MMotM ──
+    'Fairy','Harengon',
+    // ── GGtR / MOoT / MMotM ──
+    'Centaur','Minotaur',
+    // ── ERftLW / MMotM ──
+    'Changeling','Shifter','Warforged',
+    // ── Strixhaven ──
+    'Owlin',
+    // ── Tortle Package ──
+    'Tortle',
+  ],
+
+  // Backgrounds from PHB 2014, PHB 2024, SCAG, and other supplements
+  // PHB 2024 versions used where they conflict with 2014
+  backgrounds: [
+    // ── PHB Core (2014 / 2024 updated) ──
+    'Acolyte','Charlatan','Criminal','Entertainer','Hermit','Noble','Sage','Sailor','Soldier','Urchin',
+    // ── PHB 2024 new ──
+    'Artisan','Farmer','Guard','Guide','Merchant','Scribe','Wayfarer',
+    // ── PHB 2014 (not in 2024) ──
+    'Folk Hero','Guild Artisan','Outlander',
+    // ── Sword Coast Adventurer's Guide ──
+    'City Watch','Cloistered Scholar','Courtier','Faction Agent',
+    'Far Traveler','Inheritor','Mercenary Veteran','Urban Bounty Hunter',
+  ],
   startingGold: { Barbarian:50,Bard:125,Cleric:125,Druid:50,Fighter:175,Monk:25,Paladin:175,Ranger:125,Rogue:100,Sorcerer:75,Warlock:100,Wizard:100 },
   backgroundGold: { Acolyte:15,Charlatan:15,Criminal:15,Entertainer:15,'Folk Hero':10,'Guild Artisan':15,Hermit:5,Noble:25,Outlander:10,Sage:10,Sailor:10,Soldier:10,Urchin:10 },
   classEquipment: {
