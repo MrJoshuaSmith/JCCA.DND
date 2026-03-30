@@ -9,306 +9,477 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
-/* ─── TWO VISUAL ZONES ─────────────────────────────────────
-   Login / chrome  = dark D&D red/brown
-   Quest board     = timber + parchment
-─────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────
+   COLOUR TOKENS
+───────────────────────────────────────────────────────── */
 :root{
-  --red:#c41e1e; --red-d:#8b1010; --gold:#c8952a; --gold-d:#7a5818;
-  --text:#e0d8c8; --text-m:#b0a898; --text-d:#786858;
-  --board-bg:#1c1008;
-  --p0:#f4e6c0; --pw:#f0d8a0; --pe:#e8efdc; --pi:#eeeade;
-  --ink:#2a1208; --ink-m:#5a3820; --ink-l:#8a6040;
+  /* dark chrome */
+  --chrome-bg:#0e0b09;--chrome-border:rgba(180,110,40,.25);
+  --red:#c41e1e;--red-d:#8b1010;--gold:#c8952a;--gold-d:#7a5818;
+  --text:#e0d8c8;--text-m:#b0a898;--text-d:#786858;
+  /* board */
+  --board:#1c1008;
+  /* parchment variants */
+  --p-cream:#f4e6c0;--p-aged:#f0dda8;--p-sage:#e8efd8;--p-grey:#eeeade;
+  /* ink */
+  --ink:#2a1208;--ink-m:#5a3820;--ink-l:#8a6040;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--board-bg);background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 18px,rgba(255,200,100,.025) 18px,rgba(255,200,100,.025) 19px),radial-gradient(ellipse at 30% 0%,#2a1a08,transparent 55%),radial-gradient(ellipse at 70% 100%,#180e05,transparent 55%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--ink);}
 
-/* ── LOGIN ── */
-#screen-login{min-height:100vh;display:none;align-items:center;justify-content:center;padding:2rem;background:#0e0b09;background-image:radial-gradient(ellipse 70% 50% at 50% 0%,#1f0a08,transparent 70%);}
+/* ─────────────────────────────────────────────────────────
+   BODY = THE BOARD (timber texture)
+───────────────────────────────────────────────────────── */
+body{
+  background:var(--board);
+  background-image:
+    repeating-linear-gradient(92deg,transparent,transparent 22px,rgba(255,200,100,.018) 22px,rgba(255,200,100,.018) 23px),
+    repeating-linear-gradient(180deg,transparent,transparent 40px,rgba(0,0,0,.06) 40px,rgba(0,0,0,.06) 41px),
+    radial-gradient(ellipse 60% 50% at 20% 10%,#2a1a08,transparent 65%),
+    radial-gradient(ellipse 50% 60% at 80% 90%,#180e05,transparent 60%);
+  min-height:100vh;
+  font-family:'Crimson Pro',Georgia,serif;
+  color:var(--ink);
+}
+
+/* ─────────────────────────────────────────────────────────
+   LOGIN SCREEN
+───────────────────────────────────────────────────────── */
+#screen-login{
+  min-height:100vh;display:none;align-items:center;justify-content:center;
+  padding:2rem;background:#0e0b09;
+  background-image:radial-gradient(ellipse 70% 50% at 50% 0%,#1f0a08,transparent 70%);
+}
 #screen-login.show{display:flex;}
-.lc{background:#1e1610;border:1px solid rgba(196,30,30,.35);border-radius:8px;padding:2.5rem;width:100%;max-width:400px;position:relative;}
+.lc{
+  background:#1e1610;border:1px solid rgba(196,30,30,.35);
+  border-radius:8px;padding:2.5rem;width:100%;max-width:400px;position:relative;
+}
 .lc::before{content:'';position:absolute;inset:5px;border:1px solid rgba(196,30,30,.1);border-radius:5px;pointer-events:none;}
-.lc-logo{text-align:center;margin-bottom:1.8rem;}
-.lc-logo h1{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:900;color:var(--text);line-height:1.2;}
-.lc-logo h1 b{color:var(--red);}
-.lc-logo p{font-style:italic;color:var(--text-d);font-size:.88rem;margin-top:.4rem;}
-.fg{margin-bottom:.9rem;}
-.fl{display:block;font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.1em;color:var(--text-m);margin-bottom:.3rem;text-transform:uppercase;}
-.fi{width:100%;background:rgba(13,6,4,.7);border:1px solid rgba(196,30,30,.28);border-radius:4px;padding:.58rem .85rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:1rem;outline:none;}
-.fi:focus{border-color:rgba(196,30,30,.55);}
-.fi::placeholder{color:var(--text-d);opacity:.6;}
-.fe{font-size:.76rem;color:var(--red);margin-bottom:.5rem;display:none;}
-.lbtn{width:100%;font-family:'Cinzel',serif;font-size:.78rem;font-weight:600;letter-spacing:.1em;padding:.65rem;border-radius:4px;cursor:pointer;background:rgba(196,30,30,.25);border:1px solid var(--red-d);color:var(--text);margin-top:.2rem;transition:all .2s;}
-.lbtn:hover{background:rgba(196,30,30,.4);}
-.lbtn:disabled{opacity:.4;cursor:not-allowed;}
-.ll{display:flex;justify-content:space-between;margin-top:1rem;flex-wrap:wrap;gap:.4rem;}
-.ll a{font-family:'Cinzel',serif;font-size:.68rem;color:var(--text-d);text-decoration:none;transition:color .2s;}
-.ll a:hover{color:var(--gold);}
-
-/* ── APP / TOPBAR ── */
-#screen-app{display:none;}
-#screen-app.show{display:block;}
-.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding:.65rem 1.5rem;background:rgba(14,9,4,.9);border-bottom:2px solid rgba(180,110,40,.22);backdrop-filter:blur(8px);position:sticky;top:0;z-index:200;}
-.tb-brand{font-family:'Cinzel',serif;font-size:.95rem;font-weight:900;color:var(--text);}
-.tb-brand b{color:var(--red);}
-.view-btns{display:flex;gap:.3rem;}
-.vbtn{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.05em;padding:.38rem 1rem;border:1px solid rgba(180,110,40,.3);border-radius:4px;background:transparent;color:var(--text-m);cursor:pointer;transition:all .2s;}
-.vbtn:hover{background:rgba(196,30,30,.15);border-color:rgba(196,30,30,.4);color:var(--text);}
-.vbtn.active{background:rgba(180,110,40,.18);border-color:var(--gold-d);color:var(--text);}
-.tb-right{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;}
-.tb-user{font-family:'Cinzel',serif;font-size:.66rem;color:var(--text-d);}
-
-/* ── BUTTONS ── */
-.btn{font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;letter-spacing:.06em;padding:.38rem .9rem;border-radius:4px;cursor:pointer;border:1px solid;transition:all .2s;display:inline-flex;align-items:center;gap:.25rem;}
+.lc-logo{text-align:center;margin-bottom:1.5rem;}
+.lc-logo-title{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:900;color:var(--text);letter-spacing:.05em;}
+.lc-logo-sub{font-size:.85rem;color:var(--text-d);font-style:italic;margin-top:.25rem;}
+.lfl{display:block;font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-m);margin-bottom:.25rem;}
+.lfi{width:100%;background:rgba(13,8,4,.7);border:1px solid rgba(180,110,40,.25);border-radius:4px;padding:.55rem .8rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:.95rem;outline:none;margin-bottom:.65rem;}
+.lfi:focus{border-color:var(--gold-d);}
+.btn{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.07em;padding:.38rem .9rem;border-radius:4px;cursor:pointer;border:1px solid;transition:all .2s;display:inline-flex;align-items:center;gap:.3rem;text-decoration:none;}
 .btn-red{background:rgba(196,30,30,.2);border-color:var(--red-d);color:var(--text);}
 .btn-red:hover{background:rgba(196,30,30,.38);}
-.btn-gold{background:rgba(180,110,40,.15);border-color:var(--gold-d);color:var(--gold);}
-.btn-gold:hover{background:rgba(180,110,40,.28);}
-.btn-ghost{background:transparent;border-color:rgba(180,110,40,.3);color:var(--text-m);}
-.btn-ghost:hover{border-color:rgba(180,110,40,.5);color:var(--text);}
+.btn-gold{background:rgba(180,110,40,.18);border-color:var(--gold-d);color:var(--gold);}
+.btn-gold:hover{background:rgba(180,110,40,.3);}
+.btn-ghost{background:transparent;border-color:var(--chrome-border);color:var(--text-m);}
+.btn-ghost:hover{border-color:var(--gold-d);color:var(--gold);}
 .btn-danger{background:rgba(196,30,30,.1);border-color:rgba(196,30,30,.4);color:var(--red);}
 .btn-danger:hover{background:rgba(196,30,30,.25);}
-.btn-sm{padding:.24rem .6rem;font-size:.62rem;}
+.btn-sm{padding:.22rem .6rem;font-size:.62rem;}
+.btn-block{width:100%;justify-content:center;}
+.lerr{font-size:.8rem;color:var(--red);margin-top:.4rem;display:none;}
 
-/* ════════════════════════════════════════════════════
-   QUEST BOARD
-════════════════════════════════════════════════════ */
-.board-wrap{max-width:1200px;margin:0 auto;padding:1.8rem 2rem 5rem;}
+/* ─────────────────────────────────────────────────────────
+   TOPBAR (chrome)
+───────────────────────────────────────────────────────── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;
+  padding:.6rem 1.4rem;
+  background:rgba(14,9,4,.92);border-bottom:2px solid var(--chrome-border);
+  position:sticky;top:0;z-index:200;
+}
+.tb-brand{font-family:'Cinzel',serif;font-size:.9rem;font-weight:900;color:var(--text);}
+.tb-brand b{color:var(--red);}
+.tb-right{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;}
 
-/* NEXT SESSION — parchment scroll */
-.scroll-outer{margin-bottom:2.2rem;position:relative;}
-.scroll-roller{height:18px;background:linear-gradient(180deg,#d4a030,#8a5810 40%,#6a3808 55%,#8a5810 70%,#c89028);border-radius:4px;box-shadow:0 3px 10px rgba(0,0,0,.5),inset 0 1px 2px rgba(255,220,100,.3);position:relative;z-index:2;}
-.scroll-body{background:#f9f0d5;background-image:linear-gradient(180deg,rgba(200,155,50,.12) 0%,transparent 15%,transparent 85%,rgba(200,155,50,.12) 100%),radial-gradient(ellipse at 0% 50%,rgba(160,110,30,.14),transparent 40%),radial-gradient(ellipse at 100% 50%,rgba(160,110,30,.12),transparent 40%);border-left:3px solid rgba(100,70,20,.35);border-right:3px solid rgba(100,70,20,.35);padding:1.6rem 3rem 1.6rem 2.5rem;position:relative;z-index:1;}
-@media(max-width:600px){.scroll-body{padding:1.2rem 1.2rem;}}
-.ns-seal{position:absolute;right:1.2rem;top:50%;transform:translateY(-50%);width:52px;height:52px;background:radial-gradient(circle at 40% 38%,#e04040,#6a0808);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.4),inset 0 1px 3px rgba(255,150,150,.2);font-size:1.2rem;}
-@media(max-width:600px){.ns-seal{display:none;}}
-.ns-eyebrow{font-family:'Cinzel',serif;font-size:.65rem;font-weight:600;letter-spacing:.28em;color:var(--red-d);text-transform:uppercase;text-align:center;margin-bottom:.6rem;}
-.ns-title{font-family:'Cinzel',serif;font-size:1.55rem;font-weight:900;color:var(--ink);text-align:center;margin-bottom:.8rem;}
-.ns-details{display:flex;justify-content:center;align-items:center;gap:2rem;flex-wrap:wrap;}
-.ns-det{text-align:center;}
-.ns-det-lbl{font-family:'Cinzel',serif;font-size:.59rem;letter-spacing:.12em;color:var(--ink-l);text-transform:uppercase;margin-bottom:.15rem;}
-.ns-det-val{font-family:'Cinzel',serif;font-size:1.05rem;font-weight:600;color:var(--ink-m);}
-.ns-countdown{font-family:'Cinzel',serif;font-size:.95rem;font-weight:600;letter-spacing:.04em;text-align:center;margin-top:.8rem;padding-top:.8rem;border-top:1px solid rgba(100,70,20,.2);color:var(--red-d);}
-.ns-empty{text-align:center;font-style:italic;color:var(--ink-l);font-size:1rem;padding:.5rem 0;}
-/* ── RSVP PANEL ── */
-.rsvp-panel{margin-top:1rem;padding-top:.9rem;border-top:1px solid rgba(100,70,20,.2);}
-.rsvp-title{font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-l);text-align:center;margin-bottom:.6rem;}
-.rsvp-btns{display:flex;justify-content:center;gap:.7rem;flex-wrap:wrap;margin-bottom:.65rem;}
-.rsvp-btn{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.06em;padding:.42rem 1.1rem;border-radius:4px;cursor:pointer;border:1px solid;transition:all .2s;}
-.rsvp-btn.player{background:rgba(100,70,20,.1);border-color:rgba(100,70,20,.4);color:var(--ink-m);}
+/* ─────────────────────────────────────────────────────────
+   VIEW TOGGLE TABS (parchment-coloured)
+───────────────────────────────────────────────────────── */
+.view-tabs{
+  display:flex;gap:0;border-bottom:2px solid rgba(100,70,20,.35);
+  background:rgba(20,12,5,.7);padding:0 1.4rem;
+}
+.vbtn{
+  font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.08em;
+  padding:.55rem 1.1rem;background:transparent;border:none;
+  color:var(--text-d);cursor:pointer;border-bottom:2px solid transparent;
+  margin-bottom:-2px;transition:all .2s;
+}
+.vbtn:hover{color:var(--text-m);}
+.vbtn.active{color:var(--gold);border-bottom-color:var(--gold-d);}
+
+/* ─────────────────────────────────────────────────────────
+   BOARD WRAPPER (the corkboard / timber surface)
+───────────────────────────────────────────────────────── */
+.board-wrap{padding:1.4rem 1.2rem 4rem;max-width:1280px;margin:0 auto;}
+
+/* ─────────────────────────────────────────────────────────
+   NEXT SESSION — large horizontal scroll at the top
+───────────────────────────────────────────────────────── */
+.ns-outer{
+  position:relative;margin-bottom:2rem;
+}
+.ns-scroll{
+  background:var(--p-cream);
+  background-image:
+    radial-gradient(ellipse at 0% 50%,rgba(220,180,80,.18),transparent 30%),
+    radial-gradient(ellipse at 100% 50%,rgba(220,180,80,.18),transparent 30%),
+    repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(100,70,20,.014) 3px,rgba(100,70,20,.014) 4px);
+  border:2px solid rgba(100,70,20,.32);
+  border-radius:2px;
+  padding:1.6rem 5rem 1.6rem 2rem;
+  box-shadow:0 10px 40px rgba(0,0,0,.65),inset 0 0 60px rgba(100,70,20,.04);
+  position:relative;overflow:hidden;
+}
+/* scroll curl effect — left and right edges */
+.ns-scroll::before,.ns-scroll::after{
+  content:'';position:absolute;top:0;bottom:0;width:40px;
+  background:linear-gradient(90deg,rgba(100,70,20,.07),transparent);
+  pointer-events:none;
+}
+.ns-scroll::before{left:0;}
+.ns-scroll::after{right:0;transform:scaleX(-1);}
+/* decorative border inset */
+.ns-inner-border{
+  position:absolute;inset:8px;border:1px solid rgba(100,70,20,.18);border-radius:1px;pointer-events:none;
+}
+.ns-eyebrow{font-family:'Cinzel',serif;font-size:.6rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-l);margin-bottom:.35rem;}
+.ns-title{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:900;color:var(--ink);line-height:1.1;margin-bottom:.7rem;}
+.ns-details{display:flex;flex-wrap:wrap;gap:.5rem 2rem;margin-bottom:.7rem;}
+.ns-det-lbl{font-family:'Cinzel',serif;font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-l);}
+.ns-det-val{font-family:'Cinzel',serif;font-size:.95rem;font-weight:600;color:var(--ink-m);}
+.ns-countdown{
+  display:inline-block;font-family:'Cinzel',serif;font-size:.78rem;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;
+  background:rgba(139,16,16,.1);border:1px solid rgba(139,16,16,.3);
+  border-radius:3px;padding:.25rem .8rem;color:var(--red-d);
+}
+/* wax seal top-right */
+.ns-seal{
+  position:absolute;top:50%;right:1.5rem;transform:translateY(-50%);
+  width:56px;height:56px;border-radius:50%;
+  background:radial-gradient(circle,#c41e1e,#5a0808);
+  border:2px solid rgba(255,200,100,.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;box-shadow:0 3px 12px rgba(0,0,0,.5);
+  color:rgba(255,220,150,.8);
+}
+/* thumbtacks for next session scroll */
+.ns-tack{
+  position:absolute;width:16px;height:16px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#ff6666,#8b1010);
+  box-shadow:0 2px 5px rgba(0,0,0,.5);z-index:5;
+}
+.ns-tack.tl{top:-7px;left:2rem;}
+.ns-tack.tr{top:-7px;right:2rem;}
+
+/* ─────────────────────────────────────────────────────────
+   RSVP PANEL (on next session scroll)
+───────────────────────────────────────────────────────── */
+.rsvp-panel{border-top:1px solid rgba(100,70,20,.22);margin-top:.9rem;padding-top:.8rem;}
+.rsvp-title{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-l);text-align:center;margin-bottom:.5rem;}
+.rsvp-btns{display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.5rem;}
+.rsvp-btn{font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;letter-spacing:.05em;padding:.4rem 1rem;border-radius:4px;cursor:pointer;border:1px solid;transition:all .2s;}
+.rsvp-btn.player{background:rgba(100,70,20,.08);border-color:rgba(100,70,20,.35);color:var(--ink-m);}
 .rsvp-btn.player:hover,.rsvp-btn.player.active{background:rgba(100,70,20,.22);border-color:var(--ink-m);color:var(--ink);}
-.rsvp-btn.dm-role{background:rgba(196,30,30,.08);border-color:rgba(196,30,30,.35);color:var(--red-d);}
-.rsvp-btn.dm-role:hover,.rsvp-btn.dm-role.active{background:rgba(196,30,30,.2);border-color:var(--red-d);color:var(--red-d);}
-.rsvp-btn.cancel{background:transparent;border-color:rgba(100,70,20,.25);color:var(--ink-l);font-size:.65rem;}
-.rsvp-btn.cancel:hover{border-color:rgba(196,30,30,.4);color:var(--red-d);}
+.rsvp-btn.dm-role{background:rgba(139,16,16,.06);border-color:rgba(139,16,16,.3);color:var(--red-d);}
+.rsvp-btn.dm-role:hover,.rsvp-btn.dm-role.active{background:rgba(139,16,16,.18);border-color:var(--red-d);}
+.rsvp-btn.cancel{background:transparent;border-color:rgba(100,70,20,.2);color:var(--ink-l);font-size:.63rem;}
+.rsvp-btn.cancel:hover{border-color:rgba(139,16,16,.35);color:var(--red-d);}
 .rsvp-counts{display:flex;justify-content:center;gap:1.5rem;font-size:.8rem;color:var(--ink-m);}
-.rsvp-count b{font-family:'Cinzel',serif;font-weight:600;color:var(--ink);}
-.rsvp-my-status{text-align:center;font-size:.76rem;font-style:italic;color:var(--ink-l);margin-top:.3rem;}
-.rsvp-list{font-size:.8rem;color:var(--ink-m);margin-top:.5rem;text-align:center;line-height:1.7;}
-.rsvp-list-item-dm{color:var(--red-d);font-weight:600;}
+.rsvp-counts b{font-family:'Cinzel',serif;font-weight:600;color:var(--ink);}
+.rsvp-my-status{text-align:center;font-size:.74rem;font-style:italic;color:var(--ink-l);margin-top:.28rem;}
+.rsvp-list{font-size:.8rem;color:var(--ink-m);margin-top:.5rem;text-align:center;line-height:1.75;}
+.rsvp-list-dm{color:var(--red-d);font-weight:600;}
 
-/* NOTICES COLUMN GRID */
-.board-divider{font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(200,160,80,.35);text-align:center;margin:0 0 1.5rem;}
-.notices-grid{columns:3 240px;column-gap:1.8rem;}
+/* ─────────────────────────────────────────────────────────
+   NOTICES BOARD — masonry-style scattered parchment
+───────────────────────────────────────────────────────── */
+.board-section-label{
+  font-family:'Cinzel',serif;font-size:.6rem;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;color:rgba(200,150,60,.45);
+  text-align:center;margin:0 0 1.2rem;
+  display:flex;align-items:center;gap:.8rem;
+}
+.board-section-label::before,.board-section-label::after{content:'';flex:1;height:1px;background:rgba(180,110,40,.18);}
 
-/* NOTICE CARD with pin */
-.nw{break-inside:avoid;display:inline-block;width:100%;margin-bottom:1.8rem;padding-top:14px;position:relative;}
+.notices-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:2rem;
+  align-items:start;
+}
+/* Each notice wraps pin + card, rotated */
+.nw{position:relative;display:flex;flex-direction:column;align-items:center;}
 /* The thumbtack pin */
-.npin{position:absolute;top:0;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;box-shadow:0 2px 7px rgba(0,0,0,.5),inset 0 1px 2px rgba(255,255,255,.18);z-index:3;}
-.npin.r{background:radial-gradient(circle at 38% 35%,#ff9090,#8b1010);}
-.npin.g{background:radial-gradient(circle at 38% 35%,#ffe090,#8b6010);}
-.npin.gr{background:radial-gradient(circle at 38% 35%,#90e090,#206010);}
-/* Parchment card */
-.nc{padding:1.1rem 1rem .9rem;position:relative;box-shadow:3px 5px 14px rgba(0,0,0,.45),1px 2px 4px rgba(0,0,0,.2);}
-.nc.announcement{background:var(--p0);background-image:radial-gradient(circle at 0% 0%,rgba(160,110,50,.18),transparent 40%),radial-gradient(circle at 100% 100%,rgba(140,90,30,.14),transparent 40%),repeating-linear-gradient(87deg,transparent,transparent 4px,rgba(100,70,20,.025) 4px,rgba(100,70,20,.025) 5px);}
-.nc.warning{background:var(--pw);background-image:radial-gradient(circle at 0% 0%,rgba(180,100,20,.2),transparent 40%),radial-gradient(circle at 100% 100%,rgba(160,80,10,.16),transparent 40%),repeating-linear-gradient(87deg,transparent,transparent 4px,rgba(100,60,10,.03) 4px,rgba(100,60,10,.03) 5px);}
-.nc.event{background:var(--pe);background-image:radial-gradient(circle at 0% 0%,rgba(80,120,50,.15),transparent 40%),radial-gradient(circle at 100% 100%,rgba(60,100,30,.12),transparent 40%),repeating-linear-gradient(87deg,transparent,transparent 4px,rgba(60,90,20,.025) 4px,rgba(60,90,20,.025) 5px);}
-.nc.info{background:var(--pi);background-image:radial-gradient(circle at 0% 0%,rgba(100,80,140,.12),transparent 40%),radial-gradient(circle at 100% 100%,rgba(80,60,120,.1),transparent 40%),repeating-linear-gradient(87deg,transparent,transparent 4px,rgba(80,60,120,.02) 4px,rgba(80,60,120,.02) 5px);}
-.nc.pinned{box-shadow:3px 5px 14px rgba(0,0,0,.45),0 0 0 2px rgba(180,130,30,.5),1px 2px 4px rgba(0,0,0,.2);}
-
-.nc-tag{font-family:'Cinzel',serif;font-size:.58rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-m);margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem;}
-.nc-tag::after{content:'';flex:1;height:1px;background:rgba(100,70,20,.22);}
-.nc-title{font-family:'Cinzel',serif;font-size:.92rem;font-weight:600;color:var(--ink);margin-bottom:.4rem;line-height:1.3;}
-.nc-body{font-size:.87rem;color:var(--ink-m);line-height:1.65;white-space:pre-wrap;}
-.nc-footer{display:flex;align-items:flex-end;justify-content:space-between;margin-top:.65rem;padding-top:.5rem;border-top:1px solid rgba(100,70,20,.18);flex-wrap:wrap;gap:.3rem;}
-.nc-meta{font-size:.66rem;color:var(--ink-l);font-style:italic;}
+.npin{
+  width:18px;height:18px;border-radius:50%;
+  box-shadow:0 3px 8px rgba(0,0,0,.6);
+  position:relative;z-index:5;margin-bottom:-7px;flex-shrink:0;
+}
+.npin.r{background:radial-gradient(circle at 35% 30%,#ff6666,#8b1010);}
+.npin.y{background:radial-gradient(circle at 35% 30%,#ffe066,#a08010);}
+.npin.g{background:radial-gradient(circle at 35% 30%,#88cc66,#2a6010);}
+.npin.b{background:radial-gradient(circle at 35% 30%,#88aaee,#1a3080);}
+/* The parchment card itself */
+.nc{
+  width:100%;
+  border:1.5px solid rgba(100,70,20,.28);border-radius:2px;
+  padding:1rem 1.1rem 1rem;
+  box-shadow:3px 6px 20px rgba(0,0,0,.55),1px 2px 4px rgba(0,0,0,.3);
+  position:relative;
+}
+.nc::before{content:'';position:absolute;inset:6px;border:1px solid rgba(100,70,20,.1);border-radius:1px;pointer-events:none;}
+.nc.cream{background:var(--p-cream);background-image:repeating-linear-gradient(88deg,transparent,transparent 5px,rgba(100,70,20,.018) 5px,rgba(100,70,20,.018) 6px);}
+.nc.aged{background:var(--p-aged);background-image:repeating-linear-gradient(91deg,transparent,transparent 4px,rgba(100,70,20,.015) 4px,rgba(100,70,20,.015) 5px);}
+.nc.sage{background:var(--p-sage);background-image:repeating-linear-gradient(89deg,transparent,transparent 5px,rgba(80,100,40,.015) 5px,rgba(80,100,40,.015) 6px);}
+.nc.grey{background:var(--p-grey);background-image:repeating-linear-gradient(87deg,transparent,transparent 5px,rgba(60,50,80,.015) 5px,rgba(60,50,80,.015) 6px);}
+/* pinned notice gets a thick border */
+.nc.pinned{box-shadow:3px 6px 20px rgba(0,0,0,.55),0 0 0 2px rgba(180,110,40,.4);}
+.nc-tag{font-family:'Cinzel',serif;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-l);margin-bottom:.35rem;display:flex;align-items:center;gap:.4rem;}
+.pin-stamp{background:rgba(139,16,16,.12);border:1px solid rgba(139,16,16,.3);color:var(--red-d);font-size:.48rem;letter-spacing:.08em;padding:.06rem .35rem;border-radius:2px;}
+.nc-title{font-family:'Cinzel',serif;font-size:.92rem;font-weight:700;color:var(--ink);margin-bottom:.4rem;line-height:1.25;}
+.nc-body{font-size:.83rem;color:var(--ink-m);line-height:1.65;margin-bottom:.6rem;}
+.nc-footer{display:flex;align-items:center;justify-content:space-between;gap:.4rem;flex-wrap:wrap;border-top:1px solid rgba(100,70,20,.16);padding-top:.45rem;margin-top:.35rem;}
+.nc-meta{font-size:.68rem;color:var(--ink-l);font-style:italic;}
 .nc-actions{display:flex;gap:.3rem;}
-.pin-stamp{font-family:'Cinzel',serif;font-size:.56rem;font-weight:600;letter-spacing:.1em;color:rgba(140,90,20,.75);border:1px solid rgba(140,90,20,.35);padding:1px 5px;border-radius:2px;}
-.board-empty{text-align:center;padding:4rem 2rem;font-style:italic;color:rgba(200,160,80,.3);font-size:1.1rem;font-family:'Cinzel',serif;letter-spacing:.04em;}
+.board-empty{text-align:center;padding:3rem;font-family:'Cinzel',serif;font-size:.85rem;font-style:italic;color:rgba(200,150,60,.4);}
 
-/* ════════════════════════════════════════════════════
-   SESSIONS CALENDAR
-════════════════════════════════════════════════════ */
-.cal-wrap{max-width:820px;margin:0 auto;padding:1.8rem 2rem 5rem;}
-.cal-parchment{background:#f4e6c0;background-image:radial-gradient(ellipse at 50% 0%,rgba(200,155,50,.12),transparent 55%),repeating-linear-gradient(87deg,transparent,transparent 4px,rgba(100,70,20,.02) 4px,rgba(100,70,20,.02) 5px);border:2px solid rgba(100,70,20,.28);border-radius:2px;padding:2rem 2.5rem;box-shadow:0 8px 32px rgba(0,0,0,.5),inset 0 0 40px rgba(100,70,20,.04);position:relative;}
-.cal-parchment::before{content:'';position:absolute;inset:8px;border:1px solid rgba(100,70,20,.12);border-radius:1px;pointer-events:none;}
-@media(max-width:600px){.cal-parchment{padding:1.2rem 1rem;}}
-.cal-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;margin-bottom:1.4rem;}
-.cal-title{font-family:'Cinzel',serif;font-size:1.4rem;font-weight:600;color:var(--ink);letter-spacing:.04em;}
-.cal-navs{display:flex;gap:.4rem;align-items:center;}
-.cal-nav-btn{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;padding:.32rem .8rem;background:rgba(100,70,20,.1);border:1px solid rgba(100,70,20,.28);border-radius:3px;color:var(--ink-m);cursor:pointer;transition:all .2s;}
-.cal-nav-btn:hover{background:rgba(196,30,30,.1);border-color:rgba(196,30,30,.3);color:var(--red-d);}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:1.4rem;}
-.cal-dh{font-family:'Cinzel',serif;font-size:.62rem;font-weight:600;letter-spacing:.05em;text-align:center;color:var(--ink-l);padding:.4rem 0;border-bottom:1px solid rgba(100,70,20,.18);}
-.cal-d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:2px;font-size:.87rem;color:var(--ink-m);position:relative;transition:background .12s;}
-.cal-d.other{color:rgba(100,70,20,.2);}
-.cal-d.today{background:rgba(100,70,20,.12);font-weight:600;color:var(--ink);}
-.cal-d.session{background:rgba(139,16,16,.12);color:var(--red-d);font-weight:700;cursor:default;border:1px solid rgba(139,16,16,.3);}
-.cal-d.session::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:5px;height:5px;background:var(--red-d);border-radius:50%;}
-.sess-list-title{font-family:'Cinzel',serif;font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-m);border-bottom:1px solid rgba(100,70,20,.22);padding-bottom:.35rem;margin-bottom:.8rem;}
-.sess-row{display:flex;align-items:flex-start;gap:1rem;padding:.65rem 0;border-bottom:1px solid rgba(100,70,20,.1);}
-.sess-row:last-child{border-bottom:none;}
-.sess-date{font-family:'Cinzel',serif;font-size:.88rem;font-weight:600;color:var(--red-d);min-width:88px;}
-.sess-info{flex:1;}
-.sess-name{font-family:'Cinzel',serif;font-size:.85rem;font-weight:600;color:var(--ink);margin-bottom:.12rem;}
-.sess-detail{font-size:.8rem;color:var(--ink-m);}
-.sess-notes{font-size:.76rem;color:var(--ink-l);font-style:italic;margin-top:.1rem;}
-.cal-empty{text-align:center;font-style:italic;color:var(--ink-l);padding:1rem 0;font-size:.9rem;}
+/* ─────────────────────────────────────────────────────────
+   SESSIONS CALENDAR VIEW
+───────────────────────────────────────────────────────── */
+.cal-parchment{
+  background:var(--p-cream);
+  background-image:
+    radial-gradient(ellipse at 10% 0%,rgba(200,155,50,.1),transparent 45%),
+    radial-gradient(ellipse at 90% 100%,rgba(180,130,30,.08),transparent 45%),
+    repeating-linear-gradient(90deg,transparent,transparent 4px,rgba(100,70,20,.016) 4px,rgba(100,70,20,.016) 5px);
+  border:2px solid rgba(100,70,20,.3);border-radius:2px;
+  box-shadow:0 10px 40px rgba(0,0,0,.6),inset 0 0 50px rgba(100,70,20,.03);
+  position:relative;overflow:hidden;
+}
+.cal-parchment::before{content:'';position:absolute;inset:10px;border:1px solid rgba(100,70,20,.12);border-radius:1px;pointer-events:none;z-index:1;}
+.cal-inner{position:relative;z-index:2;}
+/* Cal header */
+.cal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.4rem 2rem .9rem;border-bottom:1px solid rgba(100,70,20,.2);
+}
+.cal-month-title{font-family:'Cinzel',serif;font-size:1.25rem;font-weight:900;color:var(--ink);}
+.cal-nav-btn{
+  background:transparent;border:1px solid rgba(100,70,20,.3);border-radius:3px;
+  padding:.25rem .65rem;cursor:pointer;font-family:'Cinzel',serif;font-size:.72rem;
+  color:var(--ink-m);transition:all .2s;
+}
+.cal-nav-btn:hover{background:rgba(100,70,20,.1);border-color:var(--ink-m);}
+/* Two-column layout */
+.cal-body{display:grid;grid-template-columns:1fr 300px;min-height:360px;}
+@media(max-width:680px){.cal-body{grid-template-columns:1fr;}}
+/* Grid */
+.cal-grid-wrap{padding:1.2rem 2rem 1.4rem 2rem;border-right:1px solid rgba(100,70,20,.18);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-dh{
+  font-family:'Cinzel',serif;font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-l);text-align:center;padding:.3rem 0 .5rem;
+}
+.cal-d{
+  aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-size:.78rem;font-weight:400;color:var(--ink-m);
+  border-radius:3px;cursor:default;position:relative;transition:background .15s;
+  border:1px solid transparent;
+}
+.cal-d.other{color:rgba(100,70,20,.25);}
+.cal-d.today{background:rgba(100,70,20,.12);border-color:rgba(100,70,20,.3);font-weight:700;color:var(--ink);}
+.cal-d.session{
+  background:rgba(139,16,16,.12);border:1px solid rgba(139,16,16,.35);
+  color:var(--red-d);font-weight:700;cursor:pointer;
+}
+.cal-d.session:hover{background:rgba(139,16,16,.22);}
+.cal-d.session.next-sess{
+  background:rgba(139,16,16,.2);border-color:var(--red-d);
+  box-shadow:0 0 0 2px rgba(139,16,16,.25);
+}
+.cal-d.session::after{
+  content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);
+  width:5px;height:5px;background:var(--red-d);border-radius:50%;
+}
+.cal-d.past-session{opacity:.55;}
+/* Detail panel */
+.cal-detail{padding:1.2rem 1.4rem;}
+.cal-detail-title{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-l);margin-bottom:.8rem;}
+.sess-entry{margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid rgba(100,70,20,.15);}
+.sess-entry:last-child{border-bottom:none;margin-bottom:0;}
+.sess-entry-date{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-l);margin-bottom:.2rem;}
+.sess-entry-name{font-family:'Cinzel',serif;font-size:.92rem;font-weight:700;color:var(--ink);margin-bottom:.2rem;}
+.sess-entry-detail{font-size:.8rem;color:var(--ink-m);}
+.sess-entry-badge{
+  display:inline-block;font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.1em;
+  text-transform:uppercase;padding:.1rem .5rem;border-radius:2px;margin-top:.3rem;
+}
+.sess-entry-badge.upcoming{background:rgba(100,70,20,.1);border:1px solid rgba(100,70,20,.3);color:var(--ink-l);}
+.sess-entry-badge.today{background:rgba(139,16,16,.12);border:1px solid rgba(139,16,16,.35);color:var(--red-d);}
+.sess-entry-badge.past{background:rgba(100,70,20,.06);border:1px solid rgba(100,70,20,.18);color:rgba(100,70,20,.5);}
+.sess-entry-badge.next{background:rgba(180,110,40,.15);border:1px solid var(--gold-d);color:var(--gold-d);}
+.cal-empty{font-style:italic;color:var(--ink-l);font-size:.82rem;padding:1rem 0;}
+/* Add session btn area */
+.cal-footer{padding:.8rem 2rem;border-top:1px solid rgba(100,70,20,.18);display:flex;justify-content:flex-end;gap:.5rem;}
 
-/* ── MODALS ── */
-.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500;align-items:center;justify-content:center;padding:1rem;}
+/* ─────────────────────────────────────────────────────────
+   MODALS
+───────────────────────────────────────────────────────── */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:300;align-items:center;justify-content:center;padding:1rem;}
 .mbg.open{display:flex;}
-.mc{background:#1e1610;border:1px solid rgba(180,110,40,.4);border-radius:6px;padding:1.8rem;width:100%;max-width:500px;position:relative;max-height:85vh;overflow-y:auto;}
-.mc-title{font-family:'Cinzel',serif;font-size:.95rem;font-weight:600;color:var(--text);border-bottom:1px solid rgba(180,110,40,.28);padding-bottom:.5rem;margin-bottom:1.1rem;}
-.mc-close{position:absolute;top:.9rem;right:.9rem;background:transparent;border:none;color:var(--text-d);font-size:1.1rem;cursor:pointer;}
-.mc-close:hover{color:var(--text);}
-.mfg{margin-bottom:.85rem;}
-.mfl{display:block;font-family:'Cinzel',serif;font-size:.64rem;letter-spacing:.1em;color:var(--text-m);margin-bottom:.28rem;text-transform:uppercase;}
-.mfi{width:100%;background:rgba(13,6,4,.7);border:1px solid rgba(180,110,40,.32);border-radius:4px;padding:.52rem .8rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:.95rem;outline:none;}
-.mfi:focus{border-color:rgba(180,110,40,.6);}
-textarea.mfi{resize:vertical;min-height:80px;}
-.two-col-form{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}
-@media(max-width:480px){.two-col-form{grid-template-columns:1fr;}}
-.mc-actions{display:flex;gap:.6rem;margin-top:1.1rem;}
-.mfe{font-size:.74rem;color:var(--red);margin-bottom:.5rem;display:none;}
-.ck-label{display:flex;align-items:center;gap:.4rem;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.07em;color:var(--text-m);cursor:pointer;}
+.mc{background:#1e1916;border:1px solid rgba(196,30,30,.35);border-radius:6px;padding:1.8rem;width:100%;max-width:440px;position:relative;max-height:90vh;overflow-y:auto;}
+.mc-close{position:absolute;top:.8rem;right:.8rem;background:transparent;border:none;color:var(--text-d);cursor:pointer;font-size:1rem;}
+.mc-title{font-family:'Cinzel',serif;font-size:1rem;color:var(--text);border-bottom:1px solid rgba(180,110,40,.2);padding-bottom:.4rem;margin-bottom:1rem;}
+.mfg{margin-bottom:.7rem;}
+.mfl{display:block;font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-m);margin-bottom:.25rem;}
+.mfi{width:100%;background:rgba(13,8,4,.7);border:1px solid rgba(180,110,40,.25);border-radius:4px;padding:.52rem .8rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:.92rem;outline:none;}
+.mfi:focus{border-color:var(--gold-d);}
+.mc-footer{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem;}
+.mc-err{font-size:.78rem;color:var(--red);margin-top:.4rem;display:none;}
 
-/* ── TOASTS ── */
-.toasts{position:fixed;bottom:1.5rem;right:1.5rem;z-index:600;display:flex;flex-direction:column;gap:.4rem;}
-.toast{background:#1e1610;border:1px solid;border-radius:4px;padding:.6rem 1rem;font-size:.84rem;min-width:200px;animation:tin .25s ease;}
+/* ─────────────────────────────────────────────────────────
+   SPINNER / TOASTS
+───────────────────────────────────────────────────────── */
+.spinner{width:22px;height:22px;border:2px solid rgba(200,160,80,.15);border-top-color:rgba(200,160,80,.4);border-radius:50%;animation:spin .8s linear infinite;margin:1rem auto;display:block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toasts{position:fixed;bottom:1.5rem;right:1.5rem;z-index:400;display:flex;flex-direction:column;gap:.4rem;}
+.toast{background:#1e1916;border:1px solid;border-radius:4px;padding:.6rem 1rem;font-size:.82rem;animation:tin .25s ease;color:var(--text);}
 @keyframes tin{from{opacity:0;transform:translateY(8px);}to{opacity:1;}}
 .toast.success{border-color:#4a8030;color:#80c060;}
 .toast.error{border-color:var(--red-d);color:var(--red);}
 .toast.info{border-color:var(--gold-d);color:var(--gold);}
-.spinner{width:26px;height:26px;border:2px solid rgba(200,160,80,.2);border-top-color:rgba(200,160,80,.5);border-radius:50%;animation:spin .8s linear infinite;margin:2rem auto;display:block;}
-@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- ═══════════════════════════════════════════════════════
+     LOGIN SCREEN
+════════════════════════════════════════════════════════ -->
 <div id="screen-login">
   <div class="lc">
     <div class="lc-logo">
-      <h1>The <b>Quest Board</b></h1>
-      <p>Sign in to view notices &amp; sessions</p>
+      <div class="lc-logo-title">&#9878; The Quest Board</div>
+      <div class="lc-logo-sub">D&amp;D Club — JCCA</div>
     </div>
-    <div class="fg"><label class="fl">Username</label>
-      <input class="fi" id="l-user" type="text" placeholder="Your username" autocomplete="username"
-        onkeydown="if(event.key==='Enter')document.getElementById('l-pass').focus()"></div>
-    <div class="fg"><label class="fl">Password</label>
-      <input class="fi" id="l-pass" type="password" placeholder="Your password" autocomplete="current-password"
-        onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <p class="fe" id="l-err"></p>
-    <button class="lbtn" id="l-btn" onclick="doLogin()">Enter the Quest Board →</button>
-    <div class="ll">
-      <a href="register.html">Request account</a>
-      <a href="index.html">← Back to Emporium</a>
+    <label class="lfl">Username</label>
+    <input class="lfi" id="l-user" type="text" placeholder="your username" autocomplete="username">
+    <label class="lfl">Password</label>
+    <input class="lfi" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="lerr" id="l-err"></div>
+    <button class="btn btn-red btn-block" style="margin-top:.6rem;" onclick="doLogin()">Enter the Board</button>
+    <div style="text-align:center;margin-top:.9rem;font-size:.75rem;color:var(--text-d);">
+      No account? <a href="register.html" style="color:var(--gold-d);text-decoration:none;">Request access</a>
     </div>
   </div>
 </div>
 
-<!-- APP -->
-<div id="screen-app">
+<!-- ═══════════════════════════════════════════════════════
+     MAIN APP
+════════════════════════════════════════════════════════ -->
+<div id="screen-app" style="display:none;">
+  <!-- Topbar -->
   <div class="topbar">
-    <div class="tb-brand">The <b>Quest Board</b></div>
-    <div class="view-btns">
-      <button class="vbtn active" id="vb-board"    onclick="switchView('board')">&#128218; Notices</button>
-      <button class="vbtn"        id="vb-calendar" onclick="switchView('calendar')">&#128197; Sessions</button>
-    </div>
+    <div class="tb-brand">&#9878; <b>Quest Board</b></div>
     <div class="tb-right">
-      <span class="tb-user" id="tb-user"></span>
-      <button class="btn btn-red btn-sm" id="btn-post" style="display:none" onclick="openPostModal()">+ Post Notice</button>
+      <!-- Post button: DM ONLY — hidden by default, shown in showApp() for DM role -->
+      <button class="btn btn-red btn-sm" id="btn-post" style="display:none;" onclick="openPostModal()">+ Post Notice</button>
+      <button class="btn btn-gold btn-sm" id="btn-add-session" style="display:none;" onclick="openSessionModal()">+ Schedule Session</button>
+      <a href="shop_portal.html" class="btn btn-ghost btn-sm">Portal</a>
+      <a href="index.html" class="btn btn-ghost btn-sm">&#8962; Home</a>
       <button class="btn btn-ghost btn-sm" onclick="doSignOut()">Sign Out</button>
-      <a href="index.html" class="btn btn-ghost btn-sm">&#8592; Home</a>
     </div>
   </div>
 
-  <!-- BOARD VIEW -->
+  <!-- View tabs -->
+  <div class="view-tabs">
+    <button class="vbtn active" id="vb-board" onclick="switchView('board')">&#128218; Notices</button>
+    <button class="vbtn" id="vb-calendar" onclick="switchView('calendar')">&#128197; Sessions</button>
+  </div>
+
+  <!-- ── BOARD VIEW ── -->
   <div id="view-board" class="board-wrap">
-    <!-- Next Session Scroll -->
-    <div class="scroll-outer">
-      <div class="scroll-roller"></div>
-      <div class="scroll-body" id="next-session-body"><div class="spinner"></div></div>
-      <div class="scroll-roller"></div>
+    <!-- Next Session scroll -->
+    <div class="ns-outer">
+      <div class="ns-tack tl"></div>
+      <div class="ns-tack tr"></div>
+      <div class="ns-scroll" id="next-session-scroll">
+        <div class="ns-inner-border"></div>
+        <div class="spinner"></div>
+      </div>
     </div>
+
     <!-- Notices -->
-    <div class="board-divider">&#9878; &nbsp; Posted Notices &nbsp; &#9878;</div>
-    <div class="notices-grid" id="notices-grid"><div class="spinner"></div></div>
+    <div class="board-section-label">&#9878; &nbsp; Posted Notices &nbsp; &#9878;</div>
+    <div class="notices-grid" id="notices-grid">
+      <div class="spinner"></div>
+    </div>
   </div>
 
-  <!-- CALENDAR VIEW -->
-  <div id="view-calendar" style="display:none" class="cal-wrap">
+  <!-- ── CALENDAR VIEW ── -->
+  <div id="view-calendar" style="display:none;" class="board-wrap" style="padding-top:1.4rem;">
     <div class="cal-parchment">
-      <div class="cal-header">
-        <div class="cal-navs">
-          <button class="cal-nav-btn" onclick="calMove(-1)">&#8249; Prev</button>
-          <div class="cal-title" id="cal-title"></div>
-          <button class="cal-nav-btn" onclick="calMove(1)">Next &#8250;</button>
+      <div class="cal-inner">
+        <div class="cal-header">
+          <button class="cal-nav-btn" onclick="calMove(-1)">&#8592; Prev</button>
+          <div class="cal-month-title" id="cal-title"></div>
+          <button class="cal-nav-btn" onclick="calMove(1)">Next &#8594;</button>
         </div>
-        <button class="btn btn-gold btn-sm" id="btn-add-session" style="display:none" onclick="openSessionModal()">+ Schedule Session</button>
+        <div class="cal-body">
+          <div class="cal-grid-wrap">
+            <div class="cal-grid" id="cal-grid"></div>
+          </div>
+          <div class="cal-detail">
+            <div class="cal-detail-title">Sessions This Month</div>
+            <div id="sess-list"><div class="cal-empty">No sessions this month.</div></div>
+          </div>
+        </div>
+        <div class="cal-footer" id="cal-footer"></div>
       </div>
-      <div class="cal-grid" id="cal-grid"></div>
-      <div class="sess-list-title">Sessions This Month</div>
-      <div id="sess-list"></div>
     </div>
   </div>
 </div>
 
-<!-- MODAL: POST NOTICE (DM only) -->
+<!-- ═══ MODAL: POST NOTICE (DM ONLY) ═════════════════════ -->
 <div class="mbg" id="m-post">
   <div class="mc">
     <button class="mc-close" onclick="closeModal('m-post')">&#x2715;</button>
-    <div class="mc-title">Post a Notice</div>
+    <div class="mc-title">&#9878; Post a Notice</div>
     <div class="mfg"><label class="mfl">Title</label><input class="mfi" id="pn-title" type="text" maxlength="80" placeholder="Notice heading"></div>
-    <div class="two-col-form">
-      <div class="mfg"><label class="mfl">Type</label>
-        <select class="mfi" id="pn-type">
-          <option value="announcement">Announcement</option>
-          <option value="event">Event</option>
-          <option value="info">Info / Rule</option>
-          <option value="warning">Warning</option>
-        </select>
-      </div>
-      <div class="mfg" style="display:flex;align-items:flex-end;padding-bottom:.05rem;">
-        <label class="ck-label"><input type="checkbox" id="pn-pinned"> &nbsp;PIN TO TOP</label>
-      </div>
+    <div class="mfg"><label class="mfl">Message</label><textarea class="mfi" id="pn-body" rows="4" maxlength="600" placeholder="Notice content..."></textarea></div>
+    <div class="mfg">
+      <label class="mfl">Type</label>
+      <select class="mfi" id="pn-type">
+        <option value="announcement">&#128226; Announcement</option>
+        <option value="quest">&#9878; Quest</option>
+        <option value="reward">&#127381; Reward</option>
+        <option value="rules">&#128218; Rules</option>
+        <option value="urgent">&#9888; Urgent</option>
+      </select>
     </div>
-    <div class="mfg"><label class="mfl">Message</label><textarea class="mfi" id="pn-body" rows="5" placeholder="Write your notice here..."></textarea></div>
-    <p class="mfe" id="pn-err"></p>
-    <div class="mc-actions">
+    <div class="mfg" style="display:flex;align-items:center;gap:.5rem;">
+      <input type="checkbox" id="pn-pinned" style="width:14px;height:14px;">
+      <label class="mfl" for="pn-pinned" style="margin:0;cursor:pointer;">Pin to top of board</label>
+    </div>
+    <div class="mc-err" id="pn-err"></div>
+    <div class="mc-footer">
       <button class="btn btn-ghost" onclick="closeModal('m-post')">Cancel</button>
       <button class="btn btn-red" onclick="submitNotice()">Post Notice</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: ADD SESSION (DM only) -->
+<!-- ═══ MODAL: ADD SESSION (DM ONLY) ════════════════════ -->
 <div class="mbg" id="m-session">
   <div class="mc">
     <button class="mc-close" onclick="closeModal('m-session')">&#x2715;</button>
-    <div class="mc-title">Schedule a Session</div>
-    <div class="mfg"><label class="mfl">Session Title</label><input class="mfi" id="ss-title" type="text" placeholder="e.g. Session 12 — The Dark Citadel"></div>
-    <div class="two-col-form">
-      <div class="mfg"><label class="mfl">Date</label><input class="mfi" id="ss-date" type="date"></div>
-      <div class="mfg"><label class="mfl">Time</label><input class="mfi" id="ss-time" type="text" placeholder="e.g. 3:30 PM – 5:00 PM"></div>
-    </div>
-    <div class="mfg"><label class="mfl">Location (optional)</label><input class="mfi" id="ss-loc" type="text" placeholder="e.g. Room 24"></div>
-    <div class="mfg"><label class="mfl">Notes (optional)</label><textarea class="mfi" id="ss-notes" rows="2" placeholder="Any extra info for players..."></textarea></div>
-    <p class="mfe" id="ss-err"></p>
-    <div class="mc-actions">
+    <div class="mc-title">&#128197; Schedule Session</div>
+    <div class="mfg"><label class="mfl">Session Title</label><input class="mfi" id="ss-title" type="text" placeholder="e.g. The Sunken Temple"></div>
+    <div class="mfg"><label class="mfl">Date</label><input class="mfi" id="ss-date" type="date"></div>
+    <div class="mfg"><label class="mfl">Time (optional)</label><input class="mfi" id="ss-time" type="text" placeholder="e.g. 3:30 PM – 5:00 PM"></div>
+    <div class="mfg"><label class="mfl">Location (optional)</label><input class="mfi" id="ss-loc" type="text" placeholder="e.g. Room L14"></div>
+    <div class="mfg"><label class="mfl">Notes (optional)</label><textarea class="mfi" id="ss-notes" rows="2" placeholder="Anything students should know..."></textarea></div>
+    <div class="mc-err" id="ss-err"></div>
+    <div class="mc-footer">
       <button class="btn btn-ghost" onclick="closeModal('m-session')">Cancel</button>
-      <button class="btn btn-gold" onclick="submitSession()">Schedule Session</button>
+      <button class="btn btn-red" onclick="submitSession()">Schedule</button>
     </div>
   </div>
 </div>
@@ -316,18 +487,15 @@ textarea.mfi{resize:vertical;min-height:80px;}
 <div class="toasts" id="toasts"></div>
 
 <script>
-// ═══════════════════════════════════════════════════
-//  FIREBASE
-// ═══════════════════════════════════════════════════
+// ── FIREBASE ──────────────────────────────────────────────────────
 firebase.initializeApp({
   apiKey:'AIzaSyAWpUnUirhcI3nhW9WF_7aqDInOCvIbsIY',
-  authDomain:'jcca-dnd.firebaseapp.com',
-  projectId:'jcca-dnd',
+  authDomain:'jcca-dnd.firebaseapp.com',projectId:'jcca-dnd',
   storageBucket:'jcca-dnd.firebasestorage.app',
   messagingSenderId:'128758977152',
-  appId:'1:128758977152:web:f43ef158eedf82614ccc65',
+  appId:'1:128758977152:web:f43ef158eedf82614ccc65'
 });
-const auth=firebase.auth(), db=firebase.firestore();
+const auth=firebase.auth(),db=firebase.firestore();
 
 async function verifyPassword(pw,stored){
   const enc=new TextEncoder(),[saltB64,hashB64]=stored.split(':');
@@ -337,90 +505,90 @@ async function verifyPassword(pw,stored){
   return btoa(String.fromCharCode(...new Uint8Array(bits)))===hashB64;
 }
 
-// ═══════════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════════
-let user=null, role=null, name=null;
-let notices=[], sessions=[], sessionRsvps=[], myRsvp=null;
-let calMonth=new Date(); calMonth.setDate(1);
-const ROTS=[-2.1,1.4,-0.8,2.3,-1.5,0.9,-2.7,1.2,-0.4,1.9,-1.1,2.5,-1.8,0.6];
-const TYPE_TAG={announcement:'📢 Announcement',info:'📋 Info',warning:'⚠ Warning',event:'📅 Event'};
-const PIN_COL={announcement:'r',info:'g',warning:'r',event:'gr'};
+// ── CONSTANTS ─────────────────────────────────────────────────────
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAYS_SHORT=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+// Card rotation pool — subtle, not gimmicky
+const ROTS=[-2.2,-1.1,0,1.1,2.2,-1.8,1.8,-0.7,0.7,-2.5,2.5,0];
+// Pin colours cycling per card index
+const PINS=['r','y','g','b','r','r','y','g'];
+// Parchment textures cycling
+const TEXTURES=['cream','aged','sage','grey','cream','aged'];
+// Notice type display labels
+const TYPE_LABELS={announcement:'&#128226; Announcement',quest:'&#9878; Quest',reward:'&#127381; Reward',rules:'&#128218; Rules',urgent:'&#9888; Urgent'};
 
-// ═══════════════════════════════════════════════════
-//  BOOT / AUTH
-// ═══════════════════════════════════════════════════
+// ── STATE ─────────────────────────────────────────────────────────
+let user=null,role=null,name=null;
+let notices=[],sessions=[],sessionRsvps=[],myRsvp=null;
+let calMonth=new Date();calMonth.setDate(1);
+
+// ── BOOT ──────────────────────────────────────────────────────────
 async function boot(){
-  try{await auth.signInAnonymously();}catch(e){console.error(e);}
+  try{await auth.signInAnonymously();}catch(e){}
   for(const k of['dnd_username','dm_username']){
     const saved=sessionStorage.getItem(k);
     if(!saved)continue;
     try{
       const doc=await db.collection('Users').doc(saved).get();
       if(doc.exists){const d=doc.data();user=saved;role=d.role;name=d.playerName||saved;showApp();return;}
-    }catch(e){console.error(e);}
+    }catch(e){}
   }
   document.getElementById('screen-login').classList.add('show');
 }
 
 async function doLogin(){
   const u=document.getElementById('l-user').value.trim();
-  const p=document.getElementById('l-pass').value;
-  const errEl=document.getElementById('l-err'),btn=document.getElementById('l-btn');
+  const pw=document.getElementById('l-pass').value;
+  const errEl=document.getElementById('l-err');
   errEl.style.display='none';
-  if(!u||!p){errEl.textContent='Please enter username and password.';errEl.style.display='block';return;}
-  btn.disabled=true;btn.textContent='Signing in...';
+  if(!u||!pw){errEl.textContent='Please enter username and password.';errEl.style.display='block';return;}
   try{
     const doc=await db.collection('Users').doc(u).get();
-    if(!doc.exists){errEl.textContent='Username not found.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter the Quest Board →';return;}
-    const d=doc.data();
-    if(!await verifyPassword(p,d.passwordHash)){errEl.textContent='Incorrect password.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter the Quest Board →';return;}
-    user=u;role=d.role;name=d.playerName||u;
+    if(!doc.exists||!await verifyPassword(pw,doc.data().passwordHash)){
+      errEl.textContent='Invalid username or password.';errEl.style.display='block';return;
+    }
+    const d=doc.data();user=u;role=d.role;name=d.playerName||u;
     sessionStorage.setItem(d.role==='dm'?'dm_username':'dnd_username',u);
     showApp();
-  }catch(e){console.error(e);errEl.textContent='Login failed.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter the Quest Board →';}
+  }catch(e){errEl.textContent='Login failed. Please try again.';errEl.style.display='block';}
 }
 
 function doSignOut(){
   ['dnd_username','dm_username'].forEach(k=>sessionStorage.removeItem(k));
-  user=null;
-  document.getElementById('screen-app').classList.remove('show');
+  user=null;role=null;name=null;notices=[];sessions=[];
+  document.getElementById('screen-app').style.display='none';
   document.getElementById('screen-login').classList.add('show');
 }
 
 function showApp(){
   document.getElementById('screen-login').classList.remove('show');
-  document.getElementById('screen-app').classList.add('show');
-  document.getElementById('tb-user').textContent=name;
-  if(role==='dm'){
-    document.getElementById('btn-post').style.display='inline-flex';
-    document.getElementById('btn-add-session').style.display='inline-flex';
-  }
+  document.getElementById('screen-app').style.display='block';
+  // DM-ONLY controls: post button, add session button
+  // Players NEVER see these buttons — role is the sole gate
+  const isDM=role==='dm';
+  document.getElementById('btn-post').style.display=isDM?'inline-flex':'none';
+  document.getElementById('btn-add-session').style.display=isDM?'inline-flex':'none';
   loadAll();
 }
 
-// ═══════════════════════════════════════════════════
-//  DATA
-// ═══════════════════════════════════════════════════
+// ── DATA LOADING ──────────────────────────────────────────────────
 async function loadAll(){await Promise.all([loadNotices(),loadSessions()]);}
 
 async function loadNotices(){
   try{
-    const snap=await db.collection('Notices').orderBy('createdAt','desc').get();
+    // No orderBy to avoid index requirement — sort client-side
+    const snap=await db.collection('Notices').get();
     notices=snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderNextSession();
     renderBoard();
   }catch(e){console.error(e);}
 }
 
 async function loadSessions(){
   try{
-    const snap=await db.collection('Sessions').orderBy('date','asc').get();
-    sessions=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const snap=await db.collection('Sessions').get();
+    sessions=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>new Date(a.date)-new Date(b.date));
     const ns=getNextSession();
-    if(ns) await loadRsvps(ns.id);
+    if(ns)await loadRsvps(ns.id);
     renderNextSession();
     if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();
   }catch(e){console.error(e);}
@@ -434,38 +602,36 @@ async function loadRsvps(sessionId){
   }catch(e){console.error(e);sessionRsvps=[];myRsvp=null;}
 }
 
-// ═══════════════════════════════════════════════════
-//  NEXT SESSION SCROLL
-// ═══════════════════════════════════════════════════
+// ── NEXT SESSION SCROLL ───────────────────────────────────────────
 function getNextSession(){
   const now=new Date();now.setHours(0,0,0,0);
-  return sessions.filter(s=>new Date(s.date)>=now).sort((a,b)=>new Date(a.date)-new Date(b.date))[0]||null;
+  return sessions.filter(s=>new Date(s.date+'T12:00:00')>=now)
+                 .sort((a,b)=>new Date(a.date)-new Date(b.date))[0]||null;
 }
+
 function countdown(dateStr){
   const now=new Date();now.setHours(0,0,0,0);
-  const d=new Date(dateStr);d.setHours(0,0,0,0);
+  const d=new Date(dateStr+'T12:00:00');d.setHours(0,0,0,0);
   const diff=Math.round((d-now)/86400000);
-  if(diff===0)return'📅 TODAY!';
-  if(diff===1)return'📅 Tomorrow!';
-  if(diff<0)return`${Math.abs(diff)} days ago`;
-  return`📅 In ${diff} day${diff!==1?'s':''}`;
+  if(diff===0)return'&#128197; TODAY!';
+  if(diff===1)return'&#128197; Tomorrow!';
+  if(diff<0)return`${Math.abs(diff)} day${Math.abs(diff)!==1?'s':''} ago`;
+  return`&#128197; In ${diff} day${diff!==1?'s':''}`;
 }
 
 function renderNextSession(){
   const ns=getNextSession();
-  const body=document.getElementById('next-session-body');
-  if(!ns){body.innerHTML='<div class="ns-empty">No sessions scheduled yet — check back soon!</div>';return;}
+  const el=document.getElementById('next-session-scroll');
+  if(!ns){
+    el.innerHTML='<div class="ns-inner-border"></div><p style="text-align:center;font-family:\'Cinzel\',serif;font-size:.85rem;color:var(--ink-l);font-style:italic;padding:1.5rem 0;">No upcoming sessions scheduled — check back soon!</p>';
+    return;
+  }
   const d=new Date(ns.date+'T12:00:00');
   const dayName=d.toLocaleDateString('en-AU',{weekday:'long'});
   const dateStr=d.toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
-  const deleteBtn=role==='dm'?`<div style="text-align:right;margin-top:.7rem;"><button class="btn btn-danger btn-sm" onclick="deleteSession('${ns.id}')">Remove Session</button></div>`:'';
-
-  // RSVP counts
   const playerCount=sessionRsvps.filter(r=>r.role==='player').length;
   const dmCount=sessionRsvps.filter(r=>r.role==='dm').length;
-  const myStatus=myRsvp?`You're signed up as <strong>${myRsvp.role==='dm'?'Dungeon Master':'Player'}</strong> ✓`:'';
 
-  // RSVP buttons (players only — DMs use DM Tools for attendance)
   let rsvpPanel='';
   if(role!=='dm'){
     const isPlayer=myRsvp&&myRsvp.role==='player';
@@ -473,60 +639,46 @@ function renderNextSession(){
     rsvpPanel=`<div class="rsvp-panel">
       <div class="rsvp-title">Will you be there?</div>
       <div class="rsvp-btns">
-        <button class="rsvp-btn player${isPlayer?' active':''}" onclick="doRsvp('${ns.id}','player')">
-          ⚔️ I'll attend as a Player
-        </button>
-        <button class="rsvp-btn dm-role${isDmR?' active':''}" onclick="doRsvp('${ns.id}','dm')">
-          🎲 I'm available to DM
-        </button>
+        <button class="rsvp-btn player${isPlayer?' active':''}" onclick="doRsvp('${ns.id}','player')">&#9876; I'll attend as Player</button>
+        <button class="rsvp-btn dm-role${isDmR?' active':''}" onclick="doRsvp('${ns.id}','dm')">&#127922; I'm available to DM</button>
         ${myRsvp?`<button class="rsvp-btn cancel" onclick="cancelRsvp('${ns.id}')">Remove my sign-up</button>`:''}
       </div>
-      ${myStatus?`<div class="rsvp-my-status">${myStatus}</div>`:''}
+      ${myRsvp?`<div class="rsvp-my-status">You're signed up as <strong>${myRsvp.role==='dm'?'Dungeon Master':'Player'}</strong> &#10003;</div>`:''}
       <div class="rsvp-counts">
-        <span>⚔️ <b>${playerCount}</b> player${playerCount!==1?'s':''}</span>
-        <span>🎲 <b>${dmCount}</b> DM${dmCount!==1?'s':''}</span>
+        <span>&#9876; <b>${playerCount}</b> player${playerCount!==1?'s':''}</span>
+        <span>&#127922; <b>${dmCount}</b> DM${dmCount!==1?'s':''}</span>
       </div>
-      <div style="text-align:center;font-size:.72rem;color:var(--ink-l);font-style:italic;margin-top:.35rem;">
-        Signing up earns you a bonus item in your reward chest!
-      </div>
+      <div style="text-align:center;font-size:.7rem;color:var(--ink-l);font-style:italic;margin-top:.3rem;">Signing up earns a bonus item in your reward chest!</div>
     </div>`;
-  } else {
-    // DM view: see who signed up
-    const playerNames=sessionRsvps.filter(r=>r.role==='player').map(r=>`<span>${esc(r.playerName||r.playerId)}</span>`).join(', ');
-    const dmNames=sessionRsvps.filter(r=>r.role==='dm').map(r=>`<span class="rsvp-list-item-dm">${esc(r.playerName||r.playerId)}</span>`).join(', ');
+  }else{
+    const pNames=sessionRsvps.filter(r=>r.role==='player').map(r=>esc(r.playerName||r.playerId)).join(', ');
+    const dNames=sessionRsvps.filter(r=>r.role==='dm').map(r=>`<span class="rsvp-list-dm">${esc(r.playerName||r.playerId)}</span>`).join(', ');
     rsvpPanel=`<div class="rsvp-panel">
       <div class="rsvp-title">Sign-ups</div>
-      <div class="rsvp-counts">
-        <span>⚔️ <b>${playerCount}</b> player${playerCount!==1?'s':''}</span>
-        <span>🎲 <b>${dmCount}</b> DM${dmCount!==1?'s':''}</span>
-      </div>
-      ${sessionRsvps.length?`<div class="rsvp-list">
-        ${dmNames?`<div>🎲 DM available: ${dmNames}</div>`:''}
-        ${playerNames?`<div>⚔️ Players: ${playerNames}</div>`:''}
-      </div>`:'<div style="text-align:center;font-size:.78rem;color:var(--ink-l);font-style:italic;margin-top:.4rem;">No sign-ups yet.</div>'}
+      <div class="rsvp-counts"><span>&#9876; <b>${playerCount}</b> players</span><span>&#127922; <b>${dmCount}</b> DM</span></div>
+      ${sessionRsvps.length?`<div class="rsvp-list">${dNames?`<div>&#127922; ${dNames}</div>`:''}${pNames?`<div>&#9876; ${pNames}</div>`:''}</div>`:'<div style="text-align:center;font-size:.76rem;color:var(--ink-l);font-style:italic;margin-top:.4rem;">No sign-ups yet.</div>'}
+      <div style="text-align:right;margin-top:.5rem;"><button class="btn btn-danger btn-sm" onclick="deleteSession('${ns.id}')">Remove Session</button></div>
     </div>`;
   }
 
-  body.innerHTML=`
-    <div class="ns-seal" style="position:absolute;right:1.2rem;top:50%;transform:translateY(-50%);">&#9876;</div>
+  el.innerHTML=`<div class="ns-inner-border"></div>
+    <div class="ns-seal">&#9876;</div>
     <div class="ns-eyebrow">Next Session</div>
-    <div class="ns-title">${esc(ns.title||'D&amp;D Session')}</div>
+    <div class="ns-title">${esc(ns.title||'D&D Session')}</div>
     <div class="ns-details">
-      <div class="ns-det"><div class="ns-det-lbl">Day</div><div class="ns-det-val">${dayName}</div></div>
-      <div class="ns-det"><div class="ns-det-lbl">Date</div><div class="ns-det-val">${dateStr}</div></div>
-      ${ns.time?`<div class="ns-det"><div class="ns-det-lbl">Time</div><div class="ns-det-val">${esc(ns.time)}</div></div>`:''}
-      ${ns.location?`<div class="ns-det"><div class="ns-det-lbl">Where</div><div class="ns-det-val">${esc(ns.location)}</div></div>`:''}
+      <div><div class="ns-det-lbl">Day</div><div class="ns-det-val">${dayName}</div></div>
+      <div><div class="ns-det-lbl">Date</div><div class="ns-det-val">${dateStr}</div></div>
+      ${ns.time?`<div><div class="ns-det-lbl">Time</div><div class="ns-det-val">${esc(ns.time)}</div></div>`:''}
+      ${ns.location?`<div><div class="ns-det-lbl">Where</div><div class="ns-det-val">${esc(ns.location)}</div></div>`:''}
     </div>
     <div class="ns-countdown">${countdown(ns.date)}</div>
-    ${ns.notes?`<p style="text-align:center;font-size:.85rem;color:var(--ink-m);margin-top:.65rem;font-style:italic;">${esc(ns.notes)}</p>`:''}
-    ${rsvpPanel}
-    ${deleteBtn}`;
+    ${ns.notes?`<p style="font-size:.84rem;color:var(--ink-m);margin-top:.6rem;font-style:italic;">${esc(ns.notes)}</p>`:''}
+    ${rsvpPanel}`;
 }
 
-// ═══════════════════════════════════════════════════
-//  NOTICES BOARD
-// ═══════════════════════════════════════════════════
+// ── NOTICES BOARD ─────────────────────────────────────────────────
 function sortNotices(arr){
+  // pinned sort by pinnedAt desc, then unpinned by createdAt desc
   const pinned=arr.filter(n=>n.pinned).sort((a,b)=>new Date(b.pinnedAt||b.createdAt)-new Date(a.pinnedAt||a.createdAt));
   const regular=arr.filter(n=>!n.pinned).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
   return[...pinned,...regular];
@@ -535,25 +687,23 @@ function sortNotices(arr){
 function renderBoard(){
   const sorted=sortNotices(notices);
   const grid=document.getElementById('notices-grid');
-  if(!sorted.length){grid.innerHTML='<div class="board-empty">No notices have been posted yet.<br>Check back after your next session!</div>';return;}
+  if(!sorted.length){grid.innerHTML=`<div class="board-empty" style="grid-column:1/-1;">The board is empty — no notices posted yet.</div>`;return;}
   grid.innerHTML=sorted.map((n,i)=>{
     const rot=ROTS[i%ROTS.length];
-    const pin=PIN_COL[n.type||'announcement']||'r';
-    const type=n.type||'announcement';
-    const pinnedClass=n.pinned?' pinned':'';
-    const dmBtns=role==='dm'?`
-      <div class="nc-actions">
-        <button class="btn btn-sm ${n.pinned?'btn-gold':'btn-ghost'}" onclick="togglePin('${n.id}',${!!n.pinned})">
-          ${n.pinned?'📌 Unpin':'📌 Pin'}
-        </button>
-        <button class="btn btn-sm btn-danger" onclick="deleteNotice('${n.id}')">✕</button>
-      </div>`:'';
-    const pinnedStamp=n.pinned?'<span class="pin-stamp">PINNED</span>':'';
+    const pin=PINS[i%PINS.length];
+    const tex=TEXTURES[i%TEXTURES.length];
     const dateStr=n.createdAt?new Date(n.createdAt).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}):'';
+    // DM-only action buttons — players see nothing
+    const dmBtns=role==='dm'?`<div class="nc-actions">
+      <button class="btn btn-sm ${n.pinned?'btn-gold':'btn-ghost'}" onclick="togglePin('${n.id}',${!!n.pinned})" title="${n.pinned?'Unpin notice':'Pin to top'}">
+        ${n.pinned?'&#128204; Unpin':'&#128204; Pin'}
+      </button>
+      <button class="btn btn-sm btn-danger" onclick="deleteNotice('${n.id}')" title="Delete notice">&#x2715;</button>
+    </div>`:'';
     return`<div class="nw" style="transform:rotate(${rot}deg)">
       <div class="npin ${pin}"></div>
-      <div class="nc ${type}${pinnedClass}">
-        <div class="nc-tag">${TYPE_TAG[type]||type} ${pinnedStamp}</div>
+      <div class="nc ${tex}${n.pinned?' pinned':''}">
+        <div class="nc-tag">${TYPE_LABELS[n.type||'announcement']||'Notice'} ${n.pinned?'<span class="pin-stamp">PINNED</span>':''}</div>
         <div class="nc-title">${esc(n.title)}</div>
         <div class="nc-body">${escNL(n.body)}</div>
         <div class="nc-footer">
@@ -565,74 +715,92 @@ function renderBoard(){
   }).join('');
 }
 
-// ═══════════════════════════════════════════════════
-//  CALENDAR
-// ═══════════════════════════════════════════════════
+// ── CALENDAR ──────────────────────────────────────────────────────
 function renderCalendar(){
-  const y=calMonth.getFullYear(), m=calMonth.getMonth();
+  const y=calMonth.getFullYear(),m=calMonth.getMonth();
   document.getElementById('cal-title').textContent=`${MONTHS[m]} ${y}`;
 
-  // Map session days in this month
+  const today=new Date();today.setHours(0,0,0,0);
+  const nextSess=getNextSession();
+
+  // Map session days
   const sessMap={};
   sessions.forEach(s=>{
     const d=new Date(s.date+'T12:00:00');
-    if(d.getFullYear()===y&&d.getMonth()===m){const day=d.getDate();(sessMap[day]=sessMap[day]||[]).push(s);}
+    if(d.getFullYear()===y&&d.getMonth()===m){
+      const day=d.getDate();(sessMap[day]=sessMap[day]||[]).push(s);
+    }
   });
 
-  // Mon-first offset
+  // Mon-first week offset
   const firstDow=new Date(y,m,1).getDay();
   const offset=(firstDow+6)%7;
   const daysInM=new Date(y,m+1,0).getDate();
-  const today=new Date();today.setHours(0,0,0,0);
 
   let html=DAYS_SHORT.map(d=>`<div class="cal-dh">${d}</div>`).join('');
   for(let b=0;b<offset;b++)html+=`<div class="cal-d other"></div>`;
   for(let day=1;day<=daysInM;day++){
     const cellDate=new Date(y,m,day);cellDate.setHours(0,0,0,0);
+    const sessionsOnDay=sessMap[day]||[];
     let cls='cal-d';
     if(+cellDate===+today)cls+=' today';
-    if(sessMap[day])cls+=' session';
-    html+=`<div class="${cls}">${day}</div>`;
+    if(sessionsOnDay.length){
+      cls+=' session';
+      if(cellDate<today)cls+=' past-session';
+      if(nextSess&&sessionsOnDay.some(s=>s.id===nextSess.id))cls+=' next-sess';
+    }
+    html+=`<div class="${cls}" title="${sessionsOnDay.map(s=>s.title||'D&D Session').join(', ')}">${day}</div>`;
   }
   document.getElementById('cal-grid').innerHTML=html;
 
-  // Session list
-  const monthSess=sessions.filter(s=>{const d=new Date(s.date+'T12:00:00');return d.getFullYear()===y&&d.getMonth()===m;}).sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const listEl=document.getElementById('sess-list');
-  if(!monthSess.length){listEl.innerHTML='<div class="cal-empty">No sessions scheduled this month.</div>';return;}
-  listEl.innerHTML=monthSess.map(s=>{
+  // Detail panel
+  const monthSess=sessions.filter(s=>{
     const d=new Date(s.date+'T12:00:00');
+    return d.getFullYear()===y&&d.getMonth()===m;
+  }).sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+  const listEl=document.getElementById('sess-list');
+  if(!monthSess.length){listEl.innerHTML='<div class="cal-empty">No sessions this month.</div>';return;}
+  listEl.innerHTML=monthSess.map(s=>{
+    const d=new Date(s.date+'T12:00:00');d.setHours(0,0,0,0);
     const label=d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
-    const delBtn=role==='dm'?`<button class="btn btn-sm btn-danger" onclick="deleteSession('${s.id}')" style="margin-left:.5rem;">Remove</button>`:'';
-    return`<div class="sess-row">
-      <div class="sess-date">${label}</div>
-      <div class="sess-info">
-        <div class="sess-name">${esc(s.title||'D&D Session')}${delBtn}</div>
-        ${s.time?`<div class="sess-detail">${esc(s.time)}</div>`:''}
-        ${s.location?`<div class="sess-notes">&#128205; ${esc(s.location)}</div>`:''}
-        ${s.notes?`<div class="sess-notes">${esc(s.notes)}</div>`:''}
-      </div>
+    const isToday=+d===+today;
+    const isPast=d<today;
+    const isNext=nextSess&&s.id===nextSess.id;
+    const badge=isNext?'<span class="sess-entry-badge next">&#9733; Next Session</span>':isToday?'<span class="sess-entry-badge today">Today</span>':isPast?'<span class="sess-entry-badge past">Past</span>':'<span class="sess-entry-badge upcoming">Upcoming</span>';
+    const delBtn=role==='dm'?`<button class="btn btn-sm btn-danger" onclick="deleteSession('${s.id}')" style="margin-left:.4rem;">Remove</button>`:'';
+    return`<div class="sess-entry">
+      <div class="sess-entry-date">${label}</div>
+      <div class="sess-entry-name">${esc(s.title||'D&D Session')}${delBtn}</div>
+      ${s.time?`<div class="sess-entry-detail">&#128336; ${esc(s.time)}</div>`:''}
+      ${s.location?`<div class="sess-entry-detail">&#128205; ${esc(s.location)}</div>`:''}
+      ${s.notes?`<div class="sess-entry-detail" style="font-style:italic;color:var(--ink-l);">${esc(s.notes)}</div>`:''}
+      ${badge}
     </div>`;
   }).join('');
+
+  // Footer
+  const footer=document.getElementById('cal-footer');
+  if(footer){
+    footer.innerHTML=role==='dm'?`<button class="btn btn-red btn-sm" onclick="openSessionModal()">+ Schedule Session</button>`:'';
+  }
 }
 
 function calMove(dir){calMonth.setMonth(calMonth.getMonth()+dir);renderCalendar();}
 
-// ═══════════════════════════════════════════════════
-//  VIEW SWITCH
-// ═══════════════════════════════════════════════════
+// ── VIEW SWITCH ───────────────────────────────────────────────────
 function switchView(v){
-  document.getElementById('view-board').style.display   =v==='board'   ?'block':'none';
+  document.getElementById('view-board').style.display=v==='board'?'block':'none';
   document.getElementById('view-calendar').style.display=v==='calendar'?'block':'none';
   document.getElementById('vb-board').classList.toggle('active',v==='board');
   document.getElementById('vb-calendar').classList.toggle('active',v==='calendar');
   if(v==='calendar')renderCalendar();
 }
 
-// ═══════════════════════════════════════════════════
-//  POST NOTICE
-// ═══════════════════════════════════════════════════
+// ── POST NOTICE (DM ONLY — role gated in showApp too) ────────────
 function openPostModal(){
+  // Hard role check — belt-and-suspenders defence
+  if(role!=='dm'){return;}
   document.getElementById('pn-title').value='';
   document.getElementById('pn-body').value='';
   document.getElementById('pn-pinned').checked=false;
@@ -641,6 +809,7 @@ function openPostModal(){
 }
 
 async function submitNotice(){
+  if(role!=='dm'){toast('Not authorised.','error');return;}
   const title=document.getElementById('pn-title').value.trim();
   const body=document.getElementById('pn-body').value.trim();
   const type=document.getElementById('pn-type').value;
@@ -655,95 +824,81 @@ async function submitNotice(){
       authorId:user,authorName:name,
       createdAt:new Date().toISOString(),
     });
-    closeModal('m-post');
-    toast('Notice posted!','success');
-    loadNotices();
-  }catch(e){console.error(e);errEl.textContent='Failed to post.';errEl.style.display='block';}
+    closeModal('m-post');toast('Notice posted!','success');loadNotices();
+  }catch(e){errEl.textContent='Failed to post.';errEl.style.display='block';}
 }
 
-// ═══════════════════════════════════════════════════
-//  PIN / DELETE NOTICE
-// ═══════════════════════════════════════════════════
+// ── PIN / DELETE NOTICE (DM ONLY) ────────────────────────────────
 async function togglePin(id,wasPinned){
+  if(role!=='dm')return;
   try{
     await db.collection('Notices').doc(id).update({pinned:!wasPinned,pinnedAt:!wasPinned?new Date().toISOString():null});
     toast(wasPinned?'Notice unpinned.':'Notice pinned to top.','info');
     loadNotices();
-  }catch(e){toast('Failed to update pin.','error');}
+  }catch(e){toast('Failed to update.','error');}
 }
 
 async function deleteNotice(id){
-  if(!confirm('Delete this notice? This cannot be undone.'))return;
-  try{await db.collection('Notices').doc(id).delete();toast('Notice deleted.','info');loadNotices();}
+  if(role!=='dm')return;
+  if(!confirm('Delete this notice?'))return;
+  try{await db.collection('Notices').doc(id).delete();toast('Deleted.','info');loadNotices();}
   catch(e){toast('Failed to delete.','error');}
 }
 
-// ═══════════════════════════════════════════════════
-//  SESSIONS
-// ═══════════════════════════════════════════════════
+// ── SESSIONS (DM ONLY to add/delete) ────────────────────────────
 function openSessionModal(){
+  if(role!=='dm')return;
   ['ss-title','ss-date','ss-time','ss-loc','ss-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ss-err').style.display='none';
   openModal('m-session');
 }
 
 async function submitSession(){
+  if(role!=='dm')return;
   const title=document.getElementById('ss-title').value.trim();
   const date=document.getElementById('ss-date').value;
   const time=document.getElementById('ss-time').value.trim();
   const loc=document.getElementById('ss-loc').value.trim();
   const notes=document.getElementById('ss-notes').value.trim();
-  const errEl=document.getElementById('ss-err');
-  errEl.style.display='none';
-  if(!date){errEl.textContent='Please select a date.';errEl.style.display='block';return;}
+  const errEl=document.getElementById('ss-err');errEl.style.display='none';
+  if(!date){errEl.textContent='Please pick a date.';errEl.style.display='block';return;}
   try{
     await db.collection('Sessions').add({title:title||'D&D Session',date,time,location:loc,notes,createdAt:new Date().toISOString(),createdBy:user});
-    closeModal('m-session');
-    toast('Session scheduled!','success');
-    loadSessions();
-  }catch(e){console.error(e);errEl.textContent='Failed to schedule session.';errEl.style.display='block';}
+    closeModal('m-session');toast('Session scheduled!','success');loadSessions();
+  }catch(e){errEl.textContent='Failed.';errEl.style.display='block';}
 }
 
-async function doRsvp(sessionId, rsvpRole){
+async function deleteSession(id){
+  if(role!=='dm')return;
+  if(!confirm('Remove this session?'))return;
+  try{await db.collection('Sessions').doc(id).delete();toast('Session removed.','info');loadSessions();}
+  catch(e){toast('Failed.','error');}
+}
+
+// ── RSVP (PLAYERS ONLY) ──────────────────────────────────────────
+async function doRsvp(sessionId,rsvpRole){
+  if(role==='dm')return; // DMs don't RSVP through this UI
   try{
-    // Remove any existing RSVP first
     const existing=sessionRsvps.find(r=>r.playerId===user);
     if(existing){
-      if(existing.role===rsvpRole){
-        // Same role — treat as cancel toggle
-        await cancelRsvp(sessionId); return;
-      }
+      if(existing.role===rsvpRole){await cancelRsvp(sessionId);return;}
       await db.collection('SessionRSVPs').doc(existing.id).delete();
     }
-    await db.collection('SessionRSVPs').add({
-      sessionId, playerId:user, playerName:name, role:rsvpRole,
-      signedUpAt:new Date().toISOString()
-    });
-    toast(rsvpRole==='dm'?'Signed up as DM! Bonus reward incoming.':'Signed up as player! Bonus reward incoming.','success');
-    await loadRsvps(sessionId);
-    renderNextSession();
-  }catch(e){console.error(e);toast('Failed to sign up.','error');}
+    await db.collection('SessionRSVPs').add({sessionId,playerId:user,playerName:name,role:rsvpRole,signedUpAt:new Date().toISOString()});
+    toast('Signed up! Bonus reward incoming.','success');
+    await loadRsvps(sessionId);renderNextSession();
+  }catch(e){toast('Failed to sign up.','error');}
 }
 
 async function cancelRsvp(sessionId){
   try{
-    const existing=sessionRsvps.find(r=>r.playerId===user);
-    if(existing) await db.collection('SessionRSVPs').doc(existing.id).delete();
-    toast('Sign-up removed.','info');
-    await loadRsvps(sessionId);
-    renderNextSession();
-  }catch(e){toast('Failed to remove sign-up.','error');}
+    const ex=sessionRsvps.find(r=>r.playerId===user);
+    if(ex)await db.collection('SessionRSVPs').doc(ex.id).delete();
+    toast('Sign-up removed.','info');await loadRsvps(sessionId);renderNextSession();
+  }catch(e){toast('Failed.','error');}
 }
 
-async function deleteSession(id){
-  if(!confirm('Remove this session?'))return;
-  try{await db.collection('Sessions').doc(id).delete();toast('Session removed.','info');loadSessions();}
-  catch(e){toast('Failed to remove.','error');}
-}
-
-// ═══════════════════════════════════════════════════
-//  UTILS
-// ═══════════════════════════════════════════════════
+// ── UTILS ─────────────────────────────────────────────────────────
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function toast(msg,type='info'){const w=document.getElementById('toasts'),el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;w.appendChild(el);setTimeout(()=>el.remove(),4000);}

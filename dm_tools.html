@@ -840,12 +840,20 @@ function switchTab(name) {
 //  REWARD GENERATOR
 // ================================================================
 // ── AL TIER 1 LOOT TABLES (levels 1-4, Adventurers League) ──
+// ── AL TIER 1 LOOT TABLES ──────────────────────────────────────────
+// These mirror the magical_items_seed.json ItemPool.
+// ItemPool rarity + isConsumable → loot category:
+//   Common  + isConsumable   → commonConsumable
+//   Common  + !isConsumable  → commonPermanent
+//   Uncommon + isConsumable  → uncommonConsumable
+//   Uncommon + !isConsumable → uncommonPermanent (capped 1 per Tier 1 char)
 const AL_LOOT = {
   commonConsumable: [
     {name:'Potion of Healing',cat:'Potion'},
     {name:'Potion of Climbing',cat:'Potion'},
     {name:'Spell Scroll (Cantrip)',cat:'Scroll'},
     {name:'Spell Scroll (1st Level)',cat:'Scroll'},
+    {name:'Alchemist's Fire Flask',cat:'Adventuring Gear'},
   ],
   commonPermanent: [
     {name:'Moon-Touched Sword',cat:'Weapon'},
@@ -857,13 +865,15 @@ const AL_LOOT = {
     {name:'Wand of Smiles',cat:'Wand'},
     {name:'Cloak of Billowing',cat:'Wondrous Item'},
     {name:'Cloak of Many Fashions',cat:'Wondrous Item'},
-    {name:'Shield of Expression',cat:'Armor'},
+    {name:'Shield of Expression',cat:'Armour'},
     {name:'Horn of Silent Alarm',cat:'Wondrous Item'},
     {name:'Mystery Key',cat:'Wondrous Item'},
     {name:'Tankard of Sobriety',cat:'Wondrous Item'},
-    {name:'Dread Helm',cat:'Wondrous Item'},
+    {name:'Dread Helm',cat:'Armour'},
     {name:'Hat of Vermin',cat:'Wondrous Item'},
-    {name:'Unbreakable Arrow',cat:'Ammunition'},
+    {name:'Unbreakable Arrow',cat:'Weapon'},
+    {name:'Enduring Spellbook',cat:'Adventuring Gear'},
+    {name:'Alchemy Jug',cat:'Wondrous Item'},
   ],
   uncommonConsumable: [
     {name:'Potion of Greater Healing',cat:'Potion'},
@@ -875,6 +885,8 @@ const AL_LOOT = {
     {name:'Spell Scroll (3rd Level)',cat:'Scroll'},
     {name:'Dust of Disappearance',cat:'Wondrous Item'},
     {name:'Necklace of Fireballs (1 bead)',cat:'Wondrous Item'},
+    {name:'Elixir of Health',cat:'Potion'},
+    {name:'Oil of Slipperiness',cat:'Potion'},
   ],
   uncommonPermanent: [
     {name:'Bag of Holding',cat:'Wondrous Item'},
@@ -890,16 +902,36 @@ const AL_LOOT = {
     {name:'Wand of Magic Missiles',cat:'Wand'},
     {name:'Wand of Secrets',cat:'Wand'},
     {name:'Driftglobe',cat:'Wondrous Item'},
-    {name:'Sending Stones (pair)',cat:'Wondrous Item'},
+    {name:'Sending Stones',cat:'Wondrous Item'},
     {name:'Weapon +1',cat:'Weapon'},
-    {name:'Shield +1',cat:'Armor'},
+    {name:'Shield +1',cat:'Armour'},
     {name:'Slippers of Spider Climbing',cat:'Wondrous Item'},
     {name:'Eyes of the Eagle',cat:'Wondrous Item'},
     {name:'Javelin of Lightning',cat:'Weapon'},
     {name:'Pearl of Power',cat:'Wondrous Item'},
     {name:'Winged Boots',cat:'Wondrous Item'},
+    {name:'Brooch of Shielding',cat:'Wondrous Item'},
+    {name:'Periapt of Health',cat:'Wondrous Item'},
+    {name:'Gauntlets of Ogre Power',cat:'Wondrous Item'},
+    {name:'Boots of the Winterlands',cat:'Wondrous Item'},
   ],
 };
+
+// Helper: given an itemName from AL_LOOT, return its full metadata
+// matching what is stored in ItemPool Firestore collection.
+// Used when writing PendingChests to ensure rarity + isConsumable are correct.
+function lootMeta(item){
+  const inCC = AL_LOOT.commonConsumable.some(i=>i.name===item.name);
+  const inCP = AL_LOOT.commonPermanent.some(i=>i.name===item.name);
+  const inUC = AL_LOOT.uncommonConsumable.some(i=>i.name===item.name);
+  const inUP = AL_LOOT.uncommonPermanent.some(i=>i.name===item.name);
+  return {
+    rarity:       (inCC||inCP)?'Common':'Uncommon',
+    isConsumable: inCC||inUC,
+    isMagical:    true,
+    category:     item.cat,
+  };
+}
 
 function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
 
