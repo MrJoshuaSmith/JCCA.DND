@@ -203,7 +203,7 @@ const HP_DIE={Barbarian:12,Bard:8,Cleric:8,Druid:8,Fighter:10,Monk:8,Paladin:10,
 // ── BOOT ──────────────────────────────────────────────────────────
 async function boot(){
   try{await auth.signInAnonymously();}catch(e){}
-  const saved=['dnd_username','dm_username','session_dm_username'].map(k=>sessionStorage.getItem(k)).find(Boolean);
+  const saved=['dnd_username','dm_username','admin_username','session_dm_username'].map(k=>sessionStorage.getItem(k)).find(Boolean);
   if(!saved){window.location.href='index.html';return;}
   try{
     const doc=await db.collection('Users').doc(saved).get();
@@ -255,7 +255,7 @@ function showScreenForRole(hasSession){
   show('screen-setup',false);show('screen-player',false);show('screen-dm',false);
   document.getElementById('btn-end-session').style.display='none';
   if(!hasSession){
-    if(loggedRole==='dm'||loggedRole==='session_dm'){
+    if(loggedRole==='admin'||loggedRole==='session_dm'){
       show('screen-setup',true);
       loadPartyPicker();
     }else{
@@ -263,7 +263,7 @@ function showScreenForRole(hasSession){
       document.getElementById('no-session-msg').style.display='block';
     }
   }else{
-    if(loggedRole==='dm'||loggedRole==='session_dm'){
+    if(loggedRole==='admin'||loggedRole==='session_dm'){
       show('screen-dm',true);
       document.getElementById('btn-end-session').style.display='inline-flex';
     }else{
@@ -334,7 +334,7 @@ function renderCombatants(){
   const sorted=Object.values(combatants).sort((a,b)=>(b.initiative||0)-(a.initiative||0));
   const party=sorted.filter(c=>c.type==='player');
   const enemies=sorted.filter(c=>c.type==='enemy');
-  if(loggedRole==='dm'||loggedRole==='session_dm'){
+  if(loggedRole==='admin'||loggedRole==='session_dm'){
     renderDmParty(party);
     renderDmEnemies(enemies);
   }else{
@@ -501,7 +501,7 @@ async function endSession(){
   }catch(e){toast('Failed to end session.','error');}
 }
 
-function doSignOut(){['dnd_username','dm_username'].forEach(k=>sessionStorage.removeItem(k));window.location.href='index.html';}
+function doSignOut(){['dnd_username','dm_username','admin_username','session_dm_username'].forEach(k=>sessionStorage.removeItem(k));window.location.href='index.html';}
 function toast(msg,type='info'){const w=document.getElementById('toasts'),el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;w.appendChild(el);setTimeout(()=>el.remove(),4000);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 boot();

@@ -664,7 +664,13 @@ body {
     <!-- Step 4: Point Buy Stats -->
     <div class="wizard-step" id="wstep-4">
       <div class="wizard-title">Set Ability Scores</div>
-      <div class="wizard-sub">Spend exactly 27 points. Base scores range from 8–15. Stats are non-linear: raising above 13 costs 2 points per step. Your background bonuses are shown below each stat.</div>
+      <div class="wizard-sub">Spend exactly 27 points. Base scores range from 8–15. Raising above 13 costs 2 points per step. Background bonuses are shown below each stat.</div>
+      <!-- Quick action buttons -->
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem;">
+        <button class="btn btn-gold btn-sm" onclick="applyRecommendedStats()" id="btn-recommended" title="Load the standard optimised stat spread for your class">&#10022; Recommended</button>
+        <button class="btn btn-primary btn-sm" onclick="clearAllStats()" title="Reset all stats to 8">&#8635; Clear All</button>
+        <div id="recommended-label" style="font-family:'Cinzel',serif;font-size:.62rem;color:var(--silver-dim);align-self:center;font-style:italic;"></div>
+      </div>
       <!-- Stat cards -->
       <div id="stat-buy-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-bottom:1rem;"></div>
       <!-- Points remaining -->
@@ -1102,13 +1108,13 @@ async function boot() {
   }
 
   // Check if already logged in this session
-  const savedUsername = sessionStorage.getItem('dnd_username');
+  const savedUsername = sessionStorage.getItem('dnd_username') || sessionStorage.getItem('admin_username') || sessionStorage.getItem('session_dm_username');
   if (savedUsername) {
     try {
       await loadPlayerSession(savedUsername);
       return;
     } catch (e) {
-      sessionStorage.removeItem('dnd_username');
+      ['dnd_username','dm_username','admin_username','session_dm_username'].forEach(k=>sessionStorage.removeItem(k));
     }
   }
 
@@ -2314,6 +2320,50 @@ function wizardNext(step) {
 
 function wizardBack(step) { setWizardStep(step-1); }
 function showWizErr(step,msg) { const el=document.getElementById(`w${step}-err`); if(el){el.textContent=msg;el.style.display='block';} }
+
+
+// ── RECOMMENDED STATS BY CLASS (2024 PHB standard builds) ──────────
+// Each spread costs exactly 27 points using PB_CUMULATIVE.
+// Values are BASE stats (before background ASI).
+// Priority labels explain the rationale shown to students.
+const CLASS_RECOMMENDED = {
+  Barbarian: { stats:{str:15,dex:14,con:14,int:8,wis:12,cha:8},   note:'STR 15, CON 14, DEX 14 — maximise melee damage and survivability' },
+  Bard:      { stats:{str:8,dex:14,con:14,int:8,wis:12,cha:15},   note:'CHA 15, DEX 14, CON 14 — high charisma for spells and performance' },
+  Cleric:    { stats:{str:14,dex:12,con:14,int:8,wis:15,cha:8},   note:'WIS 15, STR 14, CON 14 — wisdom for spells, strength for melee' },
+  Druid:     { stats:{str:8,dex:14,con:14,int:12,wis:15,cha:8},   note:'WIS 15, DEX 14, CON 14 — wisdom for spells, dexterity for light armour' },
+  Fighter:   { stats:{str:15,dex:13,con:14,int:10,wis:12,cha:8},  note:'STR 15, CON 14 — heavy armour fighter; swap STR/DEX for ranged build' },
+  Monk:      { stats:{str:12,dex:15,con:14,int:8,wis:14,cha:8},   note:'DEX 15, WIS 14, CON 14 — unarmoured defence uses DEX + WIS' },
+  Paladin:   { stats:{str:15,dex:8,con:14,int:8,wis:12,cha:14},   note:'STR 15, CHA 14, CON 14 — auras and smites scale with Charisma' },
+  Ranger:    { stats:{str:12,dex:15,con:14,int:8,wis:14,cha:8},   note:'DEX 15, WIS 14, CON 14 — ranged attacks and nature spells' },
+  Rogue:     { stats:{str:8,dex:15,con:14,int:14,wis:12,cha:8},   note:'DEX 15, INT 14, CON 14 — sneak attack, thieves tools, investigation' },
+  Sorcerer:  { stats:{str:8,dex:14,con:14,int:8,wis:12,cha:15},   note:'CHA 15, CON 14, DEX 14 — sorcery points and spell DCs scale with CHA' },
+  Warlock:   { stats:{str:8,dex:14,con:14,int:8,wis:12,cha:15},   note:'CHA 15, CON 14, DEX 14 — Eldritch Blast and invocations key off CHA' },
+  Wizard:    { stats:{str:8,dex:14,con:14,int:15,wis:12,cha:8},   note:'INT 15, CON 14, DEX 14 — spell save DC and spell attacks key off INT' },
+};
+
+function applyRecommendedStats() {
+  const cls = wizardData.class;
+  if (!cls) { showWizErr(4,'Please select a class first (go back to Step 1).'); return; }
+  const rec = CLASS_RECOMMENDED[cls];
+  if (!rec) return;
+  // Apply base stats
+  STAT_KEYS.forEach(k => { wizardData.baseStats[k] = rec.stats[k]; });
+  // Show note
+  const lbl = document.getElementById('recommended-label');
+  if (lbl) lbl.textContent = rec.note;
+  buildStatBuyGrid();
+  updatePbDisplay();
+  saveDraft();
+}
+
+function clearAllStats() {
+  STAT_KEYS.forEach(k => { wizardData.baseStats[k] = 8; });
+  const lbl = document.getElementById('recommended-label');
+  if (lbl) lbl.textContent = '';
+  buildStatBuyGrid();
+  updatePbDisplay();
+  saveDraft();
+}
 
 // ─── STAT BUY ────────────────────────────────────────────────────────
 function buildStatBuyGrid() {

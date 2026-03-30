@@ -525,7 +525,7 @@ let calMonth=new Date();calMonth.setDate(1);
 // ── BOOT ──────────────────────────────────────────────────────────
 async function boot(){
   try{await auth.signInAnonymously();}catch(e){}
-  for(const k of['dnd_username','dm_username']){
+  for(const k of['dnd_username','dm_username','admin_username']){
     const saved=sessionStorage.getItem(k);
     if(!saved)continue;
     try{
@@ -548,13 +548,13 @@ async function doLogin(){
       errEl.textContent='Invalid username or password.';errEl.style.display='block';return;
     }
     const d=doc.data();user=u;role=d.role;name=d.playerName||u;
-    sessionStorage.setItem(d.role==='dm'?'dm_username':'dnd_username',u);
+    sessionStorage.setItem(d.role==='admin'?'admin_username':d.role==='session_dm'?'session_dm_username':'dnd_username',u);
     showApp();
   }catch(e){errEl.textContent='Login failed. Please try again.';errEl.style.display='block';}
 }
 
 function doSignOut(){
-  ['dnd_username','dm_username'].forEach(k=>sessionStorage.removeItem(k));
+  ['dnd_username','dm_username','admin_username','session_dm_username'].forEach(k=>sessionStorage.removeItem(k));
   user=null;role=null;name=null;notices=[];sessions=[];
   document.getElementById('screen-app').style.display='none';
   document.getElementById('screen-login').classList.add('show');
@@ -565,7 +565,7 @@ function showApp(){
   document.getElementById('screen-app').style.display='block';
   // DM-ONLY controls: post button, add session button
   // Players NEVER see these buttons — role is the sole gate
-  const isDM=role==='dm';
+  const isDM=role==='admin';
   document.getElementById('btn-post').style.display=isDM?'inline-flex':'none';
   document.getElementById('btn-add-session').style.display=isDM?'inline-flex':'none';
   loadAll();
@@ -694,7 +694,7 @@ function renderBoard(){
     const tex=TEXTURES[i%TEXTURES.length];
     const dateStr=n.createdAt?new Date(n.createdAt).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}):'';
     // DM-only action buttons — players see nothing
-    const dmBtns=role==='dm'?`<div class="nc-actions">
+    const dmBtns=role==='admin'?`<div class="nc-actions">
       <button class="btn btn-sm ${n.pinned?'btn-gold':'btn-ghost'}" onclick="togglePin('${n.id}',${!!n.pinned})" title="${n.pinned?'Unpin notice':'Pin to top'}">
         ${n.pinned?'&#128204; Unpin':'&#128204; Pin'}
       </button>
@@ -768,7 +768,7 @@ function renderCalendar(){
     const isPast=d<today;
     const isNext=nextSess&&s.id===nextSess.id;
     const badge=isNext?'<span class="sess-entry-badge next">&#9733; Next Session</span>':isToday?'<span class="sess-entry-badge today">Today</span>':isPast?'<span class="sess-entry-badge past">Past</span>':'<span class="sess-entry-badge upcoming">Upcoming</span>';
-    const delBtn=role==='dm'?`<button class="btn btn-sm btn-danger" onclick="deleteSession('${s.id}')" style="margin-left:.4rem;">Remove</button>`:'';
+    const delBtn=role==='admin'?`<button class="btn btn-sm btn-danger" onclick="deleteSession('${s.id}')" style="margin-left:.4rem;">Remove</button>`:'';
     return`<div class="sess-entry">
       <div class="sess-entry-date">${label}</div>
       <div class="sess-entry-name">${esc(s.title||'D&D Session')}${delBtn}</div>
@@ -782,7 +782,7 @@ function renderCalendar(){
   // Footer
   const footer=document.getElementById('cal-footer');
   if(footer){
-    footer.innerHTML=role==='dm'?`<button class="btn btn-red btn-sm" onclick="openSessionModal()">+ Schedule Session</button>`:'';
+    footer.innerHTML=role==='admin'?`<button class="btn btn-red btn-sm" onclick="openSessionModal()">+ Schedule Session</button>`:'';
   }
 }
 
@@ -800,7 +800,7 @@ function switchView(v){
 // ── POST NOTICE (DM ONLY — role gated in showApp too) ────────────
 function openPostModal(){
   // Hard role check — belt-and-suspenders defence
-  if(role!=='dm'){return;}
+  if(role!=='admin'){return;}
   document.getElementById('pn-title').value='';
   document.getElementById('pn-body').value='';
   document.getElementById('pn-pinned').checked=false;
@@ -809,7 +809,7 @@ function openPostModal(){
 }
 
 async function submitNotice(){
-  if(role!=='dm'){toast('Not authorised.','error');return;}
+  if(role!=='admin'){toast('Not authorised.','error');return;}
   const title=document.getElementById('pn-title').value.trim();
   const body=document.getElementById('pn-body').value.trim();
   const type=document.getElementById('pn-type').value;
@@ -830,7 +830,7 @@ async function submitNotice(){
 
 // ── PIN / DELETE NOTICE (DM ONLY) ────────────────────────────────
 async function togglePin(id,wasPinned){
-  if(role!=='dm')return;
+  if(role!=='admin')return;
   try{
     await db.collection('Notices').doc(id).update({pinned:!wasPinned,pinnedAt:!wasPinned?new Date().toISOString():null});
     toast(wasPinned?'Notice unpinned.':'Notice pinned to top.','info');
@@ -839,7 +839,7 @@ async function togglePin(id,wasPinned){
 }
 
 async function deleteNotice(id){
-  if(role!=='dm')return;
+  if(role!=='admin')return;
   if(!confirm('Delete this notice?'))return;
   try{await db.collection('Notices').doc(id).delete();toast('Deleted.','info');loadNotices();}
   catch(e){toast('Failed to delete.','error');}
@@ -847,14 +847,14 @@ async function deleteNotice(id){
 
 // ── SESSIONS (DM ONLY to add/delete) ────────────────────────────
 function openSessionModal(){
-  if(role!=='dm')return;
+  if(role!=='admin')return;
   ['ss-title','ss-date','ss-time','ss-loc','ss-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ss-err').style.display='none';
   openModal('m-session');
 }
 
 async function submitSession(){
-  if(role!=='dm')return;
+  if(role!=='admin')return;
   const title=document.getElementById('ss-title').value.trim();
   const date=document.getElementById('ss-date').value;
   const time=document.getElementById('ss-time').value.trim();
@@ -869,7 +869,7 @@ async function submitSession(){
 }
 
 async function deleteSession(id){
-  if(role!=='dm')return;
+  if(role!=='admin')return;
   if(!confirm('Remove this session?'))return;
   try{await db.collection('Sessions').doc(id).delete();toast('Session removed.','info');loadSessions();}
   catch(e){toast('Failed.','error');}
@@ -877,7 +877,7 @@ async function deleteSession(id){
 
 // ── RSVP (PLAYERS ONLY) ──────────────────────────────────────────
 async function doRsvp(sessionId,rsvpRole){
-  if(role==='dm')return; // DMs don't RSVP through this UI
+  if(role==='admin')return; // DMs don't RSVP through this UI
   try{
     const existing=sessionRsvps.find(r=>r.playerId===user);
     if(existing){

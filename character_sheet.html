@@ -162,7 +162,7 @@ let loggedUser=null,loggedRole=null,currentChar=null,currentCharId=null,unsub=nu
 
 async function boot(){
   try{await auth.signInAnonymously();}catch(e){}
-  const saved=['dnd_username','dm_username'].map(k=>sessionStorage.getItem(k)).find(Boolean);
+  const saved=['dnd_username','dm_username','admin_username','session_dm_username'].map(k=>sessionStorage.getItem(k)).find(Boolean);
   if(!saved){window.location.href='shop_portal.html';return;}
   try{
     const doc=await db.collection('Users').doc(saved).get();
