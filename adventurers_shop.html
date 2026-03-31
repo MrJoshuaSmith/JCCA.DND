@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adventurers Hub — D&D Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0b09;--bg-card:#1e1916;--bg-card2:#261f1a;--border:rgba(180,110,40,.22);--border-red:rgba(160,28,28,.4);--red:#c41e1e;--red-d:#8b1010;--gold:#c8952a;--gold-d:#7a5818;--text:#e0d8c8;--text-m:#b0a898;--text-d:#786858;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);background-image:radial-gradient(ellipse 80% 50% at 50% 0%,#1f0f08,transparent 70%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--text);}
+.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;padding:.65rem 1.5rem;background:rgba(14,9,4,.92);border-bottom:2px solid var(--border);position:sticky;top:0;z-index:100;}
+.tb-brand{font-family:'Cinzel',serif;font-size:.9rem;font-weight:900;color:var(--text);}
+.tb-brand b{color:var(--red);}
+.btn{font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;letter-spacing:.06em;padding:.32rem .8rem;border-radius:4px;cursor:pointer;border:1px solid;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text-m);}
+.btn-ghost:hover{border-color:var(--gold-d);color:var(--gold);}
+/* HERO */
+.hero{text-align:center;padding:3.5rem 1rem 2rem;position:relative;}
+.hero-title{font-family:'Cinzel',serif;font-size:2.4rem;font-weight:900;color:var(--text);line-height:1.1;margin-bottom:.4rem;}
+.hero-title b{color:var(--red);}
+.hero-sub{font-size:1.05rem;color:var(--text-m);font-style:italic;max-width:540px;margin:0 auto 1.5rem;}
+.hero-sep{width:80px;height:3px;background:linear-gradient(90deg,transparent,var(--gold-d),transparent);margin:.8rem auto;}
+/* SECTION */
+.page{max-width:980px;margin:0 auto;padding:0 1rem 4rem;}
+.section-title{font-family:'Cinzel',serif;font-size:.8rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--text-d);margin-bottom:.9rem;display:flex;align-items:center;gap:.7rem;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+/* NAV GRID */
+.nav-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.8rem;margin-bottom:2rem;}
+.nav-card{background:var(--bg-card);border:1px solid var(--border);border-radius:5px;padding:1.4rem 1.2rem;text-decoration:none;transition:all .2s;display:block;}
+.nav-card:hover{border-color:var(--gold-d);background:var(--bg-card2);transform:translateY(-2px);}
+.nav-card-icon{font-size:1.6rem;margin-bottom:.5rem;display:block;}
+.nav-card-title{font-family:'Cinzel',serif;font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:.25rem;}
+.nav-card-desc{font-size:.82rem;color:var(--text-m);line-height:1.55;}
+.nav-card.accent{border-color:var(--border-red);}
+.nav-card.accent:hover{border-color:var(--red);}
+/* QUICK REF TABLES */
+.ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem;}
+@media(max-width:600px){.ref-grid{grid-template-columns:1fr;}}
+.ref-card{background:var(--bg-card);border:1px solid var(--border);border-radius:5px;padding:1rem 1.2rem;}
+.ref-card-title{font-family:'Cinzel',serif;font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border);padding-bottom:.3rem;margin-bottom:.6rem;}
+.ref-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.ref-table th{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-d);text-align:left;padding:.2rem .4rem;border-bottom:1px solid var(--border);}
+.ref-table td{color:var(--text-m);padding:.22rem .4rem;border-bottom:1px solid rgba(180,110,40,.06);}
+.ref-table td:first-child{color:var(--text);font-weight:600;}
+.ref-table tr:last-child td{border-bottom:none;}
+/* POINT BUY TABLE */
+.pb-table{width:100%;border-collapse:collapse;font-size:.82rem;text-align:center;}
+.pb-table th{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-d);padding:.2rem .4rem;border-bottom:1px solid var(--border);}
+.pb-table td{color:var(--text-m);padding:.2rem .3rem;border-bottom:1px solid rgba(180,110,40,.06);}
+.pb-table td:first-child{color:var(--text);font-weight:600;}
+.pb-table tr:last-child td{border-bottom:none;}
+.cost-high{color:#c8952a;}
+</style>
+<script src="nav.js"></script>
+</head>
+<body>
+<div id="main-nav"></div>
+<div class="topbar">
+  <div class="tb-brand">&#9876; <b>Adventurers</b> Hub</div>
+  <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+    <a href="shop_portal.html" class="btn btn-ghost">Player Portal</a>
+    <a href="noticeboard.html" class="btn btn-ghost">Quest Board</a>
+    <a href="index.html" class="btn btn-ghost">&#8962; Home</a>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">The <b>Adventurers</b> Hub</div>
+  <div class="hero-sub">Your one-stop reference for character creation, rules, and club tools.</div>
+  <div class="hero-sep"></div>
+</div>
+
+<div class="page">
+
+  <div class="section-title">Quick Navigation</div>
+  <div class="nav-grid">
+    <a href="shop_portal.html" class="nav-card accent">
+      <span class="nav-card-icon">&#9876;</span>
+      <div class="nav-card-title">Player Portal</div>
+      <div class="nav-card-desc">Create your character, shop for gear, and claim chest rewards.</div>
+    </a>
+    <a href="character_sheet.html" class="nav-card">
+      <span class="nav-card-icon">&#128196;</span>
+      <div class="nav-card-title">Character Sheet</div>
+      <div class="nav-card-desc">View your live character sheet with calculated stats, saves, and skills.</div>
+    </a>
+    <a href="noticeboard.html" class="nav-card">
+      <span class="nav-card-icon">&#128204;</span>
+      <div class="nav-card-title">Quest Board</div>
+      <div class="nav-card-desc">Club notices, session schedule, and RSVP for upcoming games.</div>
+    </a>
+    <a href="session_manager.html" class="nav-card">
+      <span class="nav-card-icon">&#9876;</span>
+      <div class="nav-card-title">Session Manager</div>
+      <div class="nav-card-desc">Live combat view — see your HP and track the encounter in real time.</div>
+    </a>
+    <a href="magical_emporium.html" class="nav-card">
+      <span class="nav-card-icon">&#10024;</span>
+      <div class="nav-card-title">Mr Smith's Emporium</div>
+      <div class="nav-card-desc">Magical items available this week — ask your DM to rotate stock.</div>
+    </a>
+  </div>
+
+  <div class="section-title">Character Creation Reference</div>
+  <div class="ref-grid">
+    <!-- Point Buy -->
+    <div class="ref-card">
+      <div class="ref-card-title">Point Buy (27 Points)</div>
+      <table class="pb-table">
+        <thead><tr><th>Base Score</th><th>Cumulative Cost</th><th>Step Cost</th></tr></thead>
+        <tbody>
+          <tr><td>8</td><td>0</td><td>—</td></tr>
+          <tr><td>9</td><td>1</td><td>1</td></tr>
+          <tr><td>10</td><td>2</td><td>1</td></tr>
+          <tr><td>11</td><td>3</td><td>1</td></tr>
+          <tr><td>12</td><td>4</td><td>1</td></tr>
+          <tr><td>13</td><td>5</td><td>1</td></tr>
+          <tr><td>14</td><td class="cost-high">7</td><td class="cost-high">2</td></tr>
+          <tr><td>15</td><td class="cost-high">9</td><td class="cost-high">2</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:.72rem;color:var(--text-d);margin-top:.5rem;font-style:italic;">Min 8, Max 15 base. No final score over 18 after Background ASI (+2/+1).</div>
+    </div>
+    <!-- Hit Dice -->
+    <div class="ref-card">
+      <div class="ref-card-title">Hit Dice by Class</div>
+      <table class="ref-table">
+        <thead><tr><th>Class</th><th>Hit Die</th><th>Starting HP</th></tr></thead>
+        <tbody>
+          <tr><td>Barbarian</td><td>d12</td><td>12 + CON mod</td></tr>
+          <tr><td>Fighter, Paladin, Ranger</td><td>d10</td><td>10 + CON mod</td></tr>
+          <tr><td>Bard, Cleric, Druid, Monk, Rogue, Warlock</td><td>d8</td><td>8 + CON mod</td></tr>
+          <tr><td>Sorcerer, Wizard</td><td>d6</td><td>6 + CON mod</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Backgrounds -->
+    <div class="ref-card">
+      <div class="ref-card-title">2024 Backgrounds &amp; ASI</div>
+      <table class="ref-table">
+        <thead><tr><th>Background</th><th>+2 / +1 to</th></tr></thead>
+        <tbody>
+          <tr><td>Acolyte</td><td>WIS / INT</td></tr>
+          <tr><td>Artisan</td><td>STR / DEX</td></tr>
+          <tr><td>Charlatan</td><td>CHA / DEX</td></tr>
+          <tr><td>Criminal</td><td>DEX / INT</td></tr>
+          <tr><td>Entertainer</td><td>CHA / DEX</td></tr>
+          <tr><td>Farmer</td><td>CON / WIS</td></tr>
+          <tr><td>Guard</td><td>STR / CON</td></tr>
+          <tr><td>Guide</td><td>WIS / DEX</td></tr>
+          <tr><td>Hermit</td><td>CON / WIS</td></tr>
+          <tr><td>Merchant</td><td>CHA / INT</td></tr>
+          <tr><td>Noble</td><td>CHA / WIS</td></tr>
+          <tr><td>Sage</td><td>INT / WIS</td></tr>
+          <tr><td>Sailor</td><td>STR / DEX</td></tr>
+          <tr><td>Scribe</td><td>INT / DEX</td></tr>
+          <tr><td>Soldier</td><td>STR / CON</td></tr>
+          <tr><td>Wayfarer</td><td>DEX / WIS</td></tr>
+          <tr><td>Custom</td><td>Your choice</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Proficiency Bonus -->
+    <div class="ref-card">
+      <div class="ref-card-title">Proficiency Bonus by Level</div>
+      <table class="ref-table">
+        <thead><tr><th>Levels</th><th>Proficiency Bonus</th></tr></thead>
+        <tbody>
+          <tr><td>1–4</td><td>+2</td></tr>
+          <tr><td>5–8</td><td>+3</td></tr>
+          <tr><td>9–12</td><td>+4</td></tr>
+          <tr><td>13–16</td><td>+5</td></tr>
+          <tr><td>17–20</td><td>+6</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:.8rem;">
+        <div class="ref-card-title">XP Milestones</div>
+        <table class="ref-table">
+          <thead><tr><th>Level</th><th>XP Required</th></tr></thead>
+          <tbody>
+            <tr><td>2</td><td>300</td></tr>
+            <tr><td>3</td><td>900</td></tr>
+            <tr><td>4</td><td>2,700</td></tr>
+            <tr><td>5</td><td>6,500</td></tr>
+            <tr><td>6+</td><td>14,000+</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Loot Rarity Reference</div>
+  <div class="ref-grid">
+    <div class="ref-card">
+      <div class="ref-card-title">Tier 1 Chest Odds (Standard)</div>
+      <table class="ref-table">
+        <thead><tr><th>Item Type</th><th>Chance</th></tr></thead>
+        <tbody>
+          <tr><td>Common Consumable</td><td>57.5%</td></tr>
+          <tr><td>Common Permanent</td><td>30%</td></tr>
+          <tr><td>Uncommon Consumable</td><td>12%</td></tr>
+          <tr><td>Uncommon Permanent</td><td>0.5%</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:.72rem;color:var(--text-d);margin-top:.45rem;font-style:italic;">Standard chest: 1 item (5% chance of a bonus second item). Attendance bonus adds +1 guaranteed uncommon consumable.</div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-card-title">Tier 1 Chest Odds (DM Chest)</div>
+      <table class="ref-table">
+        <thead><tr><th>Item Type</th><th>Chance</th></tr></thead>
+        <tbody>
+          <tr><td>Common Consumable</td><td>43%</td></tr>
+          <tr><td>Common Permanent</td><td>30%</td></tr>
+          <tr><td>Uncommon Consumable</td><td>25%</td></tr>
+          <tr><td>Uncommon Permanent</td><td>2%</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:.72rem;color:var(--text-d);margin-top:.45rem;font-style:italic;">DM chests always contain 2 items. Uncommon permanent items are limited to 1 per Tier 1 character.</div>
+    </div>
+  </div>
+
+</div>
+<script>document.addEventListener("DOMContentLoaded",()=>{if(typeof Nav!=="undefined")Nav.init("market");})</script>
+</body>
+</html>

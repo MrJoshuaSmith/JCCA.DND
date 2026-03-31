@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketplace — D&D Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="nav.js"></script>
+<style>
+:root{
+  --bg:#0d0a08;--bg-card:#1a1410;--border:rgba(180,110,40,.22);
+  --red:#c41e1e;--red-d:#8b1010;--gold:#c8952a;--gold-d:#7a5818;
+  --text:#e0d8c8;--text-m:#a89880;--text-d:#6a5840;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);background-image:radial-gradient(ellipse 80% 50% at 50% 0%,#1f0a08,transparent 70%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--text);}
+.page{max-width:1080px;margin:0 auto;padding:2.5rem 1.2rem 5rem;}
+.page-title{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:900;color:var(--text);text-align:center;margin-bottom:.4rem;}
+.page-sub{text-align:center;font-style:italic;color:var(--text-m);font-size:1rem;margin-bottom:3rem;}
+.shops-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.8rem;}
+
+/* ── SHOP TILE ── */
+.shop-tile{
+  border-radius:5px;overflow:hidden;cursor:pointer;position:relative;
+  transition:transform .22s,box-shadow .22s;
+  text-decoration:none;display:block;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+.shop-tile:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.65);}
+/* Tile banner — 200px tall, themed gradient */
+.shop-banner{
+  height:200px;position:relative;display:flex;align-items:flex-end;
+  padding:1.4rem 1.6rem;overflow:hidden;
+}
+.shop-banner::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.72) 100%);
+  pointer-events:none;
+}
+.shop-banner-bg{position:absolute;inset:0;background-size:cover;background-position:center;}
+/* Emporium theme: deep purple → arcane blue */
+.theme-emporium .shop-banner-bg{
+  background:
+    radial-gradient(ellipse at 30% 20%,#3d1878,transparent 60%),
+    radial-gradient(ellipse at 70% 80%,#1a0a3e,transparent 55%),
+    linear-gradient(135deg,#0d0618,#200840);
+}
+.theme-emporium .shop-tile-inner{border-color:rgba(107,63,160,.5);}
+/* Outfitter theme: leather brown → brass */
+.theme-outfitter .shop-banner-bg{
+  background:
+    radial-gradient(ellipse at 20% 30%,#3a2010,transparent 55%),
+    radial-gradient(ellipse at 80% 70%,#281808,transparent 50%),
+    linear-gradient(135deg,#1a0e08,#2e1a0a);
+}
+.theme-outfitter .shop-tile-inner{border-color:rgba(180,110,40,.5);}
+/* Banner floating elements */
+.shop-banner-icon{
+  position:absolute;top:1.2rem;right:1.4rem;font-size:3rem;
+  opacity:.3;z-index:1;user-select:none;
+}
+.shop-banner-title{
+  position:relative;z-index:2;
+  font-family:'Cinzel',serif;font-size:1.3rem;font-weight:900;color:#f0e8d8;
+  line-height:1.1;text-shadow:0 2px 8px rgba(0,0,0,.8);
+}
+.shop-banner-tag{
+  position:relative;z-index:2;align-self:flex-start;margin-top:.5rem;
+  font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.18em;
+  text-transform:uppercase;color:rgba(240,232,216,.5);
+}
+/* Info section below banner */
+.shop-tile-inner{
+  background:var(--bg-card);
+  border:1px solid var(--border);border-top:none;
+  padding:1.2rem 1.6rem 1.4rem;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;
+}
+.shop-desc{font-size:.88rem;color:var(--text-m);line-height:1.65;flex:1;}
+.shop-visit{
+  flex-shrink:0;font-family:'Cinzel',serif;font-size:.68rem;font-weight:700;
+  letter-spacing:.1em;padding:.5rem 1.2rem;border-radius:3px;
+  border:1px solid;cursor:pointer;transition:all .18s;white-space:nowrap;
+  text-decoration:none;display:inline-block;
+}
+.theme-emporium .shop-visit{
+  background:rgba(107,63,160,.2);border-color:rgba(107,63,160,.55);color:#c8a8f8;
+}
+.theme-emporium .shop-visit:hover{background:rgba(107,63,160,.38);}
+.theme-outfitter .shop-visit{
+  background:rgba(180,110,40,.15);border-color:rgba(180,110,40,.5);color:var(--gold);
+}
+.theme-outfitter .shop-visit:hover{background:rgba(180,110,40,.3);}
+
+/* ── COMING SOON tile ── */
+.theme-coming .shop-banner-bg{
+  background:linear-gradient(135deg,#141010,#1a1614);
+}
+.theme-coming .shop-tile-inner{border-color:rgba(100,80,60,.3);opacity:.55;}
+.theme-coming .shop-visit{background:transparent;border-color:rgba(100,80,60,.3);color:var(--text-d);cursor:default;}
+
+/* ── GOLD COINS decoration on emporium ── */
+.coins{position:absolute;bottom:1rem;right:1.3rem;display:flex;gap:.3rem;opacity:.5;z-index:1;}
+.coin{
+  width:22px;height:22px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#f0d060,#a07010);
+  border:1.5px solid rgba(240,200,80,.4);
+  box-shadow:0 2px 6px rgba(0,0,0,.4);
+}
+</style>
+</head>
+<body>
+<div id="main-nav"></div>
+
+<div class="page">
+  <div class="page-title">&#128717; The Marketplace</div>
+  <div class="page-sub">Spend your hard-earned gold across the realm</div>
+
+  <div class="shops-grid">
+
+    <!-- Mr Smith's Magical Emporium -->
+    <div class="shop-tile theme-emporium" onclick="window.location.href='magical_emporium.html'">
+      <div class="shop-banner">
+        <div class="shop-banner-bg"></div>
+        <div class="shop-banner-icon">&#10024;</div>
+        <div style="position:relative;z-index:2;">
+          <div class="shop-banner-tag">Magical Wares</div>
+          <div class="shop-banner-title">Mr Smith's<br>Magical Emporium</div>
+        </div>
+        <div class="coins">
+          <div class="coin"></div><div class="coin" style="margin-top:.4rem;"></div>
+          <div class="coin" style="margin-top:-.2rem;"></div>
+        </div>
+      </div>
+      <div class="shop-tile-inner">
+        <div class="shop-desc">Rare enchanted items, potions, scrolls, and wondrous artefacts — curated weekly by Mr Smith for the discerning adventurer.</div>
+        <a href="magical_emporium.html" class="shop-visit">Visit &#8594;</a>
+      </div>
+    </div>
+
+    <!-- The Adventurers Outfitters -->
+    <div class="shop-tile theme-outfitter" onclick="window.location.href='adventurers_shop.html'">
+      <div class="shop-banner">
+        <div class="shop-banner-bg"></div>
+        <div class="shop-banner-icon">&#9876;</div>
+        <div style="position:relative;z-index:2;">
+          <div class="shop-banner-tag">Weapons &amp; Gear</div>
+          <div class="shop-banner-title">The Adventurers<br>Outfitters</div>
+        </div>
+      </div>
+      <div class="shop-tile-inner">
+        <div class="shop-desc">Reliable weapons, sturdy armour, tools, and adventuring supplies — everything you need before heading into the dungeon.</div>
+        <a href="adventurers_shop.html" class="shop-visit">Visit &#8594;</a>
+      </div>
+    </div>
+
+    <!-- Coming Soon -->
+    <div class="shop-tile theme-coming">
+      <div class="shop-banner">
+        <div class="shop-banner-bg"></div>
+        <div class="shop-banner-icon" style="opacity:.15;">&#65110;</div>
+        <div style="position:relative;z-index:2;">
+          <div class="shop-banner-tag">Coming Soon</div>
+          <div class="shop-banner-title" style="color:rgba(200,180,160,.3);">More Shops</div>
+        </div>
+      </div>
+      <div class="shop-tile-inner">
+        <div class="shop-desc" style="color:var(--text-d);">Additional merchants will set up stall as the campaign grows. Check back after future sessions.</div>
+        <span class="shop-visit">Soon</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const keys = ['dnd_username','admin_username','session_dm_username','dm_username'];
+const u = keys.map(k => sessionStorage.getItem(k)).find(Boolean);
+if (!u) { window.location.href = 'index.html'; }
+else Nav.init('market');
+</script>
+</body>
+</html>

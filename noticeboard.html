@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Quest Board — D&D Club</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="nav.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -348,6 +349,7 @@ body{
 </style>
 </head>
 <body>
+<div id="main-nav"></div>
 
 <!-- ═══════════════════════════════════════════════════════
      LOGIN SCREEN
@@ -907,5 +909,6 @@ function escNL(s){return esc(s).replace(/\n/g,'<br>');}
 
 boot();
 </script>
+<script>document.addEventListener("DOMContentLoaded",()=>{if(typeof Nav!=="undefined")Nav.init("board");})</script>
 </body>
 </html>

@@ -3,121 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Adventurer's Emporium — D&D Club</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<title>D&D Club — JCCA</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@400;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#0e0b09;--bg-mid:#161210;--bg-card:#1e1916;
-  --border:rgba(180,110,40,.22);--border-red:rgba(160,28,28,.4);
-  --red:#c41e1e;--red-dim:#8b1010;--red-bright:#e02424;
-  --gold:#c8952a;--gold-dim:#7a5818;
-  --text:#e0d8c8;--text-mid:#b0a898;--text-dim:#786858;
-}
+:root{--bg:#0d0a08;--red:#c41e1e;--gold:#c8952a;--text:#e0d8c8;--text-m:#a89880;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);background-image:radial-gradient(ellipse 70% 45% at 50% 0%,#1f0a08 0%,transparent 70%),radial-gradient(ellipse 40% 30% at 90% 100%,#180a0a 0%,transparent 60%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--text);overflow-x:hidden;}
-#sparks{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
-.spark{position:absolute;border-radius:50%;animation:twinkle var(--d,4s) var(--dl,0s) infinite alternate ease-in-out;}
-@keyframes twinkle{from{opacity:.04;}to{opacity:.7;}}
-.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
-.hero{text-align:center;padding:4.5rem 1rem 2.8rem;}
-.hero-ornament{font-size:.8rem;letter-spacing:.6em;color:rgba(196,30,30,.4);margin-bottom:1rem;animation:fade-in .9s ease both;}
-.hero-title{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(2.2rem,7vw,4.2rem);color:var(--text);line-height:1.1;animation:fade-in .8s ease .1s both;}
-.hero-title span{color:var(--red);}
-.hero-sub{font-style:italic;font-size:1.12rem;color:var(--text-mid);margin-top:.6rem;animation:fade-in .8s ease .2s both;}
-.hero-divider{display:flex;align-items:center;justify-content:center;gap:1rem;margin:1.8rem auto;max-width:400px;animation:fade-in .8s ease .3s both;}
-.hero-divider-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--red-dim),transparent);}
-.hero-divider-gem{color:var(--red-dim);font-size:.78rem;letter-spacing:.25em;font-family:'Cinzel',serif;}
-@keyframes fade-in{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
-.notice-bar{max-width:1000px;margin:0 auto 1.5rem;padding:0 1.5rem;animation:fade-in .8s ease .35s both;}
-.notice-inner{background:rgba(196,30,30,.05);border:1px solid rgba(196,30,30,.22);border-radius:5px;padding:.65rem 1.1rem;font-size:.83rem;color:var(--text-mid);display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;justify-content:space-between;}
-.notice-inner a{font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;letter-spacing:.08em;color:var(--gold-dim);text-decoration:none;border:1px solid var(--border);padding:.22rem .6rem;border-radius:3px;white-space:nowrap;transition:all .2s;}
-.notice-inner a:hover{border-color:var(--gold-dim);color:var(--gold);}
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.2rem;max-width:1000px;margin:0 auto;padding:0 1.5rem 4rem;}
-.nav-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:2rem 1.8rem;text-decoration:none;display:flex;flex-direction:column;align-items:flex-start;position:relative;overflow:hidden;transition:border-color .25s,box-shadow .25s,transform .2s;animation:fade-in .8s ease var(--delay,.4s) both;}
-.nav-card::before{content:'';position:absolute;inset:5px;border:1px solid rgba(180,110,40,.07);border-radius:3px;pointer-events:none;}
-.nav-card::after{content:'';position:absolute;top:0;left:-100%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(196,30,30,.035),transparent);transition:left .5s ease;}
-.nav-card:hover{border-color:var(--red-dim);box-shadow:0 0 24px rgba(196,30,30,.1);transform:translateY(-2px);}
-.nav-card:hover::after{left:150%;}
-.nav-card.red-card{border-color:var(--border-red);}
-.nav-card.red-card:hover{border-color:var(--red);box-shadow:0 0 30px rgba(196,30,30,.18);}
-.nav-card.gold-card{border-color:rgba(200,149,42,.22);}
-.nav-card.gold-card:hover{border-color:var(--gold-dim);box-shadow:0 0 24px rgba(180,110,40,.1);}
-.card-icon{font-size:2rem;margin-bottom:1rem;display:block;}
-.card-title{font-family:'Cinzel',serif;font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:.5rem;}
-.card-desc{font-size:.9rem;color:var(--text-dim);line-height:1.7;flex:1;margin-bottom:1.2rem;}
-.card-arrow{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--text-dim);display:flex;align-items:center;gap:.4rem;transition:gap .2s,color .2s;}
-.nav-card:hover .card-arrow{gap:.7rem;color:var(--text-mid);}
-.sign-in-badge{position:absolute;top:14px;right:14px;background:rgba(196,30,30,.3);color:var(--text);font-family:'Cinzel',serif;font-size:.6rem;font-weight:600;letter-spacing:.1em;padding:3px 10px;border-radius:3px;border:1px solid var(--border-red);animation:badge-pulse 2.2s ease-in-out infinite;}
-@keyframes badge-pulse{0%,100%{opacity:1;}50%{opacity:.55;}}
-.weekly-badge{position:absolute;top:14px;right:14px;background:rgba(180,110,40,.15);border:1px solid var(--border);color:var(--gold-dim);font-family:'Cinzel',serif;font-size:.6rem;font-weight:600;letter-spacing:.08em;padding:3px 10px;border-radius:3px;}
-.footer{text-align:center;padding:1rem;color:rgba(196,30,30,.22);font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.25em;margin-top:auto;}
+body{
+  background:var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% -10%,#1f0a08,transparent 65%),
+    radial-gradient(ellipse 50% 50% at 10% 110%,#180808,transparent 55%);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;font-family:'Crimson Pro',Georgia,serif;color:var(--text);
+  overflow:hidden;
+}
+#sparks{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.spark{position:absolute;border-radius:50%;animation:tw var(--d,4s) var(--dl,0s) infinite alternate ease-in-out;}
+@keyframes tw{from{opacity:.04;}to{opacity:.65;}}
+.hero{position:relative;z-index:1;text-align:center;padding:2rem 1.5rem;max-width:520px;}
+.ornament{
+  font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.7em;
+  color:rgba(196,30,30,.4);margin-bottom:1.2rem;
+  animation:rise .9s ease both;
+}
+.title{
+  font-family:'Cinzel Decorative','Cinzel',serif;
+  font-size:clamp(2rem,8vw,4rem);font-weight:700;
+  color:var(--text);line-height:1.1;margin-bottom:.4rem;
+  animation:rise .8s ease .1s both;
+}
+.title span{color:var(--red);}
+.subtitle{
+  font-size:1.05rem;font-style:italic;color:var(--text-m);
+  margin-bottom:2.5rem;animation:rise .8s ease .2s both;
+}
+.divider{
+  display:flex;align-items:center;gap:.8rem;margin:0 auto 2.5rem;max-width:260px;
+  animation:rise .8s ease .25s both;
+}
+.divider-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(196,30,30,.4),transparent);}
+.divider-gem{color:rgba(196,30,30,.5);font-size:.7rem;letter-spacing:.2em;font-family:'Cinzel',serif;}
+.enter-btn{
+  display:inline-block;font-family:'Cinzel',serif;font-size:.85rem;font-weight:700;
+  letter-spacing:.14em;padding:.85rem 2.8rem;border-radius:4px;cursor:pointer;
+  background:rgba(196,30,30,.18);border:2px solid rgba(196,30,30,.6);
+  color:var(--text);text-decoration:none;
+  transition:all .22s;animation:rise .8s ease .35s both;
+  box-shadow:0 0 30px rgba(196,30,30,.08);
+}
+.enter-btn:hover{
+  background:rgba(196,30,30,.32);border-color:var(--red);
+  box-shadow:0 0 40px rgba(196,30,30,.2);transform:translateY(-1px);
+}
+.enter-btn:active{transform:translateY(0);}
+@keyframes rise{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+.footer-text{
+  position:fixed;bottom:1.5rem;font-family:'Cinzel',serif;
+  font-size:.55rem;letter-spacing:.3em;color:rgba(196,30,30,.2);z-index:1;
+}
 </style>
 </head>
 <body>
 <div id="sparks"></div>
-<div class="page">
-
-  <div class="hero">
-    <div class="hero-ornament">&#9876; · · · &#9876; · · · &#9876;</div>
-    <h1 class="hero-title">The Adventurer's<br><span>Emporium</span></h1>
-    <p class="hero-sub">Your one-stop outfitter for brave souls and foolhardy heroes</p>
-    <div class="hero-divider">
-      <div class="hero-divider-line"></div>
-      <div class="hero-divider-gem">&#9876; D&amp;D CLUB &#9876;</div>
-      <div class="hero-divider-line"></div>
-    </div>
+<div class="hero">
+  <div class="ornament">&#9878; &nbsp;&nbsp; D&amp;D CLUB &nbsp;&nbsp; &#9878;</div>
+  <div class="title">Dungeon<br><span>&amp;</span> Dragons</div>
+  <div class="subtitle">JCCA — Adventurers League</div>
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-gem">&#9670;</div>
+    <div class="divider-line"></div>
   </div>
-
-  <div class="notice-bar">
-    <div class="notice-inner">
-      <span>&#9679; &nbsp; Sign in to the Player Portal to manage your character, browse the shop, and claim session rewards.</span>
-      <a href="register.html">New? Request an account &#8594;</a>
-    </div>
-  </div>
-
-  <div class="cards-grid">
-    <a href="shop_portal.html" class="nav-card red-card" style="--delay:0.4s">
-      <div class="sign-in-badge">SIGN IN</div>
-      <span class="card-icon">&#9876;</span>
-      <div class="card-title">Player Portal</div>
-      <div class="card-desc">Sign in to browse the shop, manage your character's inventory, check your gold balance, and claim session rewards.</div>
-      <div class="card-arrow">Enter the portal <span>&#8594;</span></div>
-    </a>
-    <a href="noticeboard.html" class="nav-card" style="--delay:0.47s">
-      <span class="card-icon">&#128196;</span>
-      <div class="card-title">Noticeboard</div>
-      <div class="card-desc">Session announcements, upcoming events, rule reminders, and news from your DM. Updated after every session.</div>
-      <div class="card-arrow">View notices <span>&#8594;</span></div>
-    </a>
-    <a href="magical_emporium.html" class="nav-card" style="--delay:0.54s">
-      <div class="weekly-badge">WEEKLY</div>
-      <span class="card-icon">&#10024;</span>
-      <div class="card-title">Mr. Smith's Magical Emporium</div>
-      <div class="card-desc">Browse this week's limited magical stock — potions, scrolls, and rare curiosities. Resets every Monday. Limited quantities available.</div>
-      <div class="card-arrow">Browse the emporium <span>&#8594;</span></div>
-    </a>
-    <a href="dnd_club_shop.html" class="nav-card gold-card" style="--delay:0.6s">
-      <span class="card-icon">&#128220;</span>
-      <div class="card-title">Adventurer's Shop</div>
-      <div class="card-desc">Full catalogue of weapons, armour, tools, and adventuring gear. Standard items always in stock. Currency and weight rules explained here too.</div>
-      <div class="card-arrow">Browse the shop <span>&#8594;</span></div>
-    </a>
-  </div>
-
-  <div class="footer">&#9876; · · · ESTABLISHED 842 DR · · · &#9876;</div>
+  <a href="adventurers_hub.html" class="enter-btn">Enter the Realm</a>
 </div>
-
+<div class="footer-text">JCCA &nbsp;&#183;&nbsp; D&amp;D CLUB</div>
 <script>
-(function(){
-  const el=document.getElementById('sparks');
-  const colours=['rgba(196,30,30,.7)','rgba(200,149,42,.5)','rgba(220,180,80,.4)','rgba(255,240,220,.35)'];
-  for(let i=0;i<70;i++){
-    const s=document.createElement('div'),sz=Math.random()*2+.3;
-    s.className='spark';
-    s.style.cssText=`width:${sz}px;height:${sz}px;background:${colours[Math.floor(Math.random()*colours.length)]};top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*4+2).toFixed(1)}s;--dl:-${(Math.random()*6).toFixed(1)}s`;
-    el.appendChild(s);
-  }
-})();
+// Ember sparks
+const sp = document.getElementById('sparks');
+const COLS = ['#c84040','#c8952a','#f0e8d8','#a83020'];
+for (let i = 0; i < 55; i++) {
+  const el = document.createElement('div');
+  el.className = 'spark';
+  const size = Math.random() * 2.5 + 0.8;
+  el.style.cssText = `
+    left:${Math.random()*100}%;top:${Math.random()*100}%;
+    width:${size}px;height:${size}px;
+    background:${COLS[Math.floor(Math.random()*COLS.length)]};
+    --d:${(Math.random()*4+2).toFixed(1)}s;
+    --dl:${(Math.random()*3).toFixed(1)}s;
+    opacity:0;
+  `;
+  sp.appendChild(el);
+}
+// If already logged in, skip to hub
+const keys = ['dnd_username','admin_username','session_dm_username','dm_username'];
+if (keys.some(k => sessionStorage.getItem(k))) {
+  window.location.href = 'adventurers_hub.html';
+}
 </script>
 </body>
 </html>

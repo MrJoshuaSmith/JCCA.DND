@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Tools — Admin Panel</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="nav.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -136,6 +137,7 @@ body{background:var(--void);background-image:radial-gradient(ellipse 80% 50% at 
 <div id="stars"></div>
 
 <!-- LOGIN SCREEN -->
+<div id="main-nav"></div>
 <div id="screen-login" class="auth-wrap">
   <div class="auth-card">
     <div class="auth-logo">
@@ -540,6 +542,7 @@ function doSignOut(){
 function showApp(){
   document.getElementById('screen-login').style.display='none';
   document.getElementById('screen-app').style.display='block';
+  if(typeof Nav!=='undefined')Nav.init('admin');
 }
 
 // ================================================================
@@ -782,16 +785,11 @@ function openApproveChar(id) {
     const sg=AL_GOLD[r.class]||50;
     document.getElementById('modal-approve-char-body').innerHTML=`
       <div style="background:rgba(96,200,112,.07);border:1px solid rgba(96,200,112,.2);border-radius:5px;padding:1rem;margin-bottom:1rem;">
-        <p style="font-family:'Cinzel',serif;font-size:.92rem;color:var(--crystal-bright);margin-bottom:.3rem;">${esc(r.requestedCharacterName)}</p>
-        <p style="font-size:.82rem;color:var(--silver-dim);">${esc(r.class)} &#183; ${esc(r.race)} &#183; ${esc(r.background)}</p>
-        <p style="font-size:.78rem;color:var(--crystal-dim);margin-top:.3rem;">Player: ${esc(r.playerId)}</p>
+        <p style="font-family:'Cinzel',serif;font-size:.9rem;color:var(--crystal-bright);margin-bottom:.3rem;">Request from: ${esc(r.playerId)}</p>
+        <p style="font-size:.82rem;color:var(--silver-dim);font-style:italic;">${r.reason||'No reason provided'}</p>
+        <p style="font-size:.75rem;color:var(--crystal-dim);margin-top:.3rem;">Submitted: ${r.requestDate?new Date(r.requestDate).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}):''}</p>
       </div>
-      <p style="font-size:.85rem;color:var(--silver);margin-bottom:.5rem;">On approval this character will be created with:</p>
-      <table style="width:100%;font-size:.85rem;">
-        <tr><td style="color:var(--silver-dim);padding:.25rem 0;">Starting gold</td><td style="text-align:right;color:var(--gold);font-weight:600;">${sg} gp <span style="font-size:.7rem;color:var(--silver-dim)">(AL ${r.class})</span></td></tr>
-        <tr><td style="color:var(--silver-dim);padding:.25rem 0;">Level</td><td style="text-align:right;color:var(--teal);">1</td></tr>
-      </table>
-      <p style="font-size:.78rem;color:var(--silver-dim);margin-top:.8rem;font-style:italic;">The player will choose their equipment when they first switch to this character.</p>`;
+      <p style="font-size:.85rem;color:var(--silver);margin-bottom:.5rem;">On approval, the player will be notified and can build their character via the character creator in the portal.</p>`;
     openModal('modal-approve-char');
   });
 }
@@ -800,23 +798,15 @@ async function confirmApproveChar() {
   try {
     const doc=await db.collection('CharacterRequests').doc(pendingCharId).get();
     const r=doc.data();
-    const sg=AL_GOLD[r.class]||50;
-
-    await db.collection('Characters').add({
-      characterName:r.requestedCharacterName, playerId:r.playerId,
-      class:r.class, race:r.race, background:r.background,
-      level:1, xp:0, gold:sg, status:'Active',
-      createdAt:new Date().toISOString(),
-      sheet:{ abilityScores:{str:null,dex:null,con:null,int:null,wis:null,cha:null}, hp:null, maxHp:null, ac:null, savingThrows:{}, skills:{}, spells:[], features:[] },
-    });
-
+    // Set status to ApprovedBuild — player will use character creator to build it
     await db.collection('CharacterRequests').doc(pendingCharId).update({
-      status:'Approved', approvedAt:new Date().toISOString(), approvedBy:dmUsername,
+      status:'ApprovedBuild', approvedAt:new Date().toISOString(), approvedBy:dmUsername,
     });
-
+    // Flag the User doc so the portal shows a toast + Build Character button on next login
+    await db.collection('Users').doc(r.playerId).update({ characterApproved: true });
     closeModal('modal-approve-char');
-    toast(`${r.requestedCharacterName} approved!`,'success');
-    loadCharRequests(); loadOverview(); loadOverride();
+    toast(`Approved — ${r.playerId} will be notified to build their character.`,'success');
+    loadCharRequests(); loadOverview();
   } catch(e){ console.error(e); toast('Failed to approve character.','error'); }
   pendingCharId=null;
 }
@@ -826,7 +816,7 @@ function openRejectChar(id) {
   db.collection('CharacterRequests').doc(id).get().then(doc=>{
     const r=doc.data();
     document.getElementById('modal-reject-char-body').innerHTML=
-      `<p style="font-size:.9rem;color:var(--silver);">Rejecting request for <strong style="color:var(--crystal)">${esc(r.requestedCharacterName)}</strong> by ${esc(r.playerId)}.</p>`;
+      `<p style="font-size:.9rem;color:var(--silver);">Rejecting character request from <strong style="color:var(--crystal)">${esc(r.playerId)}</strong>. The player will <strong>not</strong> be notified automatically — add a note below if helpful.</p>\n      <p style="font-size:.78rem;color:var(--silver-dim);font-style:italic;margin-top:.4rem;">${r.reason||'No reason given by player'}</p>`;
     document.getElementById('reject-char-reason').value='';
     openModal('modal-reject-char');
   });

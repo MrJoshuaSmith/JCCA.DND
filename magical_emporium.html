@@ -556,8 +556,10 @@
     .week-inner { flex-direction: column; }
   }
 </style>
+<script src="nav.js"></script>
 </head>
 <body>
+<div id="main-nav"></div>
 
 <!-- Stars background -->
 <div class="stars" id="stars"></div>
@@ -835,5 +837,6 @@
   }
 })();
 </script>
+<script>document.addEventListener("DOMContentLoaded",()=>{if(typeof Nav!=="undefined")Nav.init("market");})</script>
 </body>
 </html>
