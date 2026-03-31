@@ -777,22 +777,6 @@ body {
 <div id="main-nav"></div><div id="screen-app" style="display:none">
   <div class="page">
 
-    <!-- TOP BAR -->
-    <div class="topbar">
-      <div class="topbar-brand" style="display:flex;align-items:center;gap:.5rem;"><span style="color:var(--red-sale);">⚔</span> <span>Player Portal</span></div>
-      <div class="topbar-right">
-        <a href="index.html" style="font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.07em;color:var(--silver-dim);text-decoration:none;border:1px solid rgba(180,110,40,.25);padding:.3rem .7rem;border-radius:4px;transition:all .2s;white-space:nowrap;" onmouseover="this.style.color='var(--crystal)';this.style.borderColor='var(--arcane-border)'" onmouseout="this.style.color='var(--silver-dim)';this.style.borderColor='rgba(180,110,40,.25)'">&#8962; Home</a>
-        <a href="noticeboard.html" style="font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.07em;color:var(--silver-dim);text-decoration:none;border:1px solid rgba(180,110,40,.25);padding:.3rem .7rem;border-radius:4px;transition:all .2s;white-space:nowrap;" onmouseover="this.style.color='var(--crystal)';this.style.borderColor='var(--arcane-border)'" onmouseout="this.style.color='var(--silver-dim)';this.style.borderColor='rgba(180,110,40,.25)'">&#128196; Quest Board</a>
-        <div class="char-badge" onclick="openCharModal()">
-          <span style="font-size:14px;">&#9881;</span>
-          <span class="char-name" id="tb-charname">Loading...</span>
-          <span style="color:var(--silver-dim); font-size:0.75rem;">|</span>
-          <span class="char-gold" id="tb-gold">— gp</span>
-        </div>
-        <button class="signout-btn" onclick="doSignOut()">Sign Out</button>
-      </div>
-    </div>
-
     <!-- MAIN -->
     <div class="main">
 
@@ -1755,22 +1739,6 @@ body {
 <!-- SCREEN: Main App -->
 <div id="screen-app" style="display:none">
   <div class="page">
-
-    <!-- TOP BAR -->
-    <div class="topbar">
-      <div class="topbar-brand" style="display:flex;align-items:center;gap:.5rem;"><span style="color:var(--red-sale);">⚔</span> <span>Player Portal</span></div>
-      <div class="topbar-right">
-        <a href="index.html" style="font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.07em;color:var(--silver-dim);text-decoration:none;border:1px solid rgba(180,110,40,.25);padding:.3rem .7rem;border-radius:4px;transition:all .2s;white-space:nowrap;" onmouseover="this.style.color='var(--crystal)';this.style.borderColor='var(--arcane-border)'" onmouseout="this.style.color='var(--silver-dim)';this.style.borderColor='rgba(180,110,40,.25)'">&#8962; Home</a>
-        <a href="noticeboard.html" style="font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.07em;color:var(--silver-dim);text-decoration:none;border:1px solid rgba(180,110,40,.25);padding:.3rem .7rem;border-radius:4px;transition:all .2s;white-space:nowrap;" onmouseover="this.style.color='var(--crystal)';this.style.borderColor='var(--arcane-border)'" onmouseout="this.style.color='var(--silver-dim)';this.style.borderColor='rgba(180,110,40,.25)'">&#128196; Quest Board</a>
-        <div class="char-badge" onclick="openCharModal()">
-          <span style="font-size:14px;">&#9881;</span>
-          <span class="char-name" id="tb-charname">Loading...</span>
-          <span style="color:var(--silver-dim); font-size:0.75rem;">|</span>
-          <span class="char-gold" id="tb-gold">— gp</span>
-        </div>
-        <button class="signout-btn" onclick="doSignOut()">Sign Out</button>
-      </div>
-    </div>
 
     <!-- MAIN -->
     <div class="main">
@@ -2964,7 +2932,7 @@ async function loadCharactersTab() {
     <div class="char-list-item ${isActive ? 'active-char' : ''}" onclick="openInlineSheet('${c.id}')" style="cursor:pointer;">
       <div>
         <div class="char-list-name">${esc(c.characterName)} <span style="font-size:.65rem;color:var(--gold-magic);">&#8594; Sheet</span></div>
-        <div class="char-list-sub">${esc(c.race || '')} ${esc(c.class || '')} · Level ${c.level || 1} · XP: ${c.xp || 0}</div>
+        <div class="char-list-sub">${esc(c.race || '')} ${esc(c.class || '')} · Lv ${c.level || 1} · ${c.xp || 0} XP · <span style="color:var(--gold-magic);font-weight:600;">${c.gold ?? 0} gp</span></div>
       </div>
       <div style="text-align:right;">
         <div class="char-list-gold">${c.gold ?? 0} gp</div>
@@ -3340,19 +3308,38 @@ function showCharacterCreationWizard() {
   show('screen-char-create');
 }
 
+const CLASS_COLORS={"Barbarian": "#b22222", "Bard": "#1a9688", "Cleric": "#8090a8", "Druid": "#3a7a2f", "Fighter": "#5a7a9a", "Monk": "#2a8a5a", "Paladin": "#b8892a", "Ranger": "#6b5a2e", "Rogue": "#3a3a50", "Sorcerer": "#8b2db8", "Warlock": "#2d1060", "Wizard": "#4a28a0"};
 function buildClassGrid() {
-  document.getElementById('class-grid').innerHTML = DND5E.classes.map(cls=>
-    `<div class="class-btn" id="class-btn-${cls}" onclick="selectClass('${cls}')">
-      <div class="class-btn-name">${cls}</div>
-      <div class="class-btn-gold">${DND5E.startingGold[cls]} gp</div>
-    </div>`).join('');
+  const CLASS_ICONS = {
+    Barbarian:'⚡',Bard:'♪',Cleric:'✦',Druid:'☘',Fighter:'⚔',
+    Monk:'☯',Paladin:'✡',Ranger:'◎',Rogue:'◈',Sorcerer:'✸',Warlock:'☽',Wizard:'✦'
+  };
+  document.getElementById('class-grid').innerHTML = DND5E.classes.map(cls=>{
+    const col = CLASS_COLORS[cls]||'#5a6070';
+    const icon = CLASS_ICONS[cls]||'◆';
+    return `<div class="class-btn" id="class-btn-${cls}" onclick="selectClass('${cls}')"
+      style="border-color:${col}22;background:${col}12;"
+      onmouseenter="this.style.background='${col}28';this.style.borderColor='${col}66';"
+      onmouseleave="if(!this.classList.contains('selected')){this.style.background='${col}12';this.style.borderColor='${col}22';}">
+      <div style="font-size:1.4rem;margin-bottom:.3rem;opacity:.75;">${icon}</div>
+      <div class="class-btn-name" style="color:${col};filter:brightness(1.4);">${cls}</div>
+    </div>`;
+  }).join('');
 }
 
 function selectClass(cls) {
   wizardData.class = cls;
-  document.querySelectorAll('.class-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('.class-btn').forEach(b=>{
+    b.classList.remove('selected');
+    const c=CLASS_COLORS[b.id.replace('class-btn-','')]||'#5a6070';
+    b.style.background=c+'12'; b.style.borderColor=c+'22';
+  });
   const btn = document.getElementById(`class-btn-${cls}`);
-  if (btn) btn.classList.add('selected');
+  if (btn) {
+    btn.classList.add('selected');
+    const c=CLASS_COLORS[cls]||'#5a6070';
+    btn.style.background=c+'38'; btn.style.borderColor=c+'88';
+  }
   document.getElementById('w1-err').style.display='none';
   saveDraft();
 }
