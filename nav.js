@@ -5,10 +5,11 @@
 */
 (function() {
   const PAGES = [
-    { id:'portal',     href:'shop_portal.html',    icon:'&#9876;', label:'Portal' },
-    { id:'encounters', href:'live_encounters.html', icon:'&#9889;', label:'Encounters' },
-    { id:'board',      href:'noticeboard.html',     icon:'&#128204;', label:'Quest Board' },
-    { id:'market',     href:'marketplace.html',     icon:'&#128717;', label:'Market' },
+    { id:'portal',     href:'character_manager.html', icon:'&#9876;',   label:'Portal' },
+    { id:'encounters', href:'live_encounters.html',   icon:'&#9889;',   label:'Encounters' },
+    { id:'board',      href:'noticeboard.html',       icon:'&#128204;', label:'Quest Board' },
+    { id:'market',     href:'marketplace.html',       icon:'&#128717;', label:'Market' },
+    { id:'resources',  href:'resources.html',         icon:'&#128218;', label:'Resources' },
   ];
 
   const CSS = `

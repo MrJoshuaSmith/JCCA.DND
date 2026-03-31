@@ -1,0 +1,2776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Character Manager — D&D Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+<!-- Firebase (compat SDK — works directly in browser) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+
+
+<style>
+:root {
+  /* D&D dark theme — brown/black base, crimson accents, aged gold */
+  --arcane:         #1a1006;
+  --arcane-mid:     #261a0a;
+  --arcane-light:   #3a2510;
+  --arcane-border:  rgba(180,110,40,.45);
+  --void:           #0e0b09;
+  --crystal:        #e0d8c8;
+  --crystal-bright: #f0e8d8;
+  --crystal-dim:    #b0a898;
+  --azure:          #c8952a;
+  --azure-bright:   #e8b040;
+  --silver:         #e0d8c8;
+  --silver-dim:     #a09080;
+  --gold-magic:     #c8952a;
+  --gold-dim:       #7a5818;
+  --teal-magic:     #c8a050;
+  --red-sale:       #c41e1e;
+  --green-ok:       #5a8a30;
+  --bg-card:        rgba(26,15,8,.97);
+  --bg-input:       rgba(13,8,4,.85);
+  --red:            #c41e1e;
+  --red-d:          #8b1010;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--void);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% 0%, #1f0f08 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 10% 90%, #180a08 0%, transparent 60%);
+  min-height: 100vh;
+  font-family: 'Crimson Pro', Georgia, serif;
+  color: var(--silver);
+  overflow-x: hidden;
+}
+
+/* ── STARS ── */
+#stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.star { position: absolute; border-radius: 50%; background: white;
+  animation: twinkle var(--d,3s) var(--dl,0s) infinite alternate ease-in-out; }
+@keyframes twinkle { from { opacity: .1; } to { opacity: .85; } }
+
+/* ── LAYOUT ── */
+.page { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── TOP BAR ── */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.7rem 1.5rem;
+  background: rgba(13,6,24,0.85);
+  border-bottom: 1px solid rgba(180,110,40,0.35);
+  backdrop-filter: blur(8px);
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-brand {
+  font-family: 'Cinzel', serif; font-size: 0.95rem; font-weight: 600;
+  color: var(--crystal-bright); letter-spacing: 0.06em;
+}
+.topbar-brand span { color: var(--gold-magic); }
+.topbar-right { display: flex; align-items: center; gap: 1rem; }
+.char-badge {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: rgba(180,110,40,0.18); border: 1px solid rgba(180,110,40,0.4);
+  border-radius: 20px; padding: 0.3rem 0.9rem; cursor: pointer;
+  transition: all 0.2s; font-size: 0.85rem;
+}
+.char-badge:hover { background: rgba(180,110,40,0.32); border-color: var(--crystal-dim); }
+.char-name { color: var(--crystal-bright); font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 600; }
+.char-gold { color: var(--gold-magic); font-size: 0.82rem; font-weight: 600; }
+.signout-btn {
+  background: transparent; border: 1px solid rgba(180,110,40,0.4);
+  color: var(--silver-dim); font-family: 'Cinzel', serif; font-size: 0.72rem;
+  letter-spacing: 0.08em; padding: 0.3rem 0.8rem; border-radius: 4px;
+  cursor: pointer; transition: all 0.2s;
+}
+.signout-btn:hover { border-color: var(--crystal-dim); color: var(--crystal); }
+
+/* ── MAIN CONTENT ── */
+.main { flex: 1; max-width: 1100px; width: 100%; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+/* ── NAV TABS ── */
+.nav-tabs { display: flex; gap: 0.3rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.nav-tab {
+  font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.07em; padding: 0.5rem 1.2rem;
+  background: rgba(180,110,40,0.1); border: 1px solid rgba(180,110,40,0.3);
+  color: var(--crystal-dim); border-radius: 4px 4px 0 0; cursor: pointer;
+  transition: all 0.2s;
+}
+.nav-tab:hover { background: rgba(180,110,40,0.22); color: var(--crystal); }
+.nav-tab.active {
+  background: rgba(26,15,8,0.95); border-color: var(--arcane-border);
+  border-bottom-color: rgba(26,15,8,0.95); color: var(--crystal-bright);
+  position: relative; top: 1px;
+}
+.tab-border { border-top: 1px solid var(--arcane-border); margin-top: -1px; margin-bottom: 1.5rem; }
+
+/* ── CARDS ── */
+.arcane-card {
+  background: var(--bg-card);
+  border: 1px solid var(--arcane-border);
+  border-radius: 6px; padding: 1.8rem 2rem;
+  position: relative;
+}
+.arcane-card::before {
+  content: ''; position: absolute; inset: 4px;
+  border: 1px solid rgba(180,110,40,0.15); border-radius: 3px; pointer-events: none;
+}
+.section-title {
+  font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 600;
+  color: var(--crystal-bright); border-bottom: 1px solid rgba(180,110,40,0.4);
+  padding-bottom: 0.5rem; margin-bottom: 1.2rem;
+}
+
+/* ── FORMS ── */
+.form-group { margin-bottom: 1.1rem; }
+.form-label {
+  display: block; font-family: 'Cinzel', serif; font-size: 0.72rem;
+  letter-spacing: 0.1em; color: var(--crystal-dim); margin-bottom: 0.4rem;
+  text-transform: uppercase;
+}
+.form-input {
+  width: 100%; background: var(--bg-input); border: 1px solid rgba(180,110,40,0.4);
+  border-radius: 4px; padding: 0.6rem 0.9rem; color: var(--crystal-bright);
+  font-family: 'Crimson Pro', serif; font-size: 1rem;
+  transition: border-color 0.2s; outline: none;
+}
+.form-input:focus { border-color: var(--crystal-dim); }
+.form-input::placeholder { color: var(--silver-dim); opacity: 0.6; }
+.form-input:disabled { opacity: 0.5; cursor: not-allowed; }
+.form-hint { font-size: 0.82rem; color: var(--silver-dim); margin-top: 0.3rem; font-style: italic; }
+.form-error { font-size: 0.82rem; color: var(--red-sale); margin-top: 0.3rem; }
+.form-success { font-size: 0.82rem; color: var(--green-ok); margin-top: 0.3rem; }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.1em; padding: 0.6rem 1.6rem; border-radius: 4px;
+  cursor: pointer; transition: all 0.2s; border: 1px solid;
+}
+.btn-primary {
+  background: rgba(180,110,40,0.3); border-color: var(--arcane-border);
+  color: var(--crystal-bright);
+}
+.btn-primary:hover { background: rgba(180,110,40,0.5); border-color: var(--crystal-dim); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-gold {
+  background: rgba(240,200,72,0.15); border-color: var(--gold-dim);
+  color: var(--gold-magic);
+}
+.btn-gold:hover { background: rgba(240,200,72,0.28); }
+.btn-gold:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-danger {
+  background: rgba(255,68,136,0.12); border-color: #c03060;
+  color: var(--red-sale);
+}
+.btn-danger:hover { background: rgba(255,68,136,0.25); }
+.btn-sm { padding: 0.35rem 0.9rem; font-size: 0.7rem; }
+.btn-block { width: 100%; }
+
+/* ── AUTH SCREENS ── */
+.auth-wrap {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 2rem; position: relative; z-index: 1;
+}
+.auth-card {
+  background: var(--bg-card); border: 1px solid var(--arcane-border);
+  border-radius: 8px; padding: 2.5rem 2.5rem 2rem; width: 100%; max-width: 420px;
+  position: relative;
+}
+.auth-card::before {
+  content: ''; position: absolute; inset: 5px;
+  border: 1px solid rgba(180,110,40,0.18); border-radius: 5px; pointer-events: none;
+}
+.auth-logo {
+  text-align: center; margin-bottom: 1.8rem;
+}
+.auth-logo h1 {
+  font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 900;
+  color: var(--crystal-bright); line-height: 1.2;
+}
+.auth-logo h1 span { color: var(--gold-magic); }
+.auth-logo p { font-style: italic; color: var(--crystal-dim); font-size: 0.9rem; margin-top: 0.4rem; }
+
+.auth-divider {
+  text-align: center; color: var(--silver-dim); font-size: 0.75rem;
+  margin: 1.2rem 0; letter-spacing: 0.15em;
+  display: flex; align-items: center; gap: 0.8rem;
+  font-family: 'Cinzel', serif;
+}
+.auth-divider::before, .auth-divider::after {
+  content: ''; flex: 1; height: 1px; background: rgba(180,110,40,0.3);
+}
+
+/* Login button */
+.login-btn {
+  width: 100%; background: rgba(180,110,40,0.25); border: 1px solid var(--arcane-border);
+  color: var(--crystal-bright); font-family: 'Cinzel', serif; font-size: 0.82rem;
+  font-weight: 600; letter-spacing: 0.1em; padding: 0.75rem 1rem;
+  border-radius: 4px; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;
+}
+.login-btn:hover { background: rgba(180,110,40,0.45); border-color: var(--crystal-dim); }
+.login-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Change password form */
+.change-pw-wrap { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(180,110,40,0.25); }
+
+/* ── SHOP GRID ── */
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+.shop-item-card {
+  background: rgba(13,6,24,0.7); border: 1px solid rgba(180,110,40,0.3);
+  border-radius: 6px; padding: 1.1rem 1.2rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  display: flex; flex-direction: column;
+}
+.shop-item-card:hover { border-color: var(--arcane-border); box-shadow: 0 0 14px rgba(180,110,40,0.15); }
+.shop-item-card.deal-card { border-color: rgba(255,68,136,0.4); }
+.shop-item-card.deal-card:hover { border-color: var(--red-sale); box-shadow: 0 0 14px rgba(255,68,136,0.2); }
+.item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem; }
+.item-name { font-family: 'Cinzel', serif; font-size: 0.92rem; font-weight: 600; color: var(--crystal-bright); }
+.item-desc { font-size: 0.85rem; color: var(--silver-dim); line-height: 1.55; margin-bottom: 0.8rem; flex: 1; }
+.item-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; gap: 0.5rem; }
+.item-price { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600; color: var(--gold-magic); }
+.item-was { font-size: 0.8rem; color: var(--silver-dim); text-decoration: line-through; margin-left: 0.3rem; }
+.sale-pct {
+  font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 600;
+  background: rgba(255,68,136,0.2); border: 1px solid rgba(255,68,136,0.5);
+  color: var(--red-sale); padding: 2px 7px; border-radius: 3px;
+}
+.rarity-badge {
+  font-family: 'Cinzel', serif; font-size: 0.68rem; padding: 2px 7px;
+  border-radius: 3px; border: 1px solid;
+}
+.r-common    { border-color: var(--silver-dim); color: var(--silver-dim); }
+.r-uncommon  { border-color: #60c870; color: #60c870; }
+.r-rare      { border-color: var(--azure-bright); color: var(--azure-bright); }
+.stock-badge { font-size: 0.75rem; font-family: 'Cinzel', serif; }
+.s-ok  { color: var(--teal-magic); }
+.s-low { color: var(--gold-magic); animation: pulse-low 2s infinite; }
+.s-out { color: var(--silver-dim); }
+@keyframes pulse-low { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+
+/* ── INVENTORY ── */
+.inv-tabs { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.inv-tab {
+  font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.07em; padding: 0.35rem 0.9rem;
+  background: transparent; border: 1px solid rgba(180,110,40,0.3);
+  color: var(--crystal-dim); border-radius: 4px; cursor: pointer; transition: all 0.2s;
+}
+.inv-tab:hover { border-color: var(--crystal-dim); color: var(--crystal); }
+.inv-tab.active { background: rgba(180,110,40,0.25); border-color: var(--crystal-dim); color: var(--crystal-bright); }
+.inv-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.inv-table th {
+  font-family: 'Cinzel', serif; font-size: 0.68rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--crystal-dim);
+  background: rgba(180,110,40,0.12); padding: 0.5rem 0.8rem;
+  border-bottom: 1px solid rgba(180,110,40,0.3); text-align: left;
+}
+.inv-table td { padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(180,110,40,0.1); color: var(--silver); }
+.inv-table tr:hover td { background: rgba(180,110,40,0.08); }
+.inv-empty { text-align: center; padding: 2rem; color: var(--silver-dim); font-style: italic; font-size: 0.9rem; }
+
+/* ── MODALS ── */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 200;
+  align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--bg-card); border: 1px solid var(--arcane-border);
+  border-radius: 8px; padding: 1.8rem; width: 100%; max-width: 480px;
+  position: relative; max-height: 80vh; overflow-y: auto;
+}
+.modal-title {
+  font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600;
+  color: var(--crystal-bright); margin-bottom: 1.2rem;
+  border-bottom: 1px solid rgba(180,110,40,0.3); padding-bottom: 0.5rem;
+}
+.modal-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: transparent; border: none; color: var(--silver-dim);
+  font-size: 1.2rem; cursor: pointer; padding: 0.2rem 0.5rem;
+}
+.modal-close:hover { color: var(--crystal); }
+.char-list-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.7rem 0.9rem; border: 1px solid rgba(180,110,40,0.25);
+  border-radius: 5px; margin-bottom: 0.5rem; cursor: pointer;
+  transition: all 0.2s; background: rgba(13,6,24,0.5);
+}
+.char-list-item:hover { border-color: var(--arcane-border); background: rgba(180,110,40,0.12); }
+.char-list-item.active-char { border-color: var(--teal-magic); background: rgba(64,216,200,0.07); }
+.char-list-name { font-family: 'Cinzel', serif; font-size: 0.88rem; color: var(--crystal-bright); }
+.char-list-sub { font-size: 0.78rem; color: var(--silver-dim); margin-top: 0.1rem; }
+.char-list-gold { font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--gold-magic); font-weight: 600; }
+.active-pip { color: var(--teal-magic); font-size: 0.7rem; font-family: 'Cinzel', serif; letter-spacing: 0.08em; }
+
+/* ── SELECT GRID ── */
+.select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+@media (max-width: 560px) { .select-grid { grid-template-columns: 1fr; } }
+
+/* ── TOAST ── */
+.toast-wrap { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 300; display: flex; flex-direction: column; gap: 0.5rem; }
+.toast {
+  background: var(--bg-card); border: 1px solid; border-radius: 5px;
+  padding: 0.7rem 1.1rem; font-size: 0.88rem; min-width: 220px;
+  animation: toast-in 0.25s ease;
+}
+@keyframes toast-in { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: none; } }
+.toast-success { border-color: var(--green-ok); color: var(--green-ok); }
+.toast-error   { border-color: var(--red-sale);  color: var(--red-sale); }
+.toast-info    { border-color: var(--crystal-dim); color: var(--crystal); }
+
+/* ── SPINNER ── */
+.spinner {
+  width: 32px; height: 32px; border: 2px solid rgba(180,110,40,0.3);
+  border-top-color: var(--crystal-dim); border-radius: 50%;
+  animation: spin 0.8s linear infinite; margin: 2rem auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { text-align: center; color: var(--silver-dim); font-style: italic; font-size: 0.9rem; margin-top: 0.5rem; }
+
+/* ── MISC ── */
+.ornament { text-align: center; color: rgba(180,110,40,0.4); letter-spacing: 0.5em; margin: 1.5rem 0 0.5rem; font-size: 0.9rem; }
+.pending-notice {
+  background: rgba(240,200,72,0.08); border: 1px solid rgba(240,200,72,0.3);
+  border-radius: 5px; padding: 0.8rem 1.1rem; font-size: 0.88rem;
+  color: var(--gold-magic); margin-bottom: 1rem;
+}
+.info-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+.scroll-x { overflow-x: auto; }
+
+@media (max-width: 600px) {
+  .main { padding: 1rem 0.7rem 2rem; }
+  .arcane-card { padding: 1.1rem 0.9rem; }
+  .auth-card { padding: 1.8rem 1.2rem; }
+}
+
+/* ── CHARACTER CREATION WIZARD ── */
+.wizard-wrap {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 2rem 1rem; position: relative; z-index: 1;
+}
+.wizard-card {
+  background: var(--bg-card); border: 1px solid var(--arcane-border);
+  border-radius: 8px; padding: 2rem 2.5rem; width: 100%; max-width: 560px; position: relative;
+}
+.wizard-card::before {
+  content: ''; position: absolute; inset: 5px;
+  border: 1px solid rgba(180,110,40,0.18); border-radius: 5px; pointer-events: none;
+}
+.wizard-step { display: none; }
+.wizard-step.active { display: block; }
+.wizard-progress {
+  display: flex; gap: 0.4rem; margin-bottom: 1.8rem; align-items: center;
+}
+.wizard-dot {
+  width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 600;
+  border: 1px solid rgba(180,110,40,0.4); color: var(--silver-dim); transition: all 0.3s;
+}
+.wizard-dot.active { background: rgba(180,110,40,0.35); border-color: var(--crystal-dim); color: var(--crystal-bright); }
+.wizard-dot.done   { background: rgba(64,216,200,0.2); border-color: var(--teal-magic); color: var(--teal-magic); }
+.wizard-line { flex: 1; height: 1px; background: rgba(180,110,40,0.25); }
+.wizard-title {
+  font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 600;
+  color: var(--crystal-bright); margin-bottom: 0.4rem;
+}
+.wizard-sub { font-size: 0.88rem; color: var(--silver-dim); font-style: italic; margin-bottom: 1.4rem; }
+.class-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.6rem;
+  margin-bottom: 1.2rem;
+}
+.class-btn {
+  background: rgba(13,6,24,0.6); border: 1px solid rgba(180,110,40,0.3);
+  border-radius: 5px; padding: 0.7rem 0.5rem; cursor: pointer; transition: all 0.2s;
+  text-align: center;
+}
+.class-btn:hover { border-color: var(--arcane-border); background: rgba(180,110,40,0.15); }
+.class-btn.selected { border-color: var(--crystal-dim); background: rgba(180,110,40,0.3); }
+.class-btn-name { font-family: 'Cinzel', serif; font-size: 0.72rem; font-weight: 600; color: var(--crystal-bright); }
+.class-btn-gold { font-size: 0.68rem; color: var(--gold-magic); margin-top: 0.2rem; }
+.equip-option {
+  border: 1px solid rgba(180,110,40,0.3); border-radius: 6px; padding: 1rem 1.2rem;
+  cursor: pointer; transition: all 0.2s; margin-bottom: 0.8rem; background: rgba(13,6,24,0.5);
+}
+.equip-option:hover { border-color: var(--arcane-border); }
+.equip-option.selected { border-color: var(--crystal-dim); background: rgba(180,110,40,0.2); }
+.equip-option-title { font-family: 'Cinzel', serif; font-size: 0.85rem; font-weight: 600; color: var(--crystal-bright); margin-bottom: 0.3rem; }
+.equip-option-desc { font-size: 0.82rem; color: var(--silver-dim); line-height: 1.55; }
+.recommended-tag { font-family: 'Cinzel', serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.1em; padding: 2px 7px; border-radius: 3px; border: 1px solid var(--teal-magic); color: var(--teal-magic); margin-left: 0.5rem; }
+.item-pill { display: inline-block; background: rgba(180,110,40,0.15); border: 1px solid rgba(180,110,40,0.3); border-radius: 3px; padding: 2px 7px; font-size: 0.72rem; color: var(--crystal); margin: 2px; }
+
+/* ── CHEST CLAIM OVERLAY ── */
+#chest-overlay {
+  display: none; position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0); align-items: center; justify-content: center;
+  flex-direction: column; transition: background 0.5s;
+}
+#chest-overlay.show { display: flex; }
+#chest-overlay.dark { background: rgba(0,0,0,0.92); }
+.chest-stage { text-align: center; max-width: 420px; width: 100%; padding: 1rem; }
+.chest-counter { font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 0.15em; color: var(--crystal-dim); margin-bottom: 1rem; }
+.chest-type-label {
+  font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.1em;
+  padding: 3px 12px; border-radius: 3px; border: 1px solid; display: inline-block; margin-bottom: 0.8rem;
+}
+.chest-type-standard { border-color: var(--arcane-border); color: var(--crystal-dim); }
+.chest-type-dm       { border-color: var(--gold-dim);     color: var(--gold-magic); }
+.chest-svg-wrap { position: relative; display: inline-block; cursor: pointer; margin-bottom: 0.5rem; }
+.chest-svg { animation: chest-float 2.5s ease-in-out infinite; display: block; }
+@keyframes chest-float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
+.chest-svg.shaking { animation: chest-shake 0.1s ease-in-out infinite; }
+@keyframes chest-shake { 0%{transform:rotate(-6deg) scale(1.05);} 50%{transform:rotate(6deg) scale(1.08);} 100%{transform:rotate(-6deg) scale(1.05);} }
+.chest-glow { width:70px;height:6px;background:radial-gradient(ellipse,rgba(240,200,72,0.5) 0%,transparent 70%);margin:0 auto;border-radius:50%; }
+.chest-prompt { font-family:'Cinzel',serif;font-size:0.78rem;letter-spacing:0.12em;color:var(--crystal-dim);margin-top:0.6rem;animation:pulse-glow 1.8s ease-in-out infinite; }
+@keyframes pulse-glow{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.chest-session-label { font-size:0.82rem;color:var(--silver-dim);font-style:italic;margin-bottom:1.2rem; }
+/* Particles */
+#chest-particles { position:fixed;inset:0;pointer-events:none;z-index:10000; }
+.particle { position:absolute;border-radius:50%;pointer-events:none;animation:particle-burst var(--dur,0.8s) ease-out forwards; }
+@keyframes particle-burst { from{transform:translate(0,0) scale(1);opacity:1;} to{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0;} }
+/* Reward reveal */
+.reward-reveal { animation: reveal-in 0.4s ease both; }
+@keyframes reveal-in { from{opacity:0;transform:translateY(20px) scale(0.95);}to{opacity:1;transform:none;} }
+.reward-card {
+  background: var(--bg-card); border: 1px solid var(--arcane-border); border-radius: 8px;
+  padding: 1.5rem; margin-bottom: 0.8rem; text-align: left;
+}
+.reward-stats { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 1rem; font-family: 'Cinzel', serif; }
+.reward-stat-val { font-size: 1.4rem; font-weight: 600; }
+.reward-stat-lbl { font-size: 0.65rem; letter-spacing: 0.1em; color: var(--silver-dim); text-transform: uppercase; }
+.reward-items-title { font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 0.1em; color: var(--crystal-dim); text-transform: uppercase; margin-bottom: 0.6rem; }
+.reward-item-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; border-bottom: 1px solid rgba(180,110,40,0.12); }
+.reward-item-row:last-child { border-bottom: none; }
+.reward-item-name { font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--crystal-bright); }
+
+/* ════════════════════════════════════════════════════════
+   D&D DARK RED/BROWN THEME OVERRIDE
+   Replaces arcane purple with the site-wide dark theme
+════════════════════════════════════════════════════════ */
+:root {
+  --arcane:#0e0b09; --arcane-mid:#1a1208; --arcane-light:#261a10;
+  --arcane-border:rgba(196,30,30,.45); --arcane-glow:rgba(196,30,30,.15);
+  --void:#070503;
+  --crystal:#e0d8c8; --crystal-bright:#f0e8d8; --crystal-dim:#b0a898;
+  --azure:#c8952a; --azure-bright:#e8b040;
+  --silver:#e0d8c8; --silver-dim:#786858;
+  --gold-magic:#c8952a; --gold-dim:#7a5818;
+  --teal-magic:#c8952a;
+  --red-sale:#c41e1e; --red-sale-dim:#8b1010;
+  --bg-card:rgba(28,18,10,.92); --bg-input:rgba(13,7,3,.7);
+  --tab-active-bg:rgba(196,30,30,.18); --tab-active-border:rgba(196,30,30,.5);
+  --tab-hover:rgba(196,30,30,.1);
+  --green:#5a9a40; --red:#c41e1e;
+}
+body {
+  background:#0e0b09 !important;
+  background-image:
+    radial-gradient(ellipse 70% 40% at 50% 0%,#1f0f08,transparent 70%),
+    radial-gradient(ellipse 40% 30% at 90% 100%,#180a08,transparent 60%) !important;
+}
+.page{position:relative;z-index:1;}
+.topbar{
+  background:rgba(14,9,4,.92) !important;
+  border-bottom:2px solid rgba(180,110,40,.22) !important;
+}
+.topbar-brand,.topbar-brand span{color:#e0d8c8 !important;}
+.topbar-brand span{color:#c41e1e !important;}
+.nav-tab{background:rgba(180,110,40,.07)!important;border-color:rgba(180,110,40,.22)!important;color:#b0a898!important;}
+.nav-tab:hover{background:rgba(196,30,30,.12)!important;border-color:rgba(196,30,30,.35)!important;color:#e0d8c8!important;}
+.nav-tab.active{background:rgba(196,30,30,.2)!important;border-color:rgba(196,30,30,.6)!important;color:#f0e8d8!important;}
+.arcane-card{background:rgba(28,18,10,.88)!important;border-color:rgba(180,110,40,.2)!important;}
+.section-title{color:#c8952a!important;border-color:rgba(180,110,40,.3)!important;}
+.btn.btn-primary,.signout-btn{background:rgba(196,30,30,.18)!important;border-color:rgba(196,30,30,.45)!important;color:#e0d8c8!important;}
+.btn.btn-primary:hover,.signout-btn:hover{background:rgba(196,30,30,.32)!important;}
+.btn.btn-gold{background:rgba(180,110,40,.18)!important;border-color:rgba(180,110,40,.45)!important;color:#c8952a!important;}
+.btn.btn-gold:hover{background:rgba(180,110,40,.3)!important;}
+.char-badge{background:rgba(196,30,30,.12)!important;border-color:rgba(196,30,30,.35)!important;}
+/* Stars → embers */
+.star{background:rgba(200,149,42,.7)!important;}
+/* Wizard */
+.wizard-card{background:rgba(26,15,8,.95)!important;border-color:rgba(180,110,40,.3)!important;}
+.wizard-dot{border-color:rgba(196,30,30,.4)!important;color:#786858!important;}
+.wizard-dot.active{background:rgba(196,30,30,.25)!important;border-color:rgba(196,30,30,.7)!important;color:#f0e8d8!important;}
+.wizard-dot.done{background:rgba(180,110,40,.2)!important;border-color:rgba(180,110,40,.6)!important;color:#c8952a!important;}
+.wizard-line{background:rgba(180,110,40,.2)!important;}
+.wizard-title{color:#e0d8c8!important;}
+.class-btn{background:rgba(180,110,40,.07)!important;border-color:rgba(180,110,40,.22)!important;}
+.class-btn:hover,.class-btn.selected{background:rgba(196,30,30,.18)!important;border-color:rgba(196,30,30,.6)!important;}
+.class-btn-name{color:#e0d8c8!important;}
+.class-btn-gold{color:#c8952a!important;}
+.form-input{background:rgba(13,7,3,.7)!important;border-color:rgba(180,110,40,.35)!important;color:#e0d8c8!important;}
+.form-input:focus{border-color:rgba(180,110,40,.7)!important;}
+.form-label{color:#b0a898!important;}
+/* Inventory */
+.inv-table thead th{background:rgba(180,110,40,.1)!important;color:#c8952a!important;border-color:rgba(180,110,40,.25)!important;}
+.inv-table tbody tr:hover{background:rgba(196,30,30,.05)!important;}
+/* Modal */
+.modal-overlay .modal-box{background:#1a1208!important;border-color:rgba(180,110,40,.4)!important;}
+@keyframes lvup-pulse {
+  0%,100% { box-shadow:0 0 0 2px #c8952a,0 0 18px rgba(200,149,42,.45); }
+  50%     { box-shadow:0 0 0 2px #f0c860,0 0 35px rgba(240,200,96,.65); }
+}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+
+<!-- ================================================================
+     SCREENS — only one visible at a time
+     ================================================================ -->
+
+<div id="screen-char-create" class="wizard-wrap" style="display:none">
+  <div class="wizard-card">
+    <!-- Progress dots (8 steps) -->
+    <div class="wizard-progress" id="wizard-progress">
+      <div class="wizard-dot active" id="wd-1">1</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-2">2</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-3">3</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-4">4</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-5">5</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-6">6</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-7">7</div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" id="wd-8">8</div>
+    </div>
+
+    <!-- Step 1: Class -->
+    <div class="wizard-step active" id="wstep-1">
+      <div class="wizard-title">Choose Your Class</div>
+      <div class="wizard-sub">Your class defines your role, abilities, and starting equipment.</div>
+      <div class="class-grid" id="class-grid"></div>
+      <div class="form-group" style="margin-top:1rem;">
+        <label class="form-label">Character Name</label>
+        <input class="form-input" id="w-charname" type="text" maxlength="40" placeholder="e.g. Lyra Shadowstep">
+        <p class="form-hint">The name other players will see.</p>
+      </div>
+      <p class="form-error" id="w1-err" style="display:none;margin-bottom:.6rem;"></p>
+      <button class="btn btn-gold btn-block" onclick="wizardNext(1)">Continue →</button>
+    </div>
+
+    <!-- Step 2: Race -->
+    <div class="wizard-step" id="wstep-2">
+      <div class="wizard-title">Choose Your Race</div>
+      <div class="wizard-sub">In 2024 rules, races no longer grant ability score bonuses — those come from your background. Your race determines your size, speed, and special traits.</div>
+      <div class="form-group">
+        <label class="form-label">Race</label>
+        <select class="form-input" id="w-race"></select>
+      </div>
+      <p class="form-error" id="w2-err" style="display:none;margin-bottom:.6rem;"></p>
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn btn-primary" onclick="wizardBack(2)">← Back</button>
+        <button class="btn btn-gold btn-block" onclick="wizardNext(2)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Background + ASI -->
+    <div class="wizard-step" id="wstep-3">
+      <div class="wizard-title">Choose Your Background</div>
+      <div class="wizard-sub">Your background grants +2 to one ability score and +1 to another (2024 PHB rules), plus two skill proficiencies and an Origin Feat.</div>
+      <div class="form-group">
+        <label class="form-label">Background</label>
+        <select class="form-input" id="w-background" onchange="onBackgroundChange()"></select>
+      </div>
+      <!-- Custom ASI pickers (shown only for Custom background) -->
+      <div id="custom-asi-wrap" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem;">
+          <div class="form-group">
+            <label class="form-label">+2 to which stat?</label>
+            <select class="form-input" id="custom-asi2" onchange="onCustomAsiChange()">
+              <option value="">Choose…</option>
+              <option value="str">Strength</option><option value="dex">Dexterity</option>
+              <option value="con">Constitution</option><option value="int">Intelligence</option>
+              <option value="wis">Wisdom</option><option value="cha">Charisma</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">+1 to which stat?</label>
+            <select class="form-input" id="custom-asi1" onchange="onCustomAsiChange()">
+              <option value="">Choose…</option>
+              <option value="str">Strength</option><option value="dex">Dexterity</option>
+              <option value="con">Constitution</option><option value="int">Intelligence</option>
+              <option value="wis">Wisdom</option><option value="cha">Charisma</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- ASI preview -->
+      <div id="bg-asi-preview" style="background:rgba(180,110,40,.08);border:1px solid rgba(180,110,40,.25);border-radius:5px;padding:.7rem 1rem;font-size:.85rem;color:var(--crystal-dim);margin-bottom:.8rem;display:none;"></div>
+      <p class="form-error" id="w3-err" style="display:none;margin-bottom:.6rem;"></p>
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn btn-primary" onclick="wizardBack(3)">← Back</button>
+        <button class="btn btn-gold btn-block" onclick="wizardNext(3)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Point Buy Stats -->
+    <div class="wizard-step" id="wstep-4">
+      <div class="wizard-title">Set Ability Scores</div>
+      <div class="wizard-sub">Spend exactly 27 points. Base scores range from 8–15. Raising above 13 costs 2 points per step. Background bonuses are shown below each stat.</div>
+      <!-- Quick action buttons -->
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem;">
+        <button class="btn btn-gold btn-sm" onclick="applyRecommendedStats()" id="btn-recommended" title="Load the standard optimised stat spread for your class">&#10022; Recommended</button>
+        <button class="btn btn-primary btn-sm" onclick="clearAllStats()" title="Reset all stats to 8">&#8635; Clear All</button>
+        <div id="recommended-label" style="font-family:'Cinzel',serif;font-size:.62rem;color:var(--silver-dim);align-self:center;font-style:italic;"></div>
+      </div>
+      <!-- Stat cards -->
+      <div id="stat-buy-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-bottom:1rem;"></div>
+      <!-- Points remaining -->
+      <div style="text-align:center;margin-bottom:1rem;">
+        <span style="font-family:'Cinzel',serif;font-size:.75rem;letter-spacing:.12em;color:var(--silver-dim);">POINTS REMAINING</span><br>
+        <span id="pb-remaining" style="font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-magic);">27</span>
+      </div>
+      <p class="form-error" id="w4-err" style="display:none;margin-bottom:.6rem;"></p>
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn btn-primary" onclick="wizardBack(4)">← Back</button>
+        <button class="btn btn-gold btn-block" id="btn-w4-next" onclick="wizardNext(4)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Skills & Origin Feat -->
+    <div class="wizard-step" id="wstep-5">
+      <div class="wizard-title">Skills &amp; Origin Feat</div>
+      <div class="wizard-sub">Choose your class skill proficiencies and an Origin Feat from your background. Background skill proficiencies are already included.</div>
+      <div class="form-group">
+        <label class="form-label">Class Skill Proficiencies (<span id="skills-count-label">choose 2</span>)</label>
+        <div id="skill-pick-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:.35rem;margin-bottom:.5rem;font-size:.88rem;"></div>
+        <p id="skill-bg-note" style="font-size:.76rem;color:var(--silver-dim);font-style:italic;margin-top:.3rem;"></p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Origin Feat</label>
+        <select class="form-input" id="w-feat">
+          <option value="">— Choose an Origin Feat —</option>
+          <option value="Alert">Alert — +5 initiative, can't be surprised</option>
+          <option value="Crafter">Crafter — proficiency with 3 artisan tools</option>
+          <option value="Lucky">Lucky — 3 luck points per day to reroll</option>
+          <option value="Magic Initiate (Cleric)">Magic Initiate (Cleric) — 2 cleric cantrips + 1 1st-level spell</option>
+          <option value="Magic Initiate (Druid)">Magic Initiate (Druid) — 2 druid cantrips + 1 1st-level spell</option>
+          <option value="Magic Initiate (Wizard)">Magic Initiate (Wizard) — 2 wizard cantrips + 1 1st-level spell</option>
+          <option value="Musician">Musician — proficiency with 3 instruments + Inspiring Song</option>
+          <option value="Savage Attacker">Savage Attacker — reroll weapon damage once per turn</option>
+          <option value="Skilled">Skilled — proficiency in any 3 skills or tools</option>
+          <option value="Tavern Brawler">Tavern Brawler — proficiency with improvised weapons, d4 unarmed</option>
+          <option value="Tough">Tough — +2 HP per level</option>
+        </select>
+      </div>
+      <p class="form-error" id="w5-err" style="display:none;margin-bottom:.6rem;"></p>
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn btn-primary" onclick="wizardBack(5)">← Back</button>
+        <button class="btn btn-gold btn-block" onclick="wizardNext(5)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 6: Spells (placeholder) -->
+    <div class="wizard-step" id="wstep-6">
+      <div class="wizard-title">Spell Selection</div>
+      <div class="wizard-sub">Coming soon — spell selection will be available in a future update. If your class uses spells, work with your DM to choose your starting spells.</div>
+      <div style="background:rgba(180,110,40,.07);border:1px solid rgba(180,110,40,.22);border-radius:5px;padding:1.2rem;text-align:center;margin-bottom:1rem;">
+        <div style="font-size:2rem;margin-bottom:.5rem;">📜</div>
+        <div style="font-family:'Cinzel',serif;font-size:.85rem;color:var(--crystal-dim);letter-spacing:.06em;">SPELL SELECTION — COMING SOON</div>
+        <div style="font-size:.82rem;color:var(--silver-dim);margin-top:.4rem;">Your spells will be logged in your character sheet once this feature is available.</div>
+      </div>
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn btn-primary" onclick="wizardBack(6)">← Back</button>
+        <button class="btn btn-gold btn-block" onclick="wizardNext(6)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 7: Equipment -->
+    <div class="wizard-step" id="wstep-7">
+      <div class="wizard-title">Starting Equipment</div>
+      <div class="wizard-sub">Choose how you equip your character for their first adventure.</div>
+      <div class="equip-option" id="equip-opt-package" onclick="selectEquip('package')">
+        <div class="equip-option-title">Class Equipment Package <span class="recommended-tag">RECOMMENDED</span></div>
+        <div class="equip-option-desc" id="equip-package-desc">Loading items...</div>
+      </div>
+      <div class="equip-option" id="equip-opt-gold" onclick="selectEquip('gold')">
+        <div class="equip-option-title">Starting Gold</div>
+        <div class="equip-option-desc" id="equip-gold-desc">Loading...</div>
+      </div>
+      <p class="form-error" id="w7-err" style="display:none;margin-bottom:.6rem;"></p>
+      <div style="display:flex;gap:.6rem;margin-top:.4rem;">
+        <button class="btn btn-primary" onclick="wizardBack(7)">← Back</button>
+        <button class="btn btn-gold btn-block" onclick="wizardNext(7)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 8: Review -->
+    <div class="wizard-step" id="wstep-8">
+      <div class="wizard-title">Ready to Begin?</div>
+      <div class="wizard-sub">Review your character before entering the Emporium.</div>
+      <div id="wizard-review" style="background:rgba(180,110,40,.07);border:1px solid rgba(180,110,40,.25);border-radius:6px;padding:1.2rem;margin-bottom:1.2rem;"></div>
+      <p class="form-error" id="w8-err" style="display:none;margin-bottom:.6rem;"></p>
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn btn-primary" onclick="wizardBack(8)">← Back</button>
+        <button class="btn btn-gold btn-block" id="btn-create-char" onclick="createCharacter()">Create Character &amp; Enter</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHEST CLAIM OVERLAY -->
+<div id="chest-overlay">
+  <div class="chest-stage" id="chest-stage"></div>
+</div>
+<canvas id="chest-particles" style="position:fixed;inset:0;pointer-events:none;z-index:10000;width:100%;height:100%;"></canvas>
+
+<!-- SCREEN: Main App -->
+<div id="screen-app" style="display:none">
+  <div class="page">
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- Pending character notice -->
+      <div class="pending-notice" id="pending-notice" style="display:none">
+        &#9203; You have a character request pending DM approval. You'll be notified once it's reviewed.
+      </div>
+
+      <!-- NAV TABS -->
+      <div class="nav-tabs">
+        <button class="nav-tab active" id="tab-btn-characters" onclick="switchTab('characters', this)">&#9876; Characters</button>
+        <button class="nav-tab" id="tab-btn-inventory" onclick="switchTab('inventory', this)">&#127978; Inventory</button>
+        <button class="nav-tab" id="tab-btn-account" onclick="switchTab('account', this)">&#128100; Account</button>
+      </div>
+      <div class="tab-border"></div>
+
+
+
+      <!-- ── TAB: INVENTORY ── -->
+      <div id="tab-inventory" class="tab-content" style="display:none">
+        <div class="arcane-card">
+          <div class="info-row">
+            <div class="section-title" style="margin:0; border:none; padding:0">Inventory</div>
+            <span style="font-size:0.82rem; color:var(--silver-dim); font-style:italic;" id="inv-charname-label">Loading...</span>
+          </div>
+          <div class="inv-tabs" id="inv-cat-tabs">
+            <button class="inv-tab active" onclick="filterInv('All', this)">All</button>
+            <button class="inv-tab" onclick="filterInv('Weapons', this)">Weapons</button>
+            <button class="inv-tab" onclick="filterInv('Armour', this)">Armour</button>
+            <button class="inv-tab" onclick="filterInv('Adventuring Gear', this)">Gear</button>
+            <button class="inv-tab" onclick="filterInv('Consumables', this)">Consumables</button>
+            <button class="inv-tab" onclick="filterInv('Magical', this)">Magical</button>
+          </div>
+          <div id="inv-table-wrap" class="scroll-x">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: CHARACTERS ── -->
+      <div id="tab-characters" class="tab-content" style="display:none">
+        <!-- Character list view -->
+        <div id="char-list-view">
+          <div class="arcane-card">
+            <div class="section-title">Your Characters</div>
+            <div id="char-list-wrap">
+              <div class="spinner"></div>
+            </div>
+            <div class="ornament">&#10022; · · · &#10022; · · · &#10022;</div>
+            <div style="margin-top:1.2rem;display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
+              <button class="btn btn-primary" id="btn-new-char-req" onclick="openNewCharModal()">+ Request Character</button>
+              <button class="btn btn-gold" id="btn-build-char" style="display:none;" onclick="showCharacterCreationWizard()">&#9876; Build Character</button>
+              <p class="form-hint" id="pending-char-hint" style="display:none;margin:0;">&nbsp;&#9203; Pending DM approval</p>
+            </div>
+          </div>
+        </div>
+        <!-- Inline character sheet view (hidden by default) -->
+        <div id="char-sheet-view" style="display:none;">
+          <div style="margin-bottom:.8rem;display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="hideInlineSheet()">&#8592; Back to Characters</button>
+            <div id="lvup-btn-wrap" style="display:none;">
+              <button class="btn btn-gold" onclick="processLevelUp()" style="background:rgba(200,149,42,.2);border-color:var(--gold-magic);color:var(--gold-magic);">&#9650; Level Up!</button>
+            </div>
+          </div>
+          <div id="inline-sheet-root"></div>
+        </div>
+      </div>
+
+      <!-- ── TAB: ACCOUNT ── -->
+      <div id="tab-account" class="tab-content" style="display:none">
+        <div class="arcane-card">
+          <div class="section-title">Account Settings</div>
+          <p style="font-size:0.9rem; color:var(--silver-dim); margin-bottom:1.5rem;">
+            Signed in as: <strong style="color:var(--crystal-bright);" id="acct-username-display"></strong>
+          </p>
+
+          <div class="change-pw-wrap" style="border:none; padding:0; margin:0;">
+            <p style="font-family:'Cinzel',serif; font-size:0.75rem; letter-spacing:0.1em; color:var(--crystal-dim); margin-bottom:1rem; text-transform:uppercase;">
+              Change Password
+            </p>
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <input class="form-input" id="pw-current" type="password" placeholder="Enter current password">
+            </div>
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <input class="form-input" id="pw-new" type="password" placeholder="At least 6 characters">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm New Password</label>
+              <input class="form-input" id="pw-confirm" type="password" placeholder="Repeat new password">
+            </div>
+            <p class="form-error" id="pw-err" style="display:none; margin-bottom:0.8rem;"></p>
+            <p class="form-success" id="pw-ok" style="display:none; margin-bottom:0.8rem;"></p>
+            <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /page -->
+</div><!-- /screen-app -->
+
+<!-- ================================================================
+     MODALS
+     ================================================================ -->
+
+<!-- Character switcher modal -->
+<div class="modal-backdrop" id="modal-chars">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-chars')">&#x2715;</button>
+    <div class="modal-title">Switch Active Character</div>
+    <div id="modal-char-list"></div>
+  </div>
+</div>
+
+<!-- Buy confirm modal -->
+<div class="modal-backdrop" id="modal-buy">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-buy')">&#x2715;</button>
+    <div class="modal-title">Confirm Purchase</div>
+    <div id="modal-buy-content"></div>
+    <div style="display:flex; gap:0.6rem; margin-top:1.2rem;">
+      <button class="btn btn-primary" onclick="closeModal('modal-buy')">Cancel</button>
+      <button class="btn btn-gold" id="btn-confirm-buy" onclick="confirmBuy()">Confirm Purchase</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sell confirm modal -->
+<div class="modal-backdrop" id="modal-sell">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-sell')">&#x2715;</button>
+    <div class="modal-title">Sell Item</div>
+    <div id="modal-sell-content"></div>
+    <div style="display:flex; gap:0.6rem; margin-top:1.2rem;">
+      <button class="btn btn-primary" onclick="closeModal('modal-sell')">Cancel</button>
+      <button class="btn btn-danger" id="btn-confirm-sell" onclick="confirmSell()">Sell for 50%</button>
+    </div>
+  </div>
+</div>
+
+<!-- New character request modal -->
+<div class="modal-backdrop" id="modal-new-char">
+  <div class="modal" style="max-width:520px">
+    <button class="modal-close" onclick="closeModal('modal-new-char')">&#x2715;</button>
+    <div class="modal-title">Request New Character</div>
+    <p style="font-size:0.85rem; color:var(--silver-dim); margin-bottom:1.2rem; font-style:italic;">
+      Your DM will review and approve this request. Starting gear and gold will be assigned based on your class and background.
+    </p>
+    <div class="form-group">
+      <label class="form-label">Character Name</label>
+      <input class="form-input" id="nc-name" type="text" maxlength="40" placeholder="e.g. Lyra Shadowstep">
+    </div>
+    <div class="select-grid">
+      <div class="form-group">
+        <label class="form-label">Class</label>
+        <select class="form-input" id="nc-class">
+          <option value="">— Select class —</option>
+          <option>Barbarian</option><option>Bard</option><option>Cleric</option>
+          <option>Druid</option><option>Fighter</option><option>Monk</option>
+          <option>Paladin</option><option>Ranger</option><option>Rogue</option>
+          <option>Sorcerer</option><option>Warlock</option><option>Wizard</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Race</label>
+        <select class="form-input" id="nc-race">
+          <option value="">— Select race —</option>
+          <option>Human</option><option>Elf</option><option>Dwarf</option>
+          <option>Halfling</option><option>Gnome</option><option>Half-Elf</option>
+          <option>Half-Orc</option><option>Tiefling</option><option>Dragonborn</option>
+          <option>Kobold</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Background</label>
+      <select class="form-input" id="nc-background">
+        <option value="">— Select background —</option>
+        <option>Acolyte</option><option>Charlatan</option><option>Criminal</option>
+        <option>Entertainer</option><option>Folk Hero</option><option>Guild Artisan</option>
+        <option>Hermit</option><option>Noble</option><option>Outlander</option>
+        <option>Sage</option><option>Sailor</option><option>Soldier</option><option>Urchin</option>
+      </select>
+    </div>
+    <p id="nc-err" class="form-error" style="display:none; margin-bottom:0.8rem;"></p>
+    <button class="btn btn-gold btn-block" onclick="submitCharRequest()">Submit Request to DM</button>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toasts"></div>
+
+<!-- ================================================================
+     JAVASCRIPT
+     ================================================================ -->
+<script>
+// ================================================================
+//  FIREBASE CONFIG
+// ================================================================
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyAWpUnUirhcI3nhW9WF_7aqDInOCvIbsIY",
+  authDomain:        "jcca-dnd.firebaseapp.com",
+  databaseURL:       "https://jcca-dnd-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "jcca-dnd",
+  storageBucket:     "jcca-dnd.firebasestorage.app",
+  messagingSenderId: "128758977152",
+  appId:             "1:128758977152:web:f43ef158eedf82614ccc65",
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ================================================================
+//  APP CONFIG
+// ================================================================
+
+const CONFIG = {
+  goldCap: 1000,
+};
+
+// ── Web Crypto password hashing (no external library needed) ──
+const HASH_ITERATIONS = 200000;
+
+async function hashPassword(password) {
+  const enc  = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key  = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: HASH_ITERATIONS, hash: 'SHA-256' }, key, 256
+  );
+  const toB64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+  return toB64(salt.buffer) + ':' + toB64(bits);
+}
+
+async function verifyPassword(password, stored) {
+  const enc = new TextEncoder();
+  const [saltB64, hashB64] = stored.split(':');
+  const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const salt = fromB64(saltB64);
+  const key  = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: HASH_ITERATIONS, hash: 'SHA-256' }, key, 256
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(bits))) === hashB64;
+}
+// ─────────────────────────────────────────────────────────────────
+
+// ================================================================
+//  APP STATE
+// ================================================================
+
+let loggedInUsername = null;  // player's username (Firestore doc ID in Users)
+let playerRecord     = null;  // Users doc (combined auth + player data)
+let activeChar       = null;  // Characters doc (currently active)
+let allChars         = [];    // all Characters docs for this player
+let pendingBuy       = null;
+let pendingSell      = null;
+let shopFilter       = 'All';
+let invFilter        = 'All';
+let shopItems        = [];
+let emporiumItems    = [];
+let inventoryItems   = [];
+
+// ================================================================
+//  BOOT
+// ================================================================
+
+
+// ── INLINE CHARACTER SHEET ─────────────────────────────────────────
+let inlineUnsub = null;
+
+function openInlineSheet(charId) {
+  const char = allChars.find(c => c.id === charId);
+  if (!char || char.status !== 'Active') return;
+  activeChar = char;
+  setActiveCharacter(charId);
+  document.getElementById('char-list-view').style.display = 'none';
+  document.getElementById('char-sheet-view').style.display = 'block';
+  renderInlineSheet(char);
+  const _lvWrap = document.getElementById('lvup-btn-wrap');
+  if (_lvWrap) _lvWrap.style.display = canLevelUp(char) ? 'inline-flex' : 'none';
+  if (inlineUnsub) { inlineUnsub(); inlineUnsub = null; }
+  inlineUnsub = db.collection('Characters').doc(charId).onSnapshot(snap => {
+    if (!snap.exists) return;
+    const d = snap.data(); if (!d.sheet) return;
+    const s = d.sheet;
+    const hpEl = document.getElementById('ils-hp-cur');
+    const barEl = document.getElementById('ils-hp-bar');
+    if (hpEl) hpEl.textContent = s.hp ?? s.maxHp;
+    if (barEl) { const p = s.maxHp ? Math.round(((s.hp??s.maxHp)/s.maxHp)*100) : 100; barEl.style.width=p+'%'; barEl.style.background=ilsHpColor(p); }
+  });
+}
+
+function hideInlineSheet() {
+  document.getElementById('char-list-view').style.display = 'block';
+  document.getElementById('char-sheet-view').style.display = 'none';
+  if (inlineUnsub) { inlineUnsub(); inlineUnsub = null; }
+}
+
+function ilsHpColor(p) { return p>75?'#3d7018':p>50?'#8a9820':p>25?'#9a5e12':p>0?'#8b1010':'#3a0808'; }
+
+function renderInlineSheet(char) {
+  const s   = char.sheet || {};
+  const sc  = s.abilityScores || {str:10,dex:10,con:10,int:10,wis:10,cha:10};
+  const lv  = char.level || 1;
+  const pb  = [2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6][lv-1] || 2;
+  const saves = s.savingThrowProficiencies || [];
+  const skillP = s.skillProficiencies || [];
+  const skillE = s.skillExpertises || [];
+  const maxHp = s.maxHp || 8; const curHp = s.hp ?? maxHp; const pct = maxHp ? Math.round((curHp/maxHp)*100) : 100;
+  const SKEYS = ['str','dex','con','int','wis','cha'];
+  const SNAMES = {str:'STR',dex:'DEX',con:'CON',int:'INT',wis:'WIS',cha:'CHA'};
+  const SKILL_AB = {'Acrobatics':'dex','Animal Handling':'wis','Arcana':'int','Athletics':'str','Deception':'cha','History':'int','Insight':'wis','Intimidation':'cha','Investigation':'int','Medicine':'wis','Nature':'int','Perception':'wis','Performance':'cha','Persuasion':'cha','Religion':'int','Sleight of Hand':'dex','Stealth':'dex','Survival':'wis'};
+  const ALL_SKILLS = Object.keys(SKILL_AB);
+  const HIT_DIE = {Barbarian:12,Bard:8,Cleric:8,Druid:8,Fighter:10,Monk:8,Paladin:10,Ranger:10,Rogue:8,Sorcerer:6,Warlock:8,Wizard:6};
+  function mod(x){return Math.floor(((x||10)-10)/2);}
+  function ms(x){const v=mod(x);return(v>=0?'+':'')+v;}
+  let ac = 10+mod(sc.dex||10);
+  if (char.class==='Barbarian') ac=10+mod(sc.dex||10)+mod(sc.con||10);
+  if (char.class==='Monk') ac=10+mod(sc.dex||10)+mod(sc.wis||10);
+  const pperc = 10+mod(sc.wis||10)+(skillP.includes('Perception')?pb:0)+(skillE.includes('Perception')?pb:0);
+
+  const abHtml = SKEYS.map(k=>{
+    const v=mod(sc[k]||10);
+    return `<div style="text-align:center;border:1.5px solid rgba(100,70,20,.3);border-radius:5px;padding:.35rem .25rem;background:rgba(220,185,80,.04);">
+      <div style="font-family:'Cinzel',serif;font-size:.46rem;letter-spacing:.12em;text-transform:uppercase;color:#8a6040;">${SNAMES[k]}</div>
+      <div style="font-family:'Cinzel',serif;font-size:1.3rem;font-weight:900;color:#1e1006;line-height:1;">${v>=0?'+':''}${v}</div>
+      <div style="font-family:'Cinzel',serif;font-size:.65rem;color:#4a3018;border:1px solid rgba(100,70,20,.2);border-radius:2px;width:24px;margin:.08rem auto;line-height:1.5;">${sc[k]||10}</div>
+      ${saves.includes(k)?'<div style="width:6px;height:6px;border-radius:50%;background:#9b1515;opacity:.8;margin:.1rem auto 0;"></div>':''}
+    </div>`;
+  }).join('');
+
+  const skillsHtml = ALL_SKILLS.map(sk=>{
+    const ab=SKILL_AB[sk]; const exp=skillE.includes(sk); const prf=skillP.includes(sk)||exp;
+    const v=mod(sc[ab]||10)+(exp?pb*2:prf?pb:0);
+    return `<div style="display:flex;align-items:center;gap:.3rem;font-size:.72rem;color:#4a3018;line-height:1.6;">
+      <div style="width:10px;height:10px;border-radius:50%;border:1.5px solid #4a3018;flex-shrink:0;background:${exp?'#9b1515':prf?'#4a3018':'transparent'};"></div>
+      <span style="font-family:'Cinzel',serif;font-size:.6rem;font-weight:700;color:#1e1006;min-width:20px;text-align:right;">${v>=0?'+':''}${v}</span>
+      <span>${sk}</span>
+    </div>`;
+  }).join('');
+
+  const feats = [
+    char.class?`<div style="border-bottom:1px solid rgba(100,70,20,.1);padding:.2rem 0;"><span style="font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;color:#1e1006;">${esc(char.class)} Lv${lv}</span></div>`:'',
+    s.originFeat?`<div style="border-bottom:1px solid rgba(100,70,20,.1);padding:.2rem 0;font-size:.75rem;color:#4a3018;">Feat: ${esc(s.originFeat)}</div>`:'',
+    char.race?`<div style="padding:.2rem 0;font-size:.75rem;color:#4a3018;">Species: ${esc(char.race)}</div>`:'',
+  ].filter(Boolean).join('');
+
+  const showLvUpBtn = canLevelUp(char);
+  document.getElementById('inline-sheet-root').innerHTML = `
+  <div style="background:#f2e4b8;background-image:radial-gradient(ellipse 110% 60% at 50% -5%,rgba(220,180,80,.2),transparent 55%);border:2px solid rgba(120,80,20,.28);border-radius:2px;box-shadow:0 8px 40px rgba(0,0,0,.6);font-family:'Crimson Pro',Georgia,serif;color:#1e1006;">
+    <!-- Header -->
+    <div style="background:linear-gradient(180deg,rgba(160,110,30,.1),rgba(160,110,30,.04));border-bottom:2px solid rgba(120,80,20,.28);padding:1rem 1.5rem;">
+      <div style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:900;color:#1e1006;margin-bottom:.4rem;">${esc(char.characterName||'Unknown')}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;">
+        ${[['Class',`${esc(char.class||'—')} Lv${lv}`],['Species',esc(char.race||'—')],['Background',esc(char.background||'—')],['XP',`${char.xp||0}`],['Gold',`${char.gold||0} gp`]].map(([l,v])=>`<div><div style="font-family:'Cinzel',serif;font-size:.48rem;letter-spacing:.14em;text-transform:uppercase;color:#8a6040;">${l}</div><div style="font-family:'Cinzel',serif;font-size:.82rem;font-weight:600;color:#4a3018;">${v}</div></div>`).join('')}
+      </div>
+    </div>
+    <!-- Body -->
+    <div style="display:grid;grid-template-columns:170px 1fr 210px;border-top:1px solid rgba(120,80,20,.2);">
+      <!-- Ability Scores -->
+      <div style="border-right:1px solid rgba(120,80,20,.2);padding:.8rem .6rem;">
+        <div style="font-family:'Cinzel',serif;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#8a6040;text-align:center;margin-bottom:.5rem;">Ability Scores</div>
+        <div style="display:flex;flex-direction:column;gap:.35rem;">${abHtml}</div>
+        <div style="text-align:center;margin-top:.8rem;padding-top:.7rem;border-top:1px solid rgba(120,80,20,.18);">
+          <div style="font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:#8a6040;">Prof Bonus</div>
+          <div style="font-family:'Cinzel',serif;font-size:1.2rem;font-weight:900;color:#1e1006;">+${pb}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;margin-top:.4rem;">
+          <div style="text-align:center;border:1.5px solid rgba(120,80,20,.25);border-radius:3px;padding:.35rem .15rem;">
+            <div style="font-family:'Cinzel',serif;font-size:1rem;font-weight:700;color:#1e1006;">${ms(sc.dex||10)}</div>
+            <div style="font-family:'Cinzel',serif;font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:#8a6040;margin-top:.08rem;">Initiative</div>
+          </div>
+          <div style="text-align:center;border:1.5px solid rgba(120,80,20,.25);border-radius:3px;padding:.35rem .15rem;">
+            <div style="font-family:'Cinzel',serif;font-size:1rem;font-weight:700;color:#1e1006;">${ac}</div>
+            <div style="font-family:'Cinzel',serif;font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:#8a6040;margin-top:.08rem;">AC</div>
+          </div>
+        </div>
+      </div>
+      <!-- Skills -->
+      <div style="border-right:1px solid rgba(120,80,20,.2);padding:.8rem .8rem;overflow-y:auto;max-height:500px;">
+        <div style="font-family:'Cinzel',serif;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#8a6040;border-bottom:1px solid rgba(120,80,20,.2);padding-bottom:.2rem;margin-bottom:.4rem;">Skills</div>
+        ${skillsHtml}
+        <div style="margin-top:.4rem;padding:.3rem .5rem;background:rgba(120,80,20,.07);border:1px solid rgba(120,80,20,.15);border-radius:2px;display:flex;justify-content:space-between;font-size:.75rem;color:#4a3018;">
+          <span>Passive Perception</span><b style="font-family:'Cinzel',serif;color:#1e1006;">${pperc}</b>
+        </div>
+      </div>
+      <!-- Combat + HP -->
+      <div style="padding:.8rem .7rem;">
+        <div style="font-family:'Cinzel',serif;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#8a6040;border-bottom:1px solid rgba(120,80,20,.2);padding-bottom:.2rem;margin-bottom:.55rem;">Hit Points</div>
+        <div style="border:2px solid rgba(120,80,20,.25);border-radius:4px;padding:.55rem .7rem;margin-bottom:.5rem;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.3rem;text-align:center;margin-bottom:.35rem;">
+            <div><div style="font-family:'Cinzel',serif;font-size:1.4rem;font-weight:900;color:#1e1006;" id="ils-hp-cur">${curHp}</div><div style="font-family:'Cinzel',serif;font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:#8a6040;">Current</div></div>
+            <div><div style="font-family:'Cinzel',serif;font-size:1.4rem;font-weight:900;color:#1e1006;">${maxHp}</div><div style="font-family:'Cinzel',serif;font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:#8a6040;">Max</div></div>
+            <div><div style="font-family:'Cinzel',serif;font-size:1.4rem;font-weight:900;color:#4a3018;">${s.tempHp||0}</div><div style="font-family:'Cinzel',serif;font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:#8a6040;">Temp</div></div>
+          </div>
+          <div style="height:8px;background:rgba(120,80,20,.14);border-radius:4px;overflow:hidden;border:1px solid rgba(120,80,20,.2);">
+            <div id="ils-hp-bar" style="height:100%;width:${pct}%;background:${ilsHpColor(pct)};border-radius:4px;transition:width .4s,background .4s;"></div>
+          </div>
+        </div>
+        <div style="font-family:'Cinzel',serif;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#8a6040;border-bottom:1px solid rgba(120,80,20,.2);padding-bottom:.2rem;margin-bottom:.4rem;margin-top:.6rem;">Features</div>
+        ${feats||'<div style="font-size:.78rem;color:#8a6040;font-style:italic;">No features.</div>'}
+        <div style="font-family:'Cinzel',serif;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#8a6040;border-bottom:1px solid rgba(120,80,20,.2);padding-bottom:.2rem;margin:. 6rem 0 .4rem;margin-top:.6rem;">Death Saves</div>
+        <div>
+          <div style="display:flex;align-items:center;gap:.3rem;font-size:.74rem;color:#4a3018;margin-bottom:.2rem;">
+            <span style="min-width:60px;">Successes</span>
+            ${[0,1,2].map(i=>`<div style="width:11px;height:11px;border-radius:50%;border:1.5px solid #4a3018;display:inline-block;${(s.deathSaves||{}).successes>i?'background:#3d6e1a;border-color:#3d6e1a;':''}"></div>`).join('')}
+          </div>
+          <div style="display:flex;align-items:center;gap:.3rem;font-size:.74rem;color:#4a3018;">
+            <span style="min-width:60px;">Failures</span>
+            ${[0,1,2].map(i=>`<div style="width:11px;height:11px;border-radius:50%;border:1.5px solid #4a3018;display:inline-block;${(s.deathSaves||{}).failures>i?'background:#9b1515;border-color:#9b1515;':''}"></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── LEVEL UP ──────────────────────────────────────────────────────
+async function processLevelUp() {
+  if (!activeChar) return;
+  const currentLv = activeChar.level || 1;
+  if (!canLevelUp(activeChar) || currentLv >= 20) { toast('No level up available.','info'); return; }
+  const newLv = currentLv + 1;
+  const hitDie = {Barbarian:12,Bard:8,Cleric:8,Druid:8,Fighter:10,Monk:8,Paladin:10,Ranger:10,Rogue:8,Sorcerer:6,Warlock:8,Wizard:6}[activeChar.class] || 8;
+  const conMod = activeChar.sheet?.abilityScores?.con ? Math.floor((activeChar.sheet.abilityScores.con - 10) / 2) : 0;
+  const hpIncrease = Math.ceil(hitDie / 2) + 1 + conMod; // average roll
+  const newMaxHp = (activeChar.sheet?.maxHp || hitDie) + hpIncrease;
+  const newHp = (activeChar.sheet?.hp || newMaxHp - hpIncrease) + hpIncrease;
+  const pb = [2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6][newLv - 1] || 2;
+  try {
+    await db.collection('Characters').doc(activeChar.id).update({
+      level: newLv,
+      'sheet.maxHp': newMaxHp,
+      'sheet.hp': Math.min(newHp, newMaxHp),
+    });
+    activeChar.level = newLv;
+    if (activeChar.sheet) { activeChar.sheet.maxHp = newMaxHp; activeChar.sheet.hp = Math.min(newHp, newMaxHp); }
+    toast(`🎉 Level up! ${activeChar.characterName} is now level ${newLv}! HP +${hpIncrease} (total ${newMaxHp})`, 'success');
+    renderInlineSheet(activeChar);
+    const lvWrap = document.getElementById('lvup-btn-wrap');
+    if (lvWrap) lvWrap.style.display = canLevelUp(activeChar) ? 'inline-flex' : 'none';
+    loadCharactersTab(); // refresh list to remove glow
+  } catch(e) { console.error(e); toast('Level up failed. Try again.', 'error'); }
+}
+
+// ── CHECK APPROVAL TOAST ───────────────────────────────────────────
+async function checkCharacterApprovalToast() {
+  try {
+    const userDoc = await db.collection('Users').doc(loggedInUsername).get();
+    const d = userDoc.data();
+    if (d && d.characterApproved) {
+      toast('Your character request was approved! Click Build Character to begin.', 'success');
+      // Show Build Character button
+      const btn = document.getElementById('btn-build-char');
+      if (btn) btn.style.display = 'inline-flex';
+      // Clear the flag
+      await db.collection('Users').doc(loggedInUsername).update({ characterApproved: false });
+    }
+    // Also show build button if there's an approved unbuilt request
+    const approvedSnap = await db.collection('CharacterRequests')
+      .where('playerId','==',loggedInUsername)
+      .where('status','==','ApprovedBuild').get();
+    if (!approvedSnap.empty) {
+      const btn = document.getElementById('btn-build-char');
+      if (btn) btn.style.display = 'inline-flex';
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function boot() {
+  makeStars();
+
+  // Silently sign in anonymously — students never see this
+  try {
+    await auth.signInAnonymously();
+  } catch (e) {
+    console.error('Firebase anon auth failed:', e);
+    showErr('screen-loading', 'Could not connect to the server. Please check your internet connection.');
+    return;
+  }
+
+  // Check if already logged in this session
+  const savedUsername = sessionStorage.getItem('dnd_username') || sessionStorage.getItem('admin_username') || sessionStorage.getItem('session_dm_username') || sessionStorage.getItem('dm_username');
+  if (savedUsername) {
+    try {
+      await loadPlayerSession(savedUsername);
+      return;
+    } catch (e) {
+      ['dnd_username','dm_username','admin_username','session_dm_username'].forEach(k=>sessionStorage.removeItem(k));
+    }
+  }
+
+  // Not authenticated — redirect to login
+  window.location.href = 'adventurers_hub.html';
+}
+
+// ================================================================
+//  LOGIN
+// ================================================================
+
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl    = document.getElementById('login-err');
+  const btn      = document.getElementById('btn-login');
+
+  errEl.style.display = 'none';
+
+  if (!username || !password) {
+    errEl.textContent = 'Please enter your username and password.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Checking credentials...';
+
+  try {
+    // Fetch user credential doc from Firestore
+    const userDoc = await db.collection('Users').doc(username).get();
+
+    if (!userDoc.exists) {
+      errEl.textContent = 'Username not found. Check your spelling or ask your DM.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Enter the Emporium →';
+      return;
+    }
+
+    const userData = userDoc.data();
+
+    // Verify password against stored hash
+    const match = await verifyPassword(password, userData.passwordHash);
+
+    if (!match) {
+      errEl.textContent = 'Incorrect password. Try again or ask your DM to reset it.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Enter the Emporium →';
+      return;
+    }
+
+    // Store session and load app
+    sessionStorage.setItem('dnd_username', username);
+    loggedInUsername = username;
+    await loadPlayerSession(username);
+
+  } catch (e) {
+    console.error(e);
+    errEl.textContent = 'Login failed — please try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Enter the Emporium →';
+  }
+}
+
+async function loadPlayerSession(username) {
+  loggedInUsername = username;
+
+  // Users doc IS the player record — one collection, no join needed
+  const userDoc = await db.collection('Users').doc(username).get();
+  if (!userDoc.exists) throw new Error('User doc missing');
+  playerRecord = { id: userDoc.id, ...userDoc.data() };
+
+  await loadApp();
+}
+
+// ================================================================
+//  SIGN OUT
+// ================================================================
+
+function doSignOut() {
+  sessionStorage.removeItem('dnd_username');
+  loggedInUsername = null;
+  playerRecord     = null;
+  activeChar       = null;
+  allChars         = [];
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-err').style.display = 'none';
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').textContent = 'Enter the Emporium →';
+  show('screen-signin');
+}
+
+// ================================================================
+//  LOAD APP
+// ================================================================
+
+async function loadApp() {
+  document.getElementById('acct-username-display').textContent = loggedInUsername;
+
+  // Load characters
+  allChars = await getCharactersForPlayer(loggedInUsername);
+  const activeChars = allChars.filter(c => c.status === 'Active');
+
+  // First time login — no characters at all → must create one
+  if (allChars.length === 0) {
+    showCharacterCreationWizard();
+    return;
+  }
+
+  // Has characters but none active → pending request
+  if (activeChars.length === 0) {
+    show('screen-app');
+    const pending = await getPendingRequest(loggedInUsername);
+    if (pending) document.getElementById('pending-notice').style.display = 'block';
+    loadCharactersTab();
+    return;
+  }
+
+  // Set active character
+  const savedId = playerRecord.activeCharacterId;
+  activeChar = activeChars.find(c => c.id === savedId) || activeChars[0];
+
+  // Check for pending chests before showing the app
+  // Chest animation: only show on character_manager page
+  const onCharManager = window.location.pathname.includes('character_manager') || window.location.pathname.includes('shop_portal');
+  const pendingChests = onCharManager ? await getPendingChests(loggedInUsername) : [];
+  if (pendingChests.length > 0) {
+    show('screen-app');
+      loadCharactersTab();
+    loadInventory();
+    await showChestOverlay(pendingChests);
+    return;
+  }
+
+  show('screen-app');
+  loadInventory();
+  loadCharactersTab();
+  checkCharacterApprovalToast();
+  if (typeof Nav !== "undefined") Nav.init("portal");
+}
+
+function updateTopBar(char) {
+  if (!char) {
+    document.getElementById('tb-charname').textContent = 'No character';
+    document.getElementById('tb-gold').textContent = '— gp';
+    return;
+  }
+  document.getElementById('tb-charname').textContent = char.characterName || 'Unknown';
+  document.getElementById('tb-gold').textContent = (char.gold ?? 0) + ' gp';
+}
+
+// ================================================================
+//  FIRESTORE — DATA LAYER
+// ================================================================
+
+// — Users (combined player + auth record) —
+async function updatePlayer(data) {
+  await db.collection('Users').doc(loggedInUsername).update(data);
+  Object.assign(playerRecord, data);
+}
+
+// — Characters —
+async function getCharactersForPlayer(playerId) {
+  const snap = await db.collection('Characters')
+    .where('playerId', '==', playerId).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function updateCharacter(charId, data) {
+  await db.collection('Characters').doc(charId).update(data);
+  // Update local cache
+  const idx = allChars.findIndex(c => c.id === charId);
+  if (idx !== -1) Object.assign(allChars[idx], data);
+  if (activeChar && activeChar.id === charId) Object.assign(activeChar, data);
+}
+
+async function setActiveCharacter(charId) {
+  await updatePlayer({ activeCharacterId: charId });
+}
+
+async function updateCharGold(charId, newGold) {
+  const capped = Math.min(Math.max(0, Math.round(newGold)), CONFIG.goldCap);
+  await updateCharacter(charId, { gold: capped });
+  return capped;
+}
+
+// — Inventory —
+async function getInventory(charId) {
+  const snap = await db.collection('Inventory')
+    .where('characterId', '==', charId).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function addInventoryItem(charId, item, source, pricePaid) {
+  // Inventory docs store only a lightweight reference: characterId, itemName, quantity, source, acquiredDate.
+  // Full item details (category, price, description, rarity) are resolved from ItemPool at render time.
+  // Items awarded from chests or as starting equipment are never purchased, so no price data is stored here.
+  const snap = await db.collection('Inventory')
+    .where('characterId', '==', charId)
+    .where('itemName', '==', item.itemName).get();
+
+  if (!snap.empty) {
+    const existing = snap.docs[0];
+    await existing.ref.update({ quantity: (existing.data().quantity || 1) + 1 });
+  } else {
+    const doc = {
+      characterId:  charId,
+      itemName:     item.itemName,
+      quantity:     1,
+      source:       source || 'Unknown',
+      acquiredDate: new Date().toISOString(),
+    };
+    if (pricePaid !== undefined) doc.pricePaid = pricePaid;
+    await db.collection('Inventory').add(doc);
+  }
+}
+
+async function removeInventoryItem(invItemId, quantity) {
+  const ref = db.collection('Inventory').doc(invItemId);
+  if ((quantity || 1) <= 1) {
+    await ref.delete();
+  } else {
+    await ref.update({ quantity: quantity - 1 });
+  }
+}
+
+// — Item Pool (standard shop, unlimited stock) —
+async function getItemPool(category) {
+  let query = db.collection('ItemPool').where('isMagical', '==', false);
+  if (category && category !== 'All') {
+    query = query.where('category', '==', category);
+  }
+  const snap = await query.limit(200).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// — Shop Stock (magical emporium, limited) —
+async function getShopStock() {
+  const snap = await db.collection('ShopStock')
+    .where('isActive', '==', true)
+    .where('isMagical', '==', true).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function decrementStock(stockId, currentQty) {
+  const newQty = currentQty - 1;
+  await db.collection('ShopStock').doc(stockId).update({
+    stockQuantity: newQty,
+    isActive: newQty > 0,
+  });
+}
+
+// — Character Requests —
+async function getPendingRequest(playerId) {
+  const snap = await db.collection('CharacterRequests')
+    .where('playerId', '==', playerId)
+    .where('status', '==', 'Pending').get();
+  return snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() };
+}
+
+async function submitCharacterRequest(playerId, details) {
+  return db.collection('CharacterRequests').add({
+    playerId,
+    requestedCharacterName: details.name,
+    class:       details.cls,
+    race:        details.race,
+    background:  details.background,
+    requestDate: new Date().toISOString(),
+    status:      'Pending',
+    dmNotes:     '',
+  });
+}
+
+// — Pending Chests —
+async function getPendingChests(username) {
+  const snap = await db.collection('PendingChests')
+    .where('playerId', '==', username)
+    .where('claimed', '==', false).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function claimChest(chestId, chest) {
+  const batch = db.batch();
+  // Mark chest claimed
+  batch.update(db.collection('PendingChests').doc(chestId), { claimed: true, claimedAt: new Date().toISOString() });
+  // Add XP and gold to active character
+  if (activeChar) {
+    const newXp   = (activeChar.xp   || 0) + (chest.xp   || 0);
+    const newGold = Math.min((activeChar.gold || 0) + (chest.gold || 0), CONFIG.goldCap);
+    batch.update(db.collection('Characters').doc(activeChar.id), { xp: newXp, gold: newGold });
+    activeChar.xp   = newXp;
+    activeChar.gold = newGold;
+  }
+  await batch.commit();
+  // Add items to inventory
+  if (chest.items && chest.items.length && activeChar) {
+    for (const item of chest.items) {
+      // Only itemName is needed — details resolved from ItemPool at render time
+      await addInventoryItem(activeChar.id, { itemName: item.name }, 'Chest Reward');
+    }
+  }
+}
+
+// ================================================================
+//  SHOP TAB
+// ================================================================
+
+async function loadShopTab() {
+  const wrap = document.getElementById('shop-grid-wrap');
+  wrap.innerHTML = '<div class="spinner"></div><p class="loading-text">Restocking the shelves...</p>';
+  try {
+    shopItems = await getItemPool(shopFilter === 'All' ? null : shopFilter);
+    renderShopGrid(wrap, shopItems, false);
+  } catch(e) {
+    console.error(e);
+    wrap.innerHTML = `<p style="color:var(--red-sale);font-size:.9rem;">Failed to load shop. Please refresh.</p>`;
+  }
+}
+
+function filterShop(cat, btn) {
+  shopFilter = cat;
+  document.querySelectorAll('#shop-cats .inv-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  loadShopTab();
+}
+
+function renderShopGrid(wrap, items, isMagical) {
+  if (!items.length) {
+    wrap.innerHTML = `<p class="inv-empty">No items available in this category.</p>`;
+    return;
+  }
+
+  const cards = items.map(item => {
+    const onSale    = item.isOnSale && item.salePercent > 0;
+    const price     = onSale ? item.salePrice : (item.basePrice || item.price || 0);
+    const outOfStock = isMagical && (item.stockQuantity <= 0);
+    const lowStock   = isMagical && item.stockQuantity > 0 && item.stockQuantity <= 2;
+    const rarity     = (item.rarity || 'Common').toLowerCase();
+
+    // Encode item data safely for onclick
+    const payload = JSON.stringify({
+      id: item.id, itemName: item.itemName, description: item.description,
+      basePrice: item.basePrice || 0, price: item.price || 0,
+      isOnSale: !!item.isOnSale, salePrice: item.salePrice || 0,
+      originalPrice: item.originalPrice || 0, salePercent: item.salePercent || 0,
+      isMagical: !!item.isMagical, rarity: item.rarity || 'Common',
+      category: item.category || '', stockQuantity: item.stockQuantity || 0,
+    });
+
+    return `
+    <div class="shop-item-card ${onSale ? 'deal-card' : ''}">
+      <div class="item-header">
+        <div class="item-name">${esc(item.itemName)}</div>
+        <span class="rarity-badge r-${rarity}">${esc(item.rarity || 'Common')}</span>
+      </div>
+      <p class="item-desc">${esc(item.description || '')}</p>
+      <div class="item-footer">
+        <div>
+          <span class="item-price">${price} gp</span>
+          ${onSale ? `<span class="item-was">${item.originalPrice} gp</span>
+            <span class="sale-pct">-${item.salePercent}%</span>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          ${isMagical ? `<span class="stock-badge ${outOfStock?'s-out':lowStock?'s-low':'s-ok'}">
+            ${outOfStock ? 'Sold out' : lowStock ? `${item.stockQuantity} left` : `${item.stockQuantity} in stock`}
+          </span>` : ''}
+          <button class="btn btn-gold btn-sm"
+            ${outOfStock ? 'disabled' : ''}
+            onclick='openBuyModal(${JSON.stringify(payload)})'>
+            Buy
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = `<div class="shop-grid">${cards}</div>`;
+}
+
+// ================================================================
+//  EMPORIUM TAB
+// ================================================================
+
+async function loadEmporiumTab() {
+  const wrap = document.getElementById('emporium-grid-wrap');
+  wrap.innerHTML = '<div class="spinner"></div><p class="loading-text">Consulting the arcane catalogue...</p>';
+  try {
+    emporiumItems = await getShopStock();
+    renderShopGrid(wrap, emporiumItems, true);
+  } catch(e) {
+    console.error(e);
+    wrap.innerHTML = `<p style="color:var(--red-sale);font-size:.9rem;">Failed to load emporium. Please refresh.</p>`;
+  }
+}
+
+// ================================================================
+//  BUY FLOW
+// ================================================================
+
+function openBuyModal(itemJSON) {
+  if (!activeChar) { toast('You need an active character to make purchases.', 'error'); return; }
+  const item   = typeof itemJSON === 'string' ? JSON.parse(itemJSON) : itemJSON;
+  pendingBuy   = item;
+  const price  = item.isOnSale ? item.salePrice : (item.basePrice || item.price || 0);
+  const gold   = activeChar.gold ?? 0;
+  const canAfford = gold >= price;
+  const newGold   = gold - price;
+
+  document.getElementById('modal-buy-content').innerHTML = `
+    <div style="background:rgba(180,110,40,0.1);border:1px solid rgba(180,110,40,0.3);border-radius:5px;padding:1rem;margin-bottom:1rem;">
+      <p style="font-family:'Cinzel',serif;font-size:1rem;color:var(--crystal-bright);margin-bottom:.4rem;">${esc(item.itemName)}</p>
+      <p style="font-size:.85rem;color:var(--silver-dim);">${esc(item.description || '')}</p>
+    </div>
+    <table style="width:100%;font-size:.9rem;margin-bottom:.5rem;">
+      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Cost</td>
+          <td style="text-align:right;color:var(--gold-magic);font-family:'Cinzel',serif;font-weight:600;">${price} gp</td></tr>
+      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Your gold</td>
+          <td style="text-align:right;color:var(--crystal-bright);">${gold} gp</td></tr>
+      <tr style="border-top:1px solid rgba(180,110,40,.3);">
+          <td style="color:var(--silver-dim);padding:.4rem 0;">After purchase</td>
+          <td style="text-align:right;color:${canAfford?'var(--teal-magic)':'var(--red-sale)'};">
+            ${canAfford ? Math.max(0, newGold) + ' gp' : 'Not enough gold'}</td></tr>
+    </table>
+    ${!canAfford ? `<p class="form-error">You don't have enough gold for this purchase.</p>` : ''}
+  `;
+
+  document.getElementById('btn-confirm-buy').disabled = !canAfford;
+  document.getElementById('btn-confirm-buy').textContent = 'Confirm Purchase';
+  openModal('modal-buy');
+}
+
+async function confirmBuy() {
+  if (!pendingBuy || !activeChar) return;
+  const btn   = document.getElementById('btn-confirm-buy');
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+
+  const item  = pendingBuy;
+  const price = item.isOnSale ? item.salePrice : (item.basePrice || item.price || 0);
+  const gold  = activeChar.gold ?? 0;
+
+  try {
+    // Deduct gold
+    const newGold = await updateCharGold(activeChar.id, gold - price);
+
+    // Add to inventory — lean schema. pricePaid tracked only for purchased items.
+    const source = item.isMagical ? 'Emporium' : 'Shop';
+    await addInventoryItem(activeChar.id, item, source, price);
+
+    // Decrement emporium stock
+    if (item.isMagical) {
+      await decrementStock(item.id, item.stockQuantity);
+    }
+
+      closeModal('modal-buy');
+    toast(`${item.itemName} purchased! -${price} gp`, 'success');
+    loadInventory();
+    if (item.isMagical) loadEmporiumTab();
+
+  } catch(e) {
+    console.error(e);
+    toast('Purchase failed. Please try again.', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Confirm Purchase';
+  }
+  pendingBuy = null;
+}
+
+// ================================================================
+//  INVENTORY TAB
+// ================================================================
+
+// itemPoolCache: itemName → ItemPool doc data (lazy-loaded, app-lifetime cache)
+const itemPoolCache = {};
+
+async function resolveItemPoolRefs(invItems) {
+  // Collect names not yet in cache
+  const missing = [...new Set(invItems.map(i => i.itemName))].filter(n => !itemPoolCache[n]);
+  // Firestore 'in' query is limited to 30 values per call — chunk if needed
+  for (let i = 0; i < missing.length; i += 30) {
+    const chunk = missing.slice(i, i + 30);
+    if (!chunk.length) break;
+    try {
+      const snap = await db.collection('ItemPool').where('itemName', 'in', chunk).get();
+      snap.docs.forEach(d => { itemPoolCache[d.data().itemName] = d.data(); });
+    } catch(e) { console.error('ItemPool resolve error:', e); }
+  }
+  // Merge resolved data onto each inventory item
+  return invItems.map(inv => {
+    const ref = itemPoolCache[inv.itemName] || {};
+    return {
+      ...inv,
+      category:   ref.category    || 'Adventuring Gear',
+      isMagical:  ref.isMagical   || false,
+      rarity:     ref.rarity      || 'Common',
+      basePrice:  ref.basePrice   || 0,
+      description: ref.description || '',
+    };
+  });
+}
+
+async function loadInventory() {
+  const wrap = document.getElementById('inv-table-wrap');
+  if (!activeChar) {
+    wrap.innerHTML = `<p class="inv-empty">No active character selected.</p>`;
+    return;
+  }
+  document.getElementById('inv-charname-label').textContent =
+    `${activeChar.characterName} · ${activeChar.class || ''}`;
+  wrap.innerHTML = '<div class="spinner"></div>';
+
+  try {
+    const leanItems = await getInventory(activeChar.id);
+    inventoryItems  = await resolveItemPoolRefs(leanItems);
+    renderInventory();
+  } catch(e) {
+    console.error(e);
+    wrap.innerHTML = `<p style="color:var(--red-sale);font-size:.9rem;">Failed to load inventory.</p>`;
+  }
+}
+
+function filterInv(cat, btn) {
+  invFilter = cat;
+  document.querySelectorAll('#inv-cat-tabs .inv-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderInventory();
+}
+
+function renderInventory() {
+  const wrap = document.getElementById('inv-table-wrap');
+  let items = inventoryItems;
+
+  if (invFilter !== 'All') {
+    if (invFilter === 'Magical') {
+      items = items.filter(i => i.isMagical);
+    } else {
+      items = items.filter(i => i.category === invFilter);
+    }
+  }
+
+  if (!items.length) {
+    wrap.innerHTML = `<p class="inv-empty">Nothing here yet — visit the shop to stock up!</p>`;
+    return;
+  }
+
+  const rows = items.map(item => {
+    // Sell value: 50% of price paid (if purchased) or base price from ItemPool, or 0 for chest/starting rewards
+    const referencePrice = item.pricePaid !== undefined ? item.pricePaid : (item.basePrice || 0);
+    const canSell   = referencePrice > 0;
+    const sellVal   = Math.floor(referencePrice / 2);
+    const sourceTag = item.source === 'Chest Reward' ? '<span style="font-size:.64rem;color:var(--teal-magic);margin-left:3px;">🎁 Reward</span>'
+                    : item.source === 'Starting Equipment' ? '<span style="font-size:.64rem;color:var(--silver-dim);margin-left:3px;">⚔️ Starting</span>'
+                    : '';
+    const rarityClass = item.rarity === 'Uncommon' ? 'r-uncommon' : item.rarity === 'Rare' ? 'r-rare' : 'r-common';
+    const payload = JSON.stringify({ id: item.id, itemName: item.itemName,
+      pricePaid: item.pricePaid || 0, basePrice: item.basePrice || 0,
+      quantity: item.quantity || 1, isMagical: !!item.isMagical });
+    return `
+    <tr>
+      <td style="font-family:'Cinzel',serif;font-size:.85rem;color:var(--crystal-bright);">
+        ${esc(item.itemName)}${sourceTag}
+        ${item.description ? `<div style="font-size:.74rem;color:var(--silver-dim);font-style:italic;margin-top:.15rem;">${esc(item.description.slice(0,80))}${item.description.length>80?'…':''}</div>` : ''}
+      </td>
+      <td style="text-align:center;">${item.quantity || 1}</td>
+      <td>
+        <span class="rarity-badge ${rarityClass}" style="font-size:.68rem;">${esc(item.category || '—')}</span>
+        ${item.isMagical ? `<span class="rarity-badge r-uncommon" style="font-size:.68rem;margin-left:3px;">Magical</span>` : ''}
+      </td>
+      <td style="color:${canSell ? 'var(--gold-magic)' : 'var(--silver-dim)'};font-size:.82rem;">${canSell ? sellVal+' gp' : '—'}</td>
+      <td>
+        ${canSell ? `<button class="btn btn-danger btn-sm" onclick='openSellModal(${JSON.stringify(payload)})'>Sell</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <table class="inv-table">
+      <thead><tr>
+        <th>Item</th><th style="text-align:center;">Qty</th>
+        <th>Category</th><th>Sell value</th><th></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ================================================================
+//  SELL FLOW
+// ================================================================
+
+function openSellModal(itemJSON) {
+  const item    = typeof itemJSON === 'string' ? JSON.parse(itemJSON) : itemJSON;
+  pendingSell   = item;
+  const refPrice = item.pricePaid !== undefined ? item.pricePaid : (item.basePrice || 0);
+  const sellVal = Math.floor(refPrice / 2);
+  const gold    = activeChar.gold ?? 0;
+  const newGold = Math.min(gold + sellVal, CONFIG.goldCap);
+  const capped  = (gold + sellVal) > CONFIG.goldCap;
+
+  document.getElementById('modal-sell-content').innerHTML = `
+    <div style="background:rgba(255,68,136,.08);border:1px solid rgba(255,68,136,.25);border-radius:5px;padding:1rem;margin-bottom:1rem;">
+      <p style="font-family:'Cinzel',serif;font-size:.95rem;color:var(--crystal-bright);margin-bottom:.3rem;">${esc(item.itemName)}</p>
+      <p style="font-size:.82rem;color:var(--silver-dim);">Trade value: <strong style="color:var(--gold-magic)">${sellVal} gp</strong> (50% of ${item.pricePaid !== undefined ? 'purchase price' : 'base price'})</p>
+      ${item.isMagical ? `<p style="font-size:.78rem;color:var(--crystal-dim);margin-top:.4rem;font-style:italic;">This is a magical item — it will be returned to Mr. Smith's stock at full price.</p>` : ''}
+    </div>
+    <table style="width:100%;font-size:.9rem;">
+      <tr><td style="color:var(--silver-dim);padding:.3rem 0;">Your gold</td>
+          <td style="text-align:right;color:var(--crystal-bright);">${gold} gp</td></tr>
+      <tr style="border-top:1px solid rgba(180,110,40,.3);">
+          <td style="color:var(--silver-dim);padding:.4rem 0;">After sale</td>
+          <td style="text-align:right;color:var(--teal-magic);">${newGold} gp ${capped?'<span style="font-size:.75rem;color:var(--gold-magic)">(capped at 1,000)</span>':''}</td></tr>
+    </table>
+  `;
+
+  document.getElementById('btn-confirm-sell').disabled = false;
+  openModal('modal-sell');
+}
+
+async function confirmSell() {
+  if (!pendingSell || !activeChar) return;
+  const btn   = document.getElementById('btn-confirm-sell');
+  btn.disabled = true;
+
+  const item     = pendingSell;
+  const refPrice = item.pricePaid !== undefined ? item.pricePaid : (item.basePrice || 0);
+  const sellVal  = Math.floor(refPrice / 2);
+  const gold    = activeChar.gold ?? 0;
+  const newGold = Math.min(gold + sellVal, CONFIG.goldCap);
+
+  try {
+    await updateCharGold(activeChar.id, newGold);
+    await removeInventoryItem(item.id, item.quantity || 1);
+
+    // If magical — return to ShopStock for DM to review
+    if (item.isMagical) {
+      await db.collection('ShopStock').add({
+        itemName:        item.itemName,
+        itemId:          item.itemId || item.id || '',
+        stockQuantity:   1,
+        isActive:        false,
+        isMagical:       true,
+        pendingDMReview: true,
+        notes: `Sold back by ${loggedInUsername} (${activeChar.characterName}) on ${new Date().toLocaleDateString('en-AU')}`,
+      });
+    }
+
+      closeModal('modal-sell');
+    toast(`Sold ${item.itemName} for ${sellVal} gp`, 'success');
+    loadInventory();
+
+  } catch(e) {
+    console.error(e);
+    toast('Sale failed. Please try again.', 'error');
+  }
+
+  btn.disabled = false;
+  pendingSell = null;
+}
+
+// ================================================================
+//  CHARACTERS TAB
+// ================================================================
+
+
+// ─── XP Level-Up Thresholds (AL Standard) ────────────────────────
+const XP_THRESHOLDS = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000,
+                        85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000];
+function xpForLevel(lv) { return XP_THRESHOLDS[Math.min(lv, XP_THRESHOLDS.length-1)] || 0; }
+function canLevelUp(char) {
+  const lv = char.level || 1;
+  if (lv >= 20) return false;
+  return (char.xp || 0) >= xpForLevel(lv);
+}
+async function loadCharactersTab() {
+  const wrap  = document.getElementById('char-list-wrap');
+  wrap.innerHTML = '<div class="spinner"></div>';
+  const pending = await getPendingRequest(loggedInUsername);
+
+  document.getElementById('pending-char-hint').style.display = pending ? 'block' : 'none';
+  document.getElementById('btn-new-char-req').disabled = !!pending;
+
+  allChars = await getCharactersForPlayer(loggedInUsername);
+
+  if (!allChars.length && !pending) {
+    wrap.innerHTML = `<p class="inv-empty">No characters yet. Submit a request below!</p>`;
+    return;
+  }
+
+  const rows = allChars.map(c => {
+    const isActive = activeChar && c.id === activeChar.id;
+    const lvUp = c.status === 'Active' && canLevelUp(c);
+    const lvStyle = lvUp ? 'animation:lvup-pulse 1.8s ease-in-out infinite;' : '';
+    const lvBadge = lvUp ? '<span style="background:rgba(200,149,42,.25);border:1px solid #c8952a;color:#f0c860;font-family:Cinzel,serif;font-size:.52rem;letter-spacing:.1em;padding:.08rem .4rem;border-radius:2px;margin-left:.4rem;vertical-align:middle;">&#9650; LEVEL UP</span>' : '';
+    return `
+    <div class="char-list-item ${isActive ? 'active-char' : ''}" onclick="openInlineSheet('${c.id}')" style="cursor:pointer;${lvStyle}">
+      <div>
+        <div class="char-list-name">${esc(c.characterName)} <span style="font-size:.65rem;color:var(--gold-magic);">&#8594; Sheet</span></div>
+        <div class="char-list-sub">${esc(c.race || '')} ${esc(c.class || '')} · Lv ${c.level || 1} · ${c.xp || 0} XP · <span style="color:var(--gold-magic);font-weight:600;">${c.gold ?? 0} gp</span></div>
+      </div>
+      <div style="text-align:right;">
+        <div class="char-list-gold">${c.gold ?? 0} gp</div>
+        ${isActive ? `<div class="active-pip" style="margin-top:.2rem;">&#9679; ACTIVE</div>` : ''}
+        ${c.status === 'Pending' ? `<div style="font-size:.72rem;color:var(--gold-magic);margin-top:.2rem;">&#9203; Pending</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = rows;
+
+  if (pending) {
+    wrap.innerHTML += `
+    <div style="margin-top:.8rem;background:rgba(240,200,72,.07);border:1px solid rgba(240,200,72,.3);border-radius:5px;padding:.8rem 1rem;font-size:.85rem;color:var(--gold-magic);">
+      &#9203; Pending request: <strong>${esc(pending.requestedCharacterName)}</strong>
+      (${esc(pending.class)}, ${esc(pending.race)}) — awaiting DM approval
+    </div>`;
+  }
+}
+
+async function switchActiveChar(charId) {
+  const char = allChars.find(c => c.id === charId);
+  if (!char || char.status !== 'Active') return;
+  activeChar = char;
+  await setActiveCharacter(charId);
+  loadInventory();
+  loadCharactersTab();
+  toast(`Switched to ${char.characterName}`, 'info');
+}
+
+// ================================================================
+//  CHARACTER SWITCHER MODAL (topbar)
+// ================================================================
+
+function openCharModal() {
+  const list       = document.getElementById('modal-char-list');
+  const activeChars = allChars.filter(c => c.status === 'Active');
+
+  if (!activeChars.length) {
+    list.innerHTML = `<p class="inv-empty">No active characters. Request one in the Characters tab.</p>`;
+  } else {
+    list.innerHTML = activeChars.map(c => {
+      const isActive = activeChar && c.id === activeChar.id;
+      return `
+      <div class="char-list-item ${isActive ? 'active-char' : ''}"
+           onclick="switchActiveChar('${c.id}');closeModal('modal-chars')">
+        <div>
+          <div class="char-list-name">${esc(c.characterName)}</div>
+          <div class="char-list-sub">${esc(c.race || '')} ${esc(c.class || '')} · Lv ${c.level || 1}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="char-list-gold">${c.gold ?? 0} gp</div>
+          ${isActive ? `<div class="active-pip">&#9679; ACTIVE</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  openModal('modal-chars');
+}
+
+// ================================================================
+//  NEW CHARACTER REQUEST MODAL
+// ================================================================
+
+function openNewCharModal() {
+  const r = document.getElementById('nc-reason');
+  if (r) r.value = '';
+  document.getElementById('nc-err').style.display = 'none';
+  openModal('modal-new-char');
+}
+
+async function submitCharRequest() {
+  const reason = (document.getElementById('nc-reason')||{}).value || '';
+  const err  = document.getElementById('nc-err');
+  err.style.display = 'none';
+  const btn = document.querySelector('#modal-new-char .btn-gold');
+  if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
+  try {
+    await db.collection('CharacterRequests').add({
+      playerId:    loggedInUsername,
+      reason:      reason.trim(),
+      requestDate: new Date().toISOString(),
+      status:      'Pending',
+      dmNotes:     '',
+    });
+    closeModal('modal-new-char');
+    toast('Character request submitted — your admin will review it soon.', 'success');
+    loadCharactersTab();
+  } catch(e) {
+    console.error(e);
+    err.textContent = 'Submission failed. Please try again.';
+    err.style.display = 'block';
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Submit Request'; }
+  btn.textContent = 'Submit Request to DM';
+}
+
+// ================================================================
+//  ACCOUNT — CHANGE PASSWORD
+// ================================================================
+
+async function changePassword() {
+  const current  = document.getElementById('pw-current').value;
+  const newPw    = document.getElementById('pw-new').value;
+  const confirm  = document.getElementById('pw-confirm').value;
+  const errEl    = document.getElementById('pw-err');
+  const okEl     = document.getElementById('pw-ok');
+
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
+  if (!current || !newPw || !confirm) {
+    errEl.textContent = 'Please fill in all three fields.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (newPw.length < 6) {
+    errEl.textContent = 'New password must be at least 6 characters.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (newPw !== confirm) {
+    errEl.textContent = 'New passwords do not match.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    // Verify current password
+    const userDoc = await db.collection('Users').doc(loggedInUsername).get();
+    const match   = await verifyPassword(current, userDoc.data().passwordHash);
+    if (!match) {
+      errEl.textContent = 'Current password is incorrect.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    // Hash and save new password
+    const newHash = await hashPassword(newPw);
+    await db.collection('Users').doc(loggedInUsername).update({ passwordHash: newHash });
+
+    okEl.textContent = 'Password updated successfully!';
+    okEl.style.display = 'block';
+    document.getElementById('pw-current').value = '';
+    document.getElementById('pw-new').value = '';
+    document.getElementById('pw-confirm').value = '';
+    toast('Password changed successfully.', 'success');
+
+  } catch(e) {
+    console.error(e);
+    errEl.textContent = 'Failed to update password. Please try again.';
+    errEl.style.display = 'block';
+  }
+}
+
+// ================================================================
+//  TAB SWITCHING
+// ================================================================
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${name}`).style.display = 'block';
+  if (btn) btn.classList.add('active');
+
+  if (name === 'inventory')  loadInventory();
+  if (name === 'characters') loadCharactersTab();
+}
+
+// ================================================================
+//  MODALS
+// ================================================================
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close modals on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+  backdrop.addEventListener('click', e => {
+    if (e.target === backdrop) backdrop.classList.remove('open');
+  });
+});
+
+// ================================================================
+//  TOASTS
+// ================================================================
+
+function toast(msg, type = 'info') {
+  const wrap = document.getElementById('toasts');
+  const el   = document.createElement('div');
+  el.className  = `toast toast-${type}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// ================================================================
+//  UTILS
+// ================================================================
+
+function show(id) {
+  ['screen-loading','screen-signin','screen-char-create','screen-app'].forEach(s => {
+    const el = document.getElementById(s);
+    if (!el) return;
+    if (s === 'screen-app') {
+      el.style.display = s === id ? 'block' : 'none';
+    } else {
+      el.style.display = s === id ? 'flex' : 'none';
+    }
+  });
+}
+
+function showErr(screenId, msg) {
+  const el = document.getElementById(screenId);
+  if (el) el.innerHTML = `
+    <div style="text-align:center;color:var(--red-sale);padding:2rem;">
+      <p style="font-family:'Cinzel',serif;margin-bottom:.5rem;">Connection Error</p>
+      <p style="font-size:.85rem;color:var(--silver-dim);">${msg}</p>
+    </div>`;
+}
+
+function esc(str) {
+  return String(str || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function makeStars() {
+  const el = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const s    = document.createElement('div');
+    s.className = 'star';
+    const size  = Math.random() * 2 + 0.4;
+    s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;--dl:-${(Math.random()*5).toFixed(1)}s;opacity:${(Math.random()*0.4+0.1).toFixed(2)}`;
+    el.appendChild(s);
+  }
+}
+
+// ================================================================
+//  D&D 5E DATA
+// ================================================================
+
+const DND5E = {
+  classes: ['Barbarian','Bard','Cleric','Druid','Fighter','Monk','Paladin','Ranger','Rogue','Sorcerer','Warlock','Wizard'],
+
+  backgrounds: [
+    { name:'Acolyte',     asi:{ wis:2, int:1 }, skills:['Insight','Religion'],           feat:'Magic Initiate (Cleric)' },
+    { name:'Artisan',     asi:{ str:2, dex:1 }, skills:['History','Persuasion'],          feat:'Crafter' },
+    { name:'Charlatan',   asi:{ cha:2, dex:1 }, skills:['Deception','Sleight of Hand'],   feat:'Skilled' },
+    { name:'Criminal',    asi:{ dex:2, int:1 }, skills:['Sleight of Hand','Stealth'],     feat:'Alert' },
+    { name:'Entertainer', asi:{ cha:2, dex:1 }, skills:['Acrobatics','Performance'],      feat:'Musician' },
+    { name:'Farmer',      asi:{ con:2, wis:1 }, skills:['Animal Handling','Nature'],      feat:'Tough' },
+    { name:'Guard',       asi:{ str:2, con:1 }, skills:['Athletics','Perception'],        feat:'Alert' },
+    { name:'Guide',       asi:{ wis:2, dex:1 }, skills:['Stealth','Survival'],            feat:'Magic Initiate (Druid)' },
+    { name:'Hermit',      asi:{ con:2, wis:1 }, skills:['Medicine','Religion'],           feat:'Magic Initiate (Druid)' },
+    { name:'Merchant',    asi:{ cha:2, int:1 }, skills:['Animal Handling','Persuasion'],  feat:'Lucky' },
+    { name:'Noble',       asi:{ cha:2, wis:1 }, skills:['History','Persuasion'],          feat:'Skilled' },
+    { name:'Sage',        asi:{ int:2, wis:1 }, skills:['Arcana','History'],              feat:'Magic Initiate (Wizard)' },
+    { name:'Sailor',      asi:{ str:2, dex:1 }, skills:['Acrobatics','Perception'],       feat:'Tavern Brawler' },
+    { name:'Scribe',      asi:{ int:2, dex:1 }, skills:['Investigation','Perception'],    feat:'Skilled' },
+    { name:'Soldier',     asi:{ str:2, con:1 }, skills:['Athletics','Intimidation'],      feat:'Savage Attacker' },
+    { name:'Wayfarer',    asi:{ dex:2, wis:1 }, skills:['Insight','Stealth'],             feat:'Lucky' },
+    { name:'Custom',      asi:null,              skills:[],                               feat:null },
+  ],
+
+  races: [
+    'Dragonborn','Dwarf (Hill)','Dwarf (Mountain)','Elf (High)','Elf (Wood)',
+    'Gnome (Forest)','Gnome (Rock)','Half-Elf','Half-Orc',
+    'Halfling (Lightfoot)','Halfling (Stout)','Human','Tiefling',
+    'Aasimar','Ardling','Goliath','Orc',
+    'Drow (Dark Elf)','Duergar (Grey Dwarf)','Deep Gnome (Svirfneblin)',
+    'Eladrin','Sea Elf','Shadar-kai (Shadow Elf)',
+    'Aarakocra','Bugbear','Firbolg','Goblin','Hobgoblin',
+    'Kenku','Kobold','Lizardfolk','Tabaxi','Triton','Yuan-ti Pureblood',
+    'Githyanki','Githzerai','Leonin','Satyr',
+    'Genasi (Air)','Genasi (Earth)','Genasi (Fire)','Genasi (Water)',
+    'Fairy','Harengon','Centaur','Minotaur','Changeling','Shifter','Warforged','Owlin','Tortle',
+  ],
+
+  startingGold: { Barbarian:50,Bard:125,Cleric:125,Druid:50,Fighter:175,Monk:25,Paladin:175,Ranger:125,Rogue:100,Sorcerer:75,Warlock:100,Wizard:100 },
+
+  classSaves: {
+    Barbarian:['str','con'], Bard:['dex','cha'], Cleric:['wis','cha'],
+    Druid:['int','wis'], Fighter:['str','con'], Monk:['str','dex'],
+    Paladin:['wis','cha'], Ranger:['str','dex'], Rogue:['dex','int'],
+    Sorcerer:['con','cha'], Warlock:['wis','cha'], Wizard:['int','wis'],
+  },
+
+  classSkills: {
+    Barbarian: { count:2, from:['Animal Handling','Athletics','Intimidation','Nature','Perception','Survival'] },
+    Bard:      { count:3, from:'any' },
+    Cleric:    { count:2, from:['History','Insight','Medicine','Persuasion','Religion'] },
+    Druid:     { count:2, from:['Arcana','Animal Handling','Insight','Medicine','Nature','Perception','Religion','Survival'] },
+    Fighter:   { count:2, from:['Acrobatics','Animal Handling','Athletics','History','Insight','Intimidation','Perception','Survival'] },
+    Monk:      { count:2, from:['Acrobatics','Athletics','History','Insight','Religion','Stealth'] },
+    Paladin:   { count:2, from:['Athletics','Insight','Intimidation','Medicine','Persuasion','Religion'] },
+    Ranger:    { count:3, from:['Animal Handling','Athletics','Insight','Investigation','Nature','Perception','Stealth','Survival'] },
+    Rogue:     { count:4, from:['Acrobatics','Athletics','Deception','Insight','Intimidation','Investigation','Perception','Performance','Persuasion','Sleight of Hand','Stealth'] },
+    Sorcerer:  { count:2, from:['Arcana','Deception','Insight','Intimidation','Persuasion','Religion'] },
+    Warlock:   { count:2, from:['Arcana','Deception','History','Intimidation','Investigation','Nature','Religion'] },
+    Wizard:    { count:2, from:['Arcana','History','Insight','Investigation','Medicine','Religion'] },
+  },
+
+  ALL_SKILLS: ['Acrobatics','Animal Handling','Arcana','Athletics','Deception','History',
+    'Insight','Intimidation','Investigation','Medicine','Nature','Perception',
+    'Performance','Persuasion','Religion','Sleight of Hand','Stealth','Survival'],
+
+  HIT_DIE: {Barbarian:12,Bard:8,Cleric:8,Druid:8,Fighter:10,Monk:8,Paladin:10,Ranger:10,Rogue:8,Sorcerer:6,Warlock:8,Wizard:6},
+
+  classEquipment: {
+    Barbarian: [{item:'Greataxe',qty:1},{item:'Handaxe',qty:2},{item:"Explorer's Pack",qty:1},{item:'Javelin',qty:4}],
+    Bard:      [{item:'Rapier',qty:1},{item:"Diplomat's Pack",qty:1},{item:'Lute',qty:1},{item:'Leather armour',qty:1},{item:'Dagger',qty:1}],
+    Cleric:    [{item:'Mace',qty:1},{item:'Scale mail',qty:1},{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:"Priest's Pack",qty:1},{item:'Shield',qty:1},{item:'Holy symbol (amulet)',qty:1}],
+    Druid:     [{item:'Shield',qty:1},{item:'Scimitar',qty:1},{item:'Leather armour',qty:1},{item:"Explorer's Pack",qty:1},{item:'Druidic focus (wooden staff)',qty:1}],
+    Fighter:   [{item:'Chain mail',qty:1},{item:'Longsword',qty:1},{item:'Shield',qty:1},{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:"Dungeoneer's Pack",qty:1}],
+    Monk:      [{item:'Shortsword',qty:1},{item:"Dungeoneer's Pack",qty:1},{item:'Dart',qty:10}],
+    Paladin:   [{item:'Longsword',qty:1},{item:'Shield',qty:1},{item:'Javelin',qty:5},{item:"Priest's Pack",qty:1},{item:'Chain mail',qty:1},{item:'Holy symbol (amulet)',qty:1}],
+    Ranger:    [{item:'Scale mail',qty:1},{item:'Shortsword',qty:2},{item:"Dungeoneer's Pack",qty:1},{item:'Longbow',qty:1},{item:'Quiver',qty:1},{item:'Arrows (20)',qty:1}],
+    Rogue:     [{item:'Rapier',qty:1},{item:'Shortbow',qty:1},{item:'Quiver',qty:1},{item:'Arrows (20)',qty:1},{item:"Burglar's Pack",qty:1},{item:'Leather armour',qty:1},{item:'Dagger',qty:2},{item:"Thieves' tools",qty:1}],
+    Sorcerer:  [{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:'Component pouch',qty:1},{item:"Dungeoneer's Pack",qty:1},{item:'Dagger',qty:2}],
+    Warlock:   [{item:'Crossbow (light)',qty:1},{item:'Crossbow bolts (20)',qty:1},{item:'Component pouch',qty:1},{item:"Scholar's Pack",qty:1},{item:'Leather armour',qty:1},{item:'Dagger',qty:2},{item:'Shortsword',qty:1}],
+    Wizard:    [{item:'Quarterstaff',qty:1},{item:'Spellbook',qty:1},{item:'Component pouch',qty:1},{item:"Scholar's Pack",qty:1},{item:'Dagger',qty:1}],
+  },
+};
+
+// Point buy constants (2024 PHB — non-linear above 13)
+const PB_CUMULATIVE = { 8:0, 9:1, 10:2, 11:3, 12:4, 13:5, 14:7, 15:9 };
+const PB_TOTAL = 27, PB_MIN = 8, PB_MAX = 15;
+const STAT_NAMES = { str:'Strength', dex:'Dexterity', con:'Constitution', int:'Intelligence', wis:'Wisdom', cha:'Charisma' };
+const STAT_KEYS  = ['str','dex','con','int','wis','cha'];
+
+// ─── WIZARD STATE ───────────────────────────────────────────────────
+let wizardData = {
+  class:null, race:null, background:null, bgObj:null,
+  customAsi2:null, customAsi1:null, charName:'',
+  baseStats:{ str:8,dex:8,con:8,int:8,wis:8,cha:8 },
+  classSkills:[], bgSkills:[], originFeat:null, equipChoice:null,
+};
+
+function saveDraft()  { try{ localStorage.setItem('char_draft',JSON.stringify(wizardData)); }catch(e){} }
+function loadDraft()  { try{ const d=localStorage.getItem('char_draft'); return d?JSON.parse(d):null; }catch(e){return null;} }
+function clearDraft() { try{ localStorage.removeItem('char_draft'); }catch(e){} }
+
+function getFinalScores() {
+  const asi = wizardData.bgObj?.asi || {};
+  const scores = {};
+  STAT_KEYS.forEach(k => { scores[k] = (wizardData.baseStats[k]||8) + (asi[k]||0); });
+  return scores;
+}
+function pbSpent()     { return STAT_KEYS.reduce((s,k)=>s+(PB_CUMULATIVE[wizardData.baseStats[k]]||0),0); }
+function pbRemaining() { return PB_TOTAL - pbSpent(); }
+
+function showCharacterCreationWizard() {
+  const draft = loadDraft();
+  if (draft && draft.class && draft.charName) {
+    Object.assign(wizardData, draft);
+    buildClassGrid(); buildRaceSelect(); buildBackgroundSelect();
+    const classBtn = document.getElementById(`class-btn-${wizardData.class}`);
+    if (classBtn) classBtn.classList.add('selected');
+    const raceSel = document.getElementById('w-race');
+    if (raceSel && wizardData.race) raceSel.value = wizardData.race;
+    const bgSel = document.getElementById('w-background');
+    if (bgSel && wizardData.background) { bgSel.value = wizardData.background; onBackgroundChange(); }
+    const nameInp = document.getElementById('w-charname');
+    if (nameInp && wizardData.charName) nameInp.value = wizardData.charName;
+    const hasMeaningfulStats = STAT_KEYS.some(k=>(wizardData.baseStats[k]||8)!==8);
+    setWizardStep(hasMeaningfulStats ? 4 : 1);
+  } else {
+    wizardData = { class:null, race:null, background:null, bgObj:null, customAsi2:null, customAsi1:null, charName:'', baseStats:{str:8,dex:8,con:8,int:8,wis:8,cha:8}, classSkills:[], bgSkills:[], originFeat:null, equipChoice:null };
+    buildClassGrid(); buildRaceSelect(); buildBackgroundSelect(); setWizardStep(1);
+  }
+  show('screen-char-create');
+}
+
+const CLASS_COLORS={"Barbarian": "#b22222", "Bard": "#1a9688", "Cleric": "#8090a8", "Druid": "#3a7a2f", "Fighter": "#5a7a9a", "Monk": "#2a8a5a", "Paladin": "#b8892a", "Ranger": "#6b5a2e", "Rogue": "#3a3a50", "Sorcerer": "#8b2db8", "Warlock": "#2d1060", "Wizard": "#4a28a0"};
+function buildClassGrid() {
+  const CLASS_ICONS = {
+    Barbarian:'⚡',Bard:'♪',Cleric:'✦',Druid:'☘',Fighter:'⚔',
+    Monk:'☯',Paladin:'✡',Ranger:'◎',Rogue:'◈',Sorcerer:'✸',Warlock:'☽',Wizard:'✦'
+  };
+  document.getElementById('class-grid').innerHTML = DND5E.classes.map(cls=>{
+    const col = CLASS_COLORS[cls]||'#5a6070';
+    const icon = CLASS_ICONS[cls]||'◆';
+    return `<div class="class-btn" id="class-btn-${cls}" onclick="selectClass('${cls}')"
+      style="border-color:${col}22;background:${col}12;"
+      onmouseenter="this.style.background='${col}28';this.style.borderColor='${col}66';"
+      onmouseleave="if(!this.classList.contains('selected')){this.style.background='${col}12';this.style.borderColor='${col}22';}">
+      <div style="font-size:1.4rem;margin-bottom:.3rem;opacity:.75;">${icon}</div>
+      <div class="class-btn-name" style="color:${col};filter:brightness(1.4);">${cls}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectClass(cls) {
+  wizardData.class = cls;
+  document.querySelectorAll('.class-btn').forEach(b=>{
+    b.classList.remove('selected');
+    const c=CLASS_COLORS[b.id.replace('class-btn-','')]||'#5a6070';
+    b.style.background=c+'12'; b.style.borderColor=c+'22';
+  });
+  const btn = document.getElementById(`class-btn-${cls}`);
+  if (btn) {
+    btn.classList.add('selected');
+    const c=CLASS_COLORS[cls]||'#5a6070';
+    btn.style.background=c+'38'; btn.style.borderColor=c+'88';
+  }
+  document.getElementById('w1-err').style.display='none';
+  saveDraft();
+}
+
+function buildRaceSelect() {
+  document.getElementById('w-race').innerHTML = '<option value="">— Choose your race —</option>' +
+    DND5E.races.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+}
+
+function buildBackgroundSelect() {
+  document.getElementById('w-background').innerHTML = '<option value="">— Choose your background —</option>' +
+    DND5E.backgrounds.map(b=>`<option value="${esc(b.name)}">${esc(b.name)}</option>`).join('');
+}
+
+function onBackgroundChange() {
+  const bgName = document.getElementById('w-background').value;
+  const bgObj  = DND5E.backgrounds.find(b=>b.name===bgName);
+  wizardData.background = bgName; wizardData.bgObj = bgObj;
+  const preview = document.getElementById('bg-asi-preview');
+  const customWrap = document.getElementById('custom-asi-wrap');
+  if (!bgObj) { preview.style.display='none'; customWrap.style.display='none'; return; }
+  if (bgObj.name === 'Custom') {
+    customWrap.style.display='block'; preview.style.display='none';
+  } else {
+    customWrap.style.display='none';
+    const asiParts = Object.entries(bgObj.asi).map(([k,v])=>`<strong>+${v} ${STAT_NAMES[k]}</strong>`).join(' &amp; ');
+    preview.innerHTML = `<span style="color:var(--gold-magic)">📊 ASI:</span> ${asiParts} &nbsp;·&nbsp; 
+      <span style="color:var(--gold-magic)">🎯 Skills:</span> ${bgObj.skills.join(', ')} &nbsp;·&nbsp;
+      ${bgObj.feat?`<span style="color:var(--gold-magic)">✦ Suggested Feat:</span> ${bgObj.feat}`:''}`;
+    preview.style.display='block';
+    wizardData.bgSkills = bgObj.skills;
+    // Pre-select the suggested feat
+    if (bgObj.feat) { const f=document.getElementById('w-feat'); if(f) f.value=bgObj.feat; }
+  }
+  saveDraft(); updateStatDisplay();
+}
+
+function onCustomAsiChange() {
+  wizardData.customAsi2 = document.getElementById('custom-asi2').value||null;
+  wizardData.customAsi1 = document.getElementById('custom-asi1').value||null;
+  saveDraft(); updateStatDisplay();
+}
+
+function setWizardStep(n) {
+  for (let i=1; i<=8; i++) {
+    const step = document.getElementById(`wstep-${i}`);
+    const dot  = document.getElementById(`wd-${i}`);
+    if (step) step.classList.toggle('active', i===n);
+    if (dot) {
+      dot.classList.toggle('active', i===n);
+      dot.classList.toggle('done', i<n);
+      dot.textContent = (i<n)?'✓':i;
+    }
+  }
+  if (n===4) buildStatBuyGrid();
+  if (n===5) buildSkillStep();
+  if (n===7) buildEquipmentStep();
+  if (n===8) buildReviewStep();
+}
+
+function wizardNext(step) {
+  switch(step) {
+    case 1: {
+      const name = document.getElementById('w-charname').value.trim();
+      if (!wizardData.class) { showWizErr(1,'Please select a class.'); return; }
+      if (!name) { showWizErr(1,'Please enter a character name.'); return; }
+      wizardData.charName=name; saveDraft(); setWizardStep(2); break;
+    }
+    case 2: {
+      const race = document.getElementById('w-race').value;
+      if (!race) { showWizErr(2,'Please select a race.'); return; }
+      wizardData.race=race; saveDraft(); setWizardStep(3); break;
+    }
+    case 3: {
+      const bgObj = DND5E.backgrounds.find(b=>b.name===document.getElementById('w-background').value);
+      if (!bgObj) { showWizErr(3,'Please select a background.'); return; }
+      if (bgObj.name==='Custom') {
+        const a2=document.getElementById('custom-asi2').value;
+        const a1=document.getElementById('custom-asi1').value;
+        if (!a2||!a1) { showWizErr(3,'Please choose both ASI stats for your Custom background.'); return; }
+        if (a2===a1) { showWizErr(3,'The +2 and +1 bonuses must go to different ability scores.'); return; }
+        wizardData.bgObj = {...bgObj, asi:{[a2]:2,[a1]:1}, skills:[]};
+        wizardData.bgSkills=[];
+      } else {
+        wizardData.bgObj=bgObj; wizardData.bgSkills=bgObj.skills;
+        if (bgObj.feat) { const f=document.getElementById('w-feat'); if(f) f.value=bgObj.feat; }
+      }
+      saveDraft(); setWizardStep(4); break;
+    }
+    case 4: {
+      const rem = pbRemaining();
+      if (rem!==0) { showWizErr(4,`Spend exactly 27 points. ${rem>0?rem+' points remaining':Math.abs(rem)+' points over budget.'}`); return; }
+      const finals = getFinalScores();
+      const over = STAT_KEYS.filter(k=>finals[k]>18);
+      if (over.length) { showWizErr(4,`No score can exceed 18. Reduce: ${over.map(k=>STAT_NAMES[k]).join(', ')}.`); return; }
+      saveDraft(); setWizardStep(5); break;
+    }
+    case 5: {
+      const reqd = DND5E.classSkills[wizardData.class]?.count||2;
+      if (wizardData.classSkills.length!==reqd) { showWizErr(5,`Choose exactly ${reqd} class skill${reqd!==1?'s':''}.`); return; }
+      wizardData.originFeat = document.getElementById('w-feat').value;
+      if (!wizardData.originFeat) { showWizErr(5,'Please choose an Origin Feat.'); return; }
+      saveDraft(); setWizardStep(6); break;
+    }
+    case 6: setWizardStep(7); break;
+    case 7: {
+      if (!wizardData.equipChoice) { showWizErr(7,'Please choose an equipment option.'); return; }
+      setWizardStep(8); break;
+    }
+  }
+}
+
+function wizardBack(step) { setWizardStep(step-1); }
+function showWizErr(step,msg) { const el=document.getElementById(`w${step}-err`); if(el){el.textContent=msg;el.style.display='block';} }
+
+
+// ── RECOMMENDED STATS BY CLASS (2024 PHB standard builds) ──────────
+// Each spread costs exactly 27 points using PB_CUMULATIVE.
+// Values are BASE stats (before background ASI).
+// Priority labels explain the rationale shown to students.
+const CLASS_RECOMMENDED = {
+  Barbarian: { stats:{str:15,dex:14,con:14,int:8,wis:12,cha:8},   note:'STR 15, CON 14, DEX 14 — maximise melee damage and survivability' },
+  Bard:      { stats:{str:8,dex:14,con:14,int:8,wis:12,cha:15},   note:'CHA 15, DEX 14, CON 14 — high charisma for spells and performance' },
+  Cleric:    { stats:{str:14,dex:12,con:14,int:8,wis:15,cha:8},   note:'WIS 15, STR 14, CON 14 — wisdom for spells, strength for melee' },
+  Druid:     { stats:{str:8,dex:14,con:14,int:12,wis:15,cha:8},   note:'WIS 15, DEX 14, CON 14 — wisdom for spells, dexterity for light armour' },
+  Fighter:   { stats:{str:15,dex:13,con:14,int:10,wis:12,cha:8},  note:'STR 15, CON 14 — heavy armour fighter; swap STR/DEX for ranged build' },
+  Monk:      { stats:{str:12,dex:15,con:14,int:8,wis:14,cha:8},   note:'DEX 15, WIS 14, CON 14 — unarmoured defence uses DEX + WIS' },
+  Paladin:   { stats:{str:15,dex:8,con:14,int:8,wis:12,cha:14},   note:'STR 15, CHA 14, CON 14 — auras and smites scale with Charisma' },
+  Ranger:    { stats:{str:12,dex:15,con:14,int:8,wis:14,cha:8},   note:'DEX 15, WIS 14, CON 14 — ranged attacks and nature spells' },
+  Rogue:     { stats:{str:8,dex:15,con:14,int:14,wis:12,cha:8},   note:'DEX 15, INT 14, CON 14 — sneak attack, thieves tools, investigation' },
+  Sorcerer:  { stats:{str:8,dex:14,con:14,int:8,wis:12,cha:15},   note:'CHA 15, CON 14, DEX 14 — sorcery points and spell DCs scale with CHA' },
+  Warlock:   { stats:{str:8,dex:14,con:14,int:8,wis:12,cha:15},   note:'CHA 15, CON 14, DEX 14 — Eldritch Blast and invocations key off CHA' },
+  Wizard:    { stats:{str:8,dex:14,con:14,int:15,wis:12,cha:8},   note:'INT 15, CON 14, DEX 14 — spell save DC and spell attacks key off INT' },
+};
+
+function applyRecommendedStats() {
+  const cls = wizardData.class;
+  if (!cls) { showWizErr(4,'Please select a class first (go back to Step 1).'); return; }
+  const rec = CLASS_RECOMMENDED[cls];
+  if (!rec) return;
+  // Apply base stats
+  STAT_KEYS.forEach(k => { wizardData.baseStats[k] = rec.stats[k]; });
+  // Show note
+  const lbl = document.getElementById('recommended-label');
+  if (lbl) lbl.textContent = rec.note;
+  buildStatBuyGrid();
+  updatePbDisplay();
+  saveDraft();
+}
+
+function clearAllStats() {
+  STAT_KEYS.forEach(k => { wizardData.baseStats[k] = 8; });
+  const lbl = document.getElementById('recommended-label');
+  if (lbl) lbl.textContent = '';
+  buildStatBuyGrid();
+  updatePbDisplay();
+  saveDraft();
+}
+
+// ─── STAT BUY ────────────────────────────────────────────────────────
+function buildStatBuyGrid() {
+  const asi  = wizardData.bgObj?.asi||{};
+  const grid = document.getElementById('stat-buy-grid');
+  if (!grid) return;
+  grid.innerHTML = STAT_KEYS.map(k => {
+    const base  = wizardData.baseStats[k]||8;
+    const bonus = asi[k]||0;
+    const final = base+bonus;
+    const mod   = Math.floor((final-10)/2);
+    return `<div style="background:rgba(180,110,40,.07);border:1px solid rgba(180,110,40,.2);border-radius:5px;padding:.65rem .4rem;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:.65rem;font-weight:600;letter-spacing:.1em;color:var(--silver-dim);margin-bottom:.3rem;">${k.toUpperCase()}</div>
+      <button onclick="pbAdjust('${k}',1)" style="background:rgba(196,30,30,.2);border:1px solid rgba(196,30,30,.4);border-radius:3px;color:#e0d8c8;font-size:1.1rem;line-height:1;width:30px;height:30px;cursor:pointer;">+</button>
+      <div id="pb-val-${k}" style="font-family:'Cinzel',serif;font-size:1.7rem;font-weight:900;color:#f0e8d8;line-height:1.2;margin:.15rem 0;">${base}</div>
+      <button onclick="pbAdjust('${k}',-1)" style="background:rgba(180,110,40,.12);border:1px solid rgba(180,110,40,.3);border-radius:3px;color:#e0d8c8;font-size:1.1rem;line-height:1;width:30px;height:30px;cursor:pointer;">−</button>
+      <div id="pb-final-${k}" style="font-family:'Cinzel',serif;font-size:.76rem;color:var(--teal-magic);margin-top:.28rem;">
+        ${bonus?`<span style="color:var(--gold-magic)">${final}</span> <span style="font-size:.65rem">(+${bonus})</span>`:`${final}`} &nbsp;<span style="color:var(--silver-dim)">${(mod>=0?'+':'')+mod}</span>
+      </div>
+    </div>`;
+  }).join('');
+  updatePbDisplay();
+}
+
+function pbAdjust(stat, delta) {
+  const cur = wizardData.baseStats[stat]||8;
+  const next = cur+delta;
+  if (next<PB_MIN||next>PB_MAX) return;
+  wizardData.baseStats[stat]=next;
+  const valEl   = document.getElementById(`pb-val-${stat}`);
+  const finalEl = document.getElementById(`pb-final-${stat}`);
+  const asi = wizardData.bgObj?.asi||{};
+  const bonus=asi[stat]||0, final=next+bonus, mod=Math.floor((final-10)/2);
+  if (valEl)   valEl.textContent=next;
+  if (finalEl) finalEl.innerHTML = bonus
+    ? `<span style="color:var(--gold-magic)">${final}</span> <span style="font-size:.65rem">(+${bonus})</span> &nbsp;<span style="color:var(--silver-dim)">${(mod>=0?'+':'')+mod}</span>`
+    : `${final} &nbsp;<span style="color:var(--silver-dim)">${(mod>=0?'+':'')+mod}</span>`;
+  updatePbDisplay(); saveDraft();
+}
+
+function updatePbDisplay() {
+  const rem = pbRemaining();
+  const el  = document.getElementById('pb-remaining');
+  if (el) { el.textContent=rem; el.style.color=rem<0?'var(--red-sale)':rem===0?'#5a9a40':'var(--gold-magic)'; }
+  const btn = document.getElementById('btn-w4-next');
+  if (btn) btn.disabled = rem!==0;
+}
+
+function updateStatDisplay() {
+  if (document.getElementById('wstep-4')?.classList.contains('active')) buildStatBuyGrid();
+}
+
+// ─── SKILLS STEP ─────────────────────────────────────────────────────
+function buildSkillStep() {
+  const clsObj  = DND5E.classSkills[wizardData.class]||{count:2,from:[]};
+  const bgSkills= wizardData.bgSkills||[];
+  const skillList = clsObj.from==='any' ? DND5E.ALL_SKILLS : clsObj.from;
+  const count   = clsObj.count;
+  const lbl = document.getElementById('skills-count-label');
+  if (lbl) lbl.textContent = `choose ${count}`;
+  const note = document.getElementById('skill-bg-note');
+  if (note) note.textContent = bgSkills.length ? `Background grants: ${bgSkills.join(', ')}` : '';
+  wizardData.classSkills = wizardData.classSkills.filter(s=>skillList.includes(s));
+  const grid = document.getElementById('skill-pick-grid');
+  if (!grid) return;
+  grid.innerHTML = skillList.map(skill=>{
+    const isBg=bgSkills.includes(skill), isSel=wizardData.classSkills.includes(skill);
+    return `<label style="display:flex;align-items:center;gap:.4rem;cursor:${isBg?'default':'pointer'};opacity:${isBg?.5:1};font-size:.85rem;color:${isBg?'var(--silver-dim)':'var(--crystal)'};">
+      <input type="checkbox" id="sk-${skill.replace(/[\s\/]/g,'_')}" ${isSel?'checked':''} ${isBg?'disabled':''} onchange="toggleSkill('${skill}',${count})">
+      ${skill}${isBg?' <span style=\'font-size:.68rem;color:var(--gold-magic)\'>✦bg</span>':''}
+    </label>`;
+  }).join('');
+}
+
+function toggleSkill(skill, maxCount) {
+  const idx = wizardData.classSkills.indexOf(skill);
+  if (idx>=0) { wizardData.classSkills.splice(idx,1); }
+  else {
+    if (wizardData.classSkills.length>=maxCount) {
+      const chk=document.getElementById(`sk-${skill.replace(/[\s\/]/g,'_')}`);
+      if (chk) chk.checked=false;
+      showWizErr(5,`You can only choose ${maxCount} class skill${maxCount!==1?'s':''}.`); return;
+    }
+    wizardData.classSkills.push(skill);
+  }
+  document.getElementById('w5-err').style.display='none';
+  saveDraft();
+}
+
+// ─── EQUIPMENT STEP ──────────────────────────────────────────────────
+function buildEquipmentStep() {
+  const cls=wizardData.class;
+  const items=DND5E.classEquipment[cls]||[];
+  const pills=items.map(i=>`<span class="item-pill">${i.qty>1?i.qty+'× ':''}${esc(i.item)}</span>`).join('');
+  document.getElementById('equip-package-desc').innerHTML=`Class starting gear:<br><div style="margin-top:.4rem;">${pills}</div>`;
+  document.getElementById('equip-gold-desc').innerHTML=`Receive <strong style="color:var(--gold-magic)">${DND5E.startingGold[cls]} gp</strong> to spend in the shop.`;
+  wizardData.equipChoice=null;
+  ['equip-opt-package','equip-opt-gold'].forEach(id=>document.getElementById(id).classList.remove('selected'));
+}
+
+function selectEquip(choice) {
+  if (choice==='gold'&&!confirm('Starting gold only recommended for experienced players.\nAre you sure?')) return;
+  wizardData.equipChoice=choice;
+  document.getElementById('equip-opt-package').classList.toggle('selected',choice==='package');
+  document.getElementById('equip-opt-gold').classList.toggle('selected',choice==='gold');
+  document.getElementById('w7-err').style.display='none'; saveDraft();
+}
+
+// ─── REVIEW ──────────────────────────────────────────────────────────
+function buildReviewStep() {
+  const {class:cls,race,background:bg,charName,classSkills,bgSkills,originFeat,equipChoice}=wizardData;
+  const finals = getFinalScores();
+  const statRow = STAT_KEYS.map(k=>{const f=finals[k],m=Math.floor((f-10)/2);
+    return `<td style="text-align:center;padding:.3rem;border:1px solid rgba(180,110,40,.15);">
+      <div style="font-family:'Cinzel',serif;font-size:.62rem;color:var(--silver-dim);">${k.toUpperCase()}</div>
+      <div style="font-family:'Cinzel',serif;font-size:1.1rem;font-weight:700;color:#f0e8d8;">${f}</div>
+      <div style="font-size:.7rem;color:var(--gold-magic)">${(m>=0?'+':'')+m}</div></td>`;
+  }).join('');
+  document.getElementById('wizard-review').innerHTML=`
+    <table style="width:100%;font-size:.85rem;margin-bottom:.8rem;">
+      ${[['Character',charName,'#f0e8d8'],['Class',cls],['Race',race],['Background',bg],['Origin Feat',originFeat||'—'],
+         ['Skills',[...new Set([...(classSkills||[]),...(bgSkills||[])])].join(', ')||'—'],
+         ['Equipment',equipChoice==='package'?'Class gear package':`${DND5E.startingGold[cls]} gp gold`,'var(--teal-magic)'],
+        ].map(([l,v,c])=>`<tr><td style="color:var(--silver-dim);padding:.22rem 0;width:38%">${l}</td><td style="color:${c||'var(--crystal)'};">${esc(String(v))}</td></tr>`).join('')}
+    </table>
+    <table style="width:100%;border-collapse:collapse;"><tr>${statRow}</tr></table>`;
+}
+
+// ─── CREATE CHARACTER ─────────────────────────────────────────────────
+async function createCharacter() {
+  const btn=document.getElementById('btn-create-char');
+  const err=document.getElementById('w8-err');
+  btn.disabled=true; btn.textContent='Creating...'; err.style.display='none';
+  const {class:cls,race,background:bg,bgObj,charName,equipChoice,baseStats,classSkills,bgSkills,originFeat}=wizardData;
+  const finals=getFinalScores();
+  const conMod=Math.floor((finals.con-10)/2);
+  const maxHp=(DND5E.HIT_DIE[cls]||8)+conMod;
+  const startGold=equipChoice==='gold'?DND5E.startingGold[cls]:0;
+  const allSkills=[...new Set([...(classSkills||[]),...(bgSkills||[])])];
+  try {
+    const charRef=await db.collection('Characters').add({
+      characterName:charName, playerId:loggedInUsername, class:cls, race, background:bg,
+      level:1, xp:0, gold:startGold, status:'Active', createdAt:new Date().toISOString(),
+      sheet:{
+        abilityScores:finals, baseStats, backgroundASI:bgObj?.asi||{},
+        savingThrowProficiencies:DND5E.classSaves[cls]||[],
+        skillProficiencies:allSkills, skillExpertises:[],
+        originFeat:originFeat||'', hp:maxHp, maxHp, tempHp:0,
+        conditions:[], speed:30, deathSaves:{successes:0,failures:0},
+      },
+    });
+    await updatePlayer({activeCharacterId:charRef.id});
+    activeChar={id:charRef.id,characterName:charName,playerId:loggedInUsername,class:cls,race,background:bg,level:1,xp:0,gold:startGold,status:'Active'};
+    allChars=[activeChar];
+    if (equipChoice==='package') {
+      for (const entry of DND5E.classEquipment[cls]||[]) {
+        await db.collection('Inventory').add({
+          characterId:charRef.id, itemName:entry.item, quantity:entry.qty||1,
+          source:'Starting Equipment', acquiredDate:new Date().toISOString(),
+        });
+      }
+    }
+    clearDraft();
+    toast(`${charName} is ready for adventure!`,'success');
+    show('screen-app'); updateTopBar(activeChar);
+    loadInventory(); loadShopTab(); loadEmporiumTab(); loadCharactersTab();
+  } catch(e) {
+    console.error(e); err.textContent='Failed to create character. Please try again.';
+    err.style.display='block'; btn.disabled=false; btn.textContent='Create Character & Enter';
+  }
+}
+
+
+// ================================================================
+//  CHEST CLAIM OVERLAY
+// ================================================================
+
+async function showChestOverlay(chests) {
+  const overlay=document.getElementById('chest-overlay');
+  overlay.classList.add('show');
+  setTimeout(()=>overlay.classList.add('dark'),50);
+  for (let i=0;i<chests.length;i++) await showSingleChest(chests[i],i+1,chests.length);
+  overlay.classList.remove('dark');
+  setTimeout(()=>overlay.classList.remove('show'),400);
+  loadInventory();
+}
+
+function showSingleChest(chest,num,total) {
+  return new Promise(resolve=>{
+    const stage=document.getElementById('chest-stage');
+    const isDM=chest.chestType==='dm';
+    const colour=isDM?'#f0c848':'#c8a8f8';
+    const typeClass=isDM?'chest-type-dm':'chest-type-standard';
+    stage.innerHTML=`
+      <div class="chest-counter">${num} of ${total}</div>
+      <span class="chest-type-label ${typeClass}">${isDM?'DM Chest':'Standard Chest'}</span>
+      <div class="chest-session-label">${esc(chest.notes||'Session Reward')}</div>
+      <div class="chest-svg-wrap" id="chest-clickable" onclick="openChest()">
+        <svg class="chest-svg" id="chest-svg" width="160" height="130" viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="55" width="140" height="65" rx="6" fill="#3d2008" stroke="${colour}" stroke-width="2"/>
+          <rect x="10" y="48" width="140" height="28" rx="6" fill="#5a3010" stroke="${colour}" stroke-width="2" id="chest-lid"/>
+          <rect x="60" y="82" width="40" height="22" rx="4" fill="#8a6020" stroke="${colour}" stroke-width="1.5"/>
+          <circle cx="80" cy="93" r="6" fill="${colour}" opacity="0.9"/>
+          <line x1="30" y1="76" x2="130" y2="76" stroke="${colour}" stroke-width="1" opacity="0.4"/>
+        </svg>
+        <div class="chest-glow"></div>
+      </div>
+      <div class="chest-prompt" id="chest-prompt">&#9654; Click to open</div>`;
+    let clicks=0;
+    window.openChest=function(){
+      clicks++;
+      if (clicks===1) {
+        document.getElementById('chest-svg').classList.add('shaking');
+        document.getElementById('chest-prompt').textContent='Keep clicking!';
+      }
+      if (clicks>=3) revealChest();
+    };
+    function revealChest(){
+      document.getElementById('chest-svg').classList.remove('shaking');
+      spawnParticles(colour);
+      claimChest(chest.id,chest).catch(console.error);
+      setTimeout(()=>{
+        const items=chest.items||[];
+        stage.innerHTML=`
+          <div class="reward-reveal">
+            <div class="chest-counter">${num} of ${total}</div>
+            <div class="reward-card">
+              <div class="reward-stats">
+                ${chest.xp  ?`<div><div class="reward-stat-val" style="color:var(--teal-magic)">+${chest.xp} XP</div><div class="reward-stat-lbl">Experience</div></div>`:''}
+                ${chest.gold?`<div><div class="reward-stat-val" style="color:var(--gold-magic)">+${chest.gold} gp</div><div class="reward-stat-lbl">Gold</div></div>`:''}
+              </div>
+              ${items.length?`<div class="reward-items-title">Items Found</div>${items.map(it=>`
+                <div class="reward-item-row">
+                  <span class="rarity-badge r-${(it.rarity||'common').toLowerCase()}" style="font-size:.65rem;">${esc(it.rarity||'Common')}</span>
+                  <span class="reward-item-name">${esc(it.name)}</span>
+                </div>`).join('')}`:''}
+            </div>
+            <button class="btn btn-gold" onclick="window.resolveChest()" style="margin-top:.5rem;">
+              ${num<total?'Next Chest →':'Collect &amp; Continue'}
+            </button>
+          </div>`;
+        window.resolveChest=()=>resolve();
+      },500);
+    }
+  });
+}
+
+function spawnParticles(colour) {
+  const canvas=document.getElementById('chest-particles');
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const cx=canvas.width/2, cy=canvas.height/2;
+  const colours=[colour,'#ffffff','#f0c848','#40d8c8'];
+  const ps=Array.from({length:80},()=>{
+    const a=Math.random()*Math.PI*2, sp=Math.random()*9+3;
+    return{x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-Math.random()*4,
+      size:Math.random()*8+3,colour:colours[Math.floor(Math.random()*colours.length)],life:1,decay:Math.random()*.02+.01};
+  });
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let alive=false;
+    for(const p of ps){p.x+=p.vx;p.y+=p.vy;p.vy+=.2;p.life-=p.decay;
+      if(p.life>0){alive=true;ctx.globalAlpha=p.life;ctx.fillStyle=p.colour;ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();}}
+    ctx.globalAlpha=1;
+    if(alive)requestAnimationFrame(animate);else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  animate();
+}
+
+// ================================================================
+//  BOOT
+// ================================================================
+
+boot().catch(e => {
+  console.error(e);
+  showErr('screen-loading', 'Something went wrong. Please refresh the page.');
+});
+</script>
+</body>
+</html>

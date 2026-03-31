@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resources — D&D Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="nav.js"></script>
+<style>
+:root{--bg:#0d0a08;--bg-card:#1a1410;--bg-card2:#201a14;--border:rgba(180,110,40,.2);--red:#c41e1e;--red-d:#8b1010;--gold:#c8952a;--gold-d:#7a5818;--text:#e0d8c8;--text-m:#a89880;--text-d:#6a5840;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);background-image:radial-gradient(ellipse 80% 55% at 50% 0%,#1c0d08,transparent 65%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--text);}
+.page{max-width:1060px;margin:0 auto;padding:2.5rem 1.2rem 5rem;}
+.page-title{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:900;color:var(--text);text-align:center;margin-bottom:.35rem;}
+.page-sub{text-align:center;font-style:italic;color:var(--text-m);font-size:1rem;margin-bottom:3rem;}
+.resources-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.6rem;}
+
+/* ── RESOURCE CARD ── */
+.rc{
+  border-radius:5px;overflow:hidden;cursor:pointer;
+  transition:transform .22s,box-shadow .22s;
+  text-decoration:none;display:block;
+  box-shadow:0 6px 28px rgba(0,0,0,.45);
+}
+.rc:hover{transform:translateY(-4px);box-shadow:0 14px 44px rgba(0,0,0,.6);}
+.rc-banner{
+  height:160px;position:relative;display:flex;align-items:flex-end;
+  padding:1.2rem 1.5rem;overflow:hidden;
+}
+.rc-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 25%,rgba(0,0,0,.75) 100%);pointer-events:none;}
+.rc-banner-bg{position:absolute;inset:0;background-size:cover;background-position:center;}
+.rc-banner-icon{position:absolute;top:1rem;right:1.3rem;font-size:2.6rem;opacity:.25;z-index:1;user-select:none;}
+.rc-title{position:relative;z-index:2;font-family:'Cinzel',serif;font-size:1.1rem;font-weight:900;color:#f0e8d8;line-height:1.15;text-shadow:0 2px 8px rgba(0,0,0,.8);}
+.rc-tag{position:relative;z-index:2;font-family:'Cinzel',serif;font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(240,232,216,.45);align-self:flex-start;margin-top:.4rem;}
+.rc-body{background:var(--bg-card);border:1px solid var(--border);border-top:none;padding:1.1rem 1.5rem 1.3rem;display:flex;align-items:flex-end;justify-content:space-between;gap:.8rem;}
+.rc-desc{font-size:.86rem;color:var(--text-m);line-height:1.65;flex:1;}
+.rc-cta{flex-shrink:0;font-family:'Cinzel',serif;font-size:.65rem;font-weight:700;letter-spacing:.09em;padding:.45rem 1.1rem;border-radius:3px;border:1px solid;cursor:pointer;transition:all .18s;text-decoration:none;display:inline-block;white-space:nowrap;}
+
+/* Guide theme: parchment/gold */
+.rc-guide .rc-banner-bg{background:radial-gradient(ellipse at 25% 30%,#2a1a06,transparent 60%),radial-gradient(ellipse at 80% 70%,#1a0e04,transparent 55%),linear-gradient(135deg,#150c04,#261404);}
+.rc-guide .rc-body{border-color:rgba(200,149,42,.4);}
+.rc-guide .rc-cta{background:rgba(180,110,40,.18);border-color:rgba(180,110,40,.55);color:var(--gold);}
+.rc-guide .rc-cta:hover{background:rgba(180,110,40,.32);}
+
+/* Coming soon theme */
+.rc-soon .rc-banner-bg{background:linear-gradient(135deg,#141010,#1a1614);}
+.rc-soon .rc-body{border-color:rgba(100,80,60,.25);opacity:.5;}
+.rc-soon .rc-cta{background:transparent;border-color:rgba(100,80,60,.3);color:var(--text-d);cursor:default;}
+
+/* ── ARTICLE VIEW ── */
+#article-view{display:none;}
+.article-back{display:flex;align-items:center;gap:.5rem;margin-bottom:1.5rem;}
+.art-btn-back{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.07em;padding:.38rem .9rem;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:rgba(180,110,40,.08);color:var(--text-m);transition:all .18s;}
+.art-btn-back:hover{border-color:var(--gold-d);color:var(--gold);}
+.article-card{background:var(--bg-card);border:1px solid rgba(180,110,40,.3);border-radius:5px;padding:2.5rem 2.8rem;max-width:800px;margin:0 auto;line-height:1.8;font-size:.96rem;color:var(--text-m);}
+.article-card h1{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:900;color:var(--text);margin-bottom:.4rem;}
+.article-card .art-sub{color:var(--text-d);font-style:italic;font-size:.88rem;margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid rgba(180,110,40,.2);}
+.article-card h2{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;color:var(--gold);margin:1.8rem 0 .6rem;letter-spacing:.05em;}
+.article-card h3{font-family:'Cinzel',serif;font-size:.82rem;font-weight:700;color:var(--text);margin:1.2rem 0 .4rem;letter-spacing:.06em;}
+.article-card p{margin-bottom:.9rem;}
+.article-card ul,.article-card ol{margin:.4rem 0 .9rem 1.4rem;}
+.article-card li{margin-bottom:.35rem;}
+.article-card b{color:var(--text);font-weight:600;}
+.article-card .tip-box{background:rgba(180,110,40,.07);border:1px solid rgba(180,110,40,.25);border-radius:4px;padding:.8rem 1.1rem;margin:1rem 0;font-size:.88rem;color:var(--text-m);}
+.article-card .tip-box b{color:var(--gold);}
+.article-card .step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:rgba(196,30,30,.2);border:1px solid rgba(196,30,30,.5);color:var(--red);font-family:'Cinzel',serif;font-size:.68rem;font-weight:900;margin-right:.5rem;flex-shrink:0;vertical-align:middle;}
+.article-card .step-row{display:flex;align-items:flex-start;gap:.5rem;margin-bottom:.6rem;}
+.article-card table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.86rem;}
+.article-card th{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);border-bottom:2px solid rgba(180,110,40,.3);padding:.5rem .7rem;text-align:left;}
+.article-card td{padding:.4rem .7rem;border-bottom:1px solid rgba(180,110,40,.1);color:var(--text-m);}
+.article-card tr:hover td{background:rgba(180,110,40,.04);}
+.divider-line{height:1px;background:linear-gradient(90deg,transparent,rgba(180,110,40,.3),transparent);margin:1.5rem 0;}
+</style>
+</head>
+<body>
+<div id="main-nav"></div>
+
+<!-- ── GRID VIEW ── -->
+<div id="grid-view" class="page">
+  <div class="page-title">&#128218; Resources</div>
+  <div class="page-sub">Guides and references for the club</div>
+  <div class="resources-grid">
+
+    <!-- How to Create Your Character -->
+    <div class="rc rc-guide" onclick="showArticle('char-create')">
+      <div class="rc-banner">
+        <div class="rc-banner-bg"></div>
+        <div class="rc-banner-icon">&#9876;</div>
+        <div style="position:relative;z-index:2;">
+          <div class="rc-tag">Beginner Guide</div>
+          <div class="rc-title">How to Create<br>Your Character</div>
+        </div>
+      </div>
+      <div class="rc-body">
+        <div class="rc-desc">Step-by-step guide to the character creator — from choosing your class to finalising your stats using this site's tools.</div>
+        <span class="rc-cta">Read &#8594;</span>
+      </div>
+    </div>
+
+    <!-- Using the Portal -->
+    <div class="rc rc-guide" onclick="showArticle('using-portal')">
+      <div class="rc-banner">
+        <div class="rc-banner-bg" style="background:radial-gradient(ellipse at 30% 40%,#0d1a2e,transparent 58%),linear-gradient(135deg,#08100e,#0a1820);"></div>
+        <div class="rc-banner-icon">&#128196;</div>
+        <div style="position:relative;z-index:2;">
+          <div class="rc-tag">Site Guide</div>
+          <div class="rc-title">Using the<br>Player Portal</div>
+        </div>
+      </div>
+      <div class="rc-body">
+        <div class="rc-desc">How to navigate the site — finding your character sheet, claiming rewards, checking the quest board, and joining sessions.</div>
+        <span class="rc-cta">Read &#8594;</span>
+      </div>
+    </div>
+
+    <!-- Coming Soon -->
+    <div class="rc rc-soon">
+      <div class="rc-banner">
+        <div class="rc-banner-bg"></div>
+        <div class="rc-banner-icon" style="opacity:.1;">&#9680;</div>
+        <div style="position:relative;z-index:2;">
+          <div class="rc-tag">Coming Soon</div>
+          <div class="rc-title" style="color:rgba(200,180,160,.25);">More Guides</div>
+        </div>
+      </div>
+      <div class="rc-body">
+        <div class="rc-desc" style="color:var(--text-d);">Additional resources will be added as the campaign develops.</div>
+        <span class="rc-cta">Soon</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── ARTICLE VIEW ── -->
+<div id="article-view" class="page">
+  <div class="article-back">
+    <button class="art-btn-back" onclick="showGrid()">&#8592; Back to Resources</button>
+  </div>
+  <div class="article-card" id="article-content"></div>
+</div>
+
+<script>
+// ── AUTH CHECK ──
+const _authKeys=['dnd_username','admin_username','session_dm_username','dm_username'];
+if(!_authKeys.some(k=>sessionStorage.getItem(k)))window.location.href='adventurers_hub.html';
+else Nav.init('resources');
+
+// ── ARTICLES ──
+const ARTICLES = {
+  'char-create': {
+    title:'How to Create Your Character',
+    subtitle:'A step-by-step guide using the Character Creator on this site',
+    body:`
+<h2>Before You Start</h2>
+<p>Before you can create a character, you need to submit a <b>Character Request</b> in the Player Portal. Your admin will approve it, and you'll see a <b>"Build Character"</b> button appear the next time you log in. Once approved, click that button to open the Character Creator.</p>
+<div class="tip-box"><b>Tip:</b> You can only have one pending request at a time. If your request is still pending, you'll see it listed in your Characters tab.</div>
+
+<h2>Step 1 — Choose Your Class</h2>
+<p>Your class determines your role, abilities, and hit points. Each class is colour-coded:</p>
+<ul>
+  <li><b>Barbarian</b> — High HP melee fighter, rages for bonus damage</li>
+  <li><b>Bard</b> — Support caster, heals and inspires allies</li>
+  <li><b>Cleric</b> — Divine healer and support, can fight too</li>
+  <li><b>Druid</b> — Nature magic, wildshape into animals</li>
+  <li><b>Fighter</b> — Versatile melee or ranged combatant</li>
+  <li><b>Monk</b> — Fast, unarmoured martial artist</li>
+  <li><b>Paladin</b> — Holy warrior, heals and smites</li>
+  <li><b>Ranger</b> — Hunter, favoured enemies and terrain</li>
+  <li><b>Rogue</b> — Sneak attacks, stealth, and skills</li>
+  <li><b>Sorcerer</b> — Innate magic from your bloodline</li>
+  <li><b>Warlock</b> — Pact magic from a powerful patron</li>
+  <li><b>Wizard</b> — Learned magic, huge spell list</li>
+</ul>
+<p>You also enter your <b>character's name</b> on this step. Pick a name that fits the fantasy world!</p>
+
+<h2>Step 2 — Choose Your Species</h2>
+<p>In the 2024 rules, your species does <b>not</b> give ability score bonuses — those come from your background. Your species provides special traits, movement speed, and size. Options include Human, Elf, Dwarf, Halfling, Gnome, Half-Elf, Half-Orc, Tiefling, Dragonborn, and Kobold.</p>
+
+<h2>Step 3 — Choose Your Background</h2>
+<p>Your background grants <b>+2 to one ability score</b> and <b>+1 to another</b>, two skill proficiencies, and an <b>Origin Feat</b>. Examples:</p>
+<table>
+  <tr><th>Background</th><th>+2 to</th><th>+1 to</th><th>Feat</th></tr>
+  <tr><td>Acolyte</td><td>Wisdom</td><td>Intelligence</td><td>Magic Initiate</td></tr>
+  <tr><td>Criminal</td><td>Dexterity</td><td>Intelligence</td><td>Alert</td></tr>
+  <tr><td>Soldier</td><td>Strength</td><td>Constitution</td><td>Savage Attacker</td></tr>
+  <tr><td>Sage</td><td>Intelligence</td><td>Wisdom</td><td>Magic Initiate</td></tr>
+</table>
+<p>You can also choose <b>Custom</b> to assign the bonuses yourself if none of the standard backgrounds fit.</p>
+
+<h2>Step 4 — Assign Ability Scores (Point Buy)</h2>
+<p>You have <b>27 points</b> to spend on six ability scores: Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma. All scores start at <b>8</b>. Each score can go up to <b>15</b> before background bonuses (maximum 18 after bonuses).</p>
+<div class="tip-box"><b>Use the Recommended button</b> to auto-fill a strong stat spread optimised for your class. You can adjust from there, or hit Clear All to start from scratch.</div>
+<table>
+  <tr><th>Score</th><th>Point Cost</th><th>Score</th><th>Point Cost</th></tr>
+  <tr><td>8</td><td>0</td><td>12</td><td>4</td></tr>
+  <tr><td>9</td><td>1</td><td>13</td><td>5</td></tr>
+  <tr><td>10</td><td>2</td><td>14</td><td>7</td></tr>
+  <tr><td>11</td><td>3</td><td>15</td><td>9</td></tr>
+</table>
+
+<h2>Step 5 — Skills &amp; Proficiencies</h2>
+<p>Based on your class, you choose a number of <b>skill proficiencies</b>. Being proficient in a skill means you add your <b>Proficiency Bonus (+2 at level 1)</b> when making checks with that skill. Some classes also get expertise (double bonus).</p>
+
+<h2>Step 6 — Spells (Casters Only)</h2>
+<p>If you're playing a spellcasting class, you'll see a spell selection step. At level 1 you choose a small number of cantrips (unlimited use) and level 1 spells. For Adventurers League we follow the standard spell lists from the 2024 Player's Handbook.</p>
+
+<h2>Step 7 — Equipment</h2>
+<p>Choose between your <b>class equipment package</b> (pre-selected starting gear) or <b>starting gold</b> to spend in the Marketplace. For new players, the equipment package is recommended — it ensures you have everything you need.</p>
+
+<h2>Step 8 — Review &amp; Confirm</h2>
+<p>Check all your choices on the summary screen, then click <b>Create Character</b>. Your character will appear in the Characters tab of the Portal. Click your character to view your full character sheet, and check your stats, HP, and skills.</p>
+<div class="divider-line"></div>
+<div class="tip-box"><b>Level Up:</b> When you accumulate enough XP, a glowing "LEVEL UP" badge appears on your character card. Click the character, then click the Level Up button to apply your new level. HP is automatically calculated using the Adventurers League standard (average die roll + Constitution modifier).</div>
+`
+  },
+
+  'using-portal': {
+    title:'Using the Player Portal',
+    subtitle:'A guide to navigating the D&D Club website',
+    body:`
+<h2>The Navigation Bar</h2>
+<p>Every page on the site has the same navigation bar at the top. It links to:</p>
+<ul>
+  <li><b>Portal</b> (&#9876;) — Your characters, inventory, and account settings</li>
+  <li><b>Encounters</b> (&#9889;) — Live combat sessions when your DM starts one</li>
+  <li><b>Quest Board</b> (&#128204;) — Club notices and session scheduling</li>
+  <li><b>Market</b> (&#128717;) — Shops where you can spend your gold</li>
+  <li><b>Resources</b> (&#128218;) — Guides like this one</li>
+</ul>
+<p>Admin accounts also see an <b>Admin</b> button to the right.</p>
+
+<h2>Your Characters Tab</h2>
+<p>Open the Portal and you'll see your characters listed. Each card shows your race, class, level, XP, and current gold. Click any character to open their full <b>character sheet</b> — this shows all your ability scores, skills, HP, saving throws, and death saves.</p>
+<div class="tip-box"><b>Active Character:</b> Your active character is highlighted with a gold "ACTIVE" dot. This is the character that receives rewards, XP, and gold. To switch, click a different character's sheet and it becomes active automatically.</div>
+
+<h2>The Inventory Tab</h2>
+<p>The Inventory tab shows all items across your active character. Items are added automatically when you buy from a shop or when your DM awards loot. You can sell items back from here too.</p>
+
+<h2>Reward Chests</h2>
+<p>After sessions your DM may award you a <b>reward chest</b>. The next time you log in to the Portal, a chest animation will appear — click it to open your reward. Chests can contain items and gold, and attendance bonuses give you a guaranteed uncommon consumable.</p>
+
+<h2>The Live Encounters Page</h2>
+<p>When your DM starts an encounter, go to the <b>Encounters</b> page. You'll see your character sheet on the left, and the combat HUD on the right with enemy and party cards. When it's your turn you'll see a gold banner — click <b>End Turn</b> when you're done. To attack an enemy, click their card and follow the prompts.</p>
+<div class="tip-box"><b>Initiative:</b> At the start of combat your DM will click "Roll Initiative". A slot machine animation will show your roll — this determines turn order. Numbers appear on each combatant card showing the order (1 goes first).</div>
+
+<h2>The Quest Board</h2>
+<p>Check here for upcoming session dates, club notices from your DM, and RSVP links. If you RSVP as a Player you'll receive an attendance bonus in your reward chest after the session.</p>
+
+<h2>The Marketplace</h2>
+<p>Browse the Magical Emporium and Adventurers Outfitters to spend your gold. Click <b>Visit</b> on a shop tile to enter the shop. Items are purchased using the gold on your active character.</p>
+`
+  }
+};
+
+function showGrid() {
+  document.getElementById('grid-view').style.display = 'block';
+  document.getElementById('article-view').style.display = 'none';
+  window.scrollTo(0,0);
+}
+
+function showArticle(id) {
+  const art = ARTICLES[id];
+  if (!art) return;
+  document.getElementById('article-content').innerHTML = `
+    <h1>${art.title}</h1>
+    <div class="art-sub">${art.subtitle}</div>
+    ${art.body}`;
+  document.getElementById('grid-view').style.display = 'none';
+  document.getElementById('article-view').style.display = 'block';
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
