@@ -527,7 +527,7 @@ function copyBsJson(){
 async function boot() {
   makeStars();
   try { await auth.signInAnonymously(); } catch(e) { console.error(e); }
-  const saved = sessionStorage.getItem('admin_username');
+  const saved = localStorage.getItem('admin_username');
   if (saved) { dmUsername=saved; showApp(); loadAll(); }
 }
 
@@ -546,7 +546,7 @@ async function doLogin() {
     if (data.role!=='admin'){errEl.textContent='This account does not have admin access.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter Admin Tools →';return;}
     const ok=await verifyPassword(password,data.passwordHash);
     if (!ok){errEl.textContent='Incorrect password.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter Admin Tools →';return;}
-    sessionStorage.setItem('admin_username',username);
+    localStorage.setItem('admin_username',username);
     dmUsername=username;
     showApp();
     loadAll();
@@ -557,7 +557,7 @@ async function doLogin() {
 }
 
 function doSignOut(){
-  sessionStorage.removeItem('admin_username');
+  localStorage.removeItem('admin_username');
   dmUsername=null;
   document.getElementById('screen-app').style.display='none';
   document.getElementById('screen-login').style.display='flex';
@@ -1249,7 +1249,7 @@ function makeStars(){const el=document.getElementById('stars');for(let i=0;i<60;
 // ── Synchronous: render nav immediately ──
 (function() {
   const _keys = ['admin_username','dm_username','dnd_username','session_dm_username'];
-  const saved = _keys.map(k => sessionStorage.getItem(k)).find(Boolean);
+  const saved = _keys.map(k => localStorage.getItem(k)).find(Boolean);
   if (!saved) {
     window.location.href = 'adventurers_hub.html';
   } else {

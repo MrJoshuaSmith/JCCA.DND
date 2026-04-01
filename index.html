@@ -97,7 +97,7 @@ for (let i = 0; i < 55; i++) {
 }
 // If already logged in, skip to hub
 const keys = ['dnd_username','admin_username','session_dm_username','dm_username'];
-if (keys.some(k => sessionStorage.getItem(k))) {
+if (keys.some(k => localStorage.getItem(k))) {
   window.location.href = 'adventurers_hub.html';
 }
 </script>

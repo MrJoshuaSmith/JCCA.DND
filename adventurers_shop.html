@@ -164,9 +164,9 @@ firebase.initializeApp({
 const db = firebase.firestore();
 
 // ── Boot ──
-// 1. Nav renders immediately — no async needed, just reads sessionStorage
+// 1. Nav renders immediately — no async needed, just reads localStorage
 const _authKeys = ['dnd_username','admin_username','session_dm_username','dm_username'];
-if (!_authKeys.some(k => sessionStorage.getItem(k))) {
+if (!_authKeys.some(k => localStorage.getItem(k))) {
   window.location.href = 'adventurers_hub.html';
 } else {
   Nav.init('market');
@@ -246,9 +246,9 @@ let spFilter = 'All';
 let spActiveChar = null;
 
 async function loadShopData() {
-  // Load active character from sessionStorage
+  // Load active character from localStorage
   const keys = ['dnd_username','admin_username','session_dm_username','dm_username'];
-  const username = keys.map(k=>sessionStorage.getItem(k)).find(Boolean);
+  const username = keys.map(k=>localStorage.getItem(k)).find(Boolean);
   if (!username) return;
   try {
     const snap = await db.collection('Characters').where('playerId','==',username).where('status','==','Active').get();

@@ -18,13 +18,61 @@
   --green:#3d7018;--green-b:#6ab840;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--text);overflow:hidden;}
+body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--text);}
 
-/* ── LAYOUT ── */
+/* ═══ SHARED ELEMENTS ═══════════════════════════════════ */
+.enc-btn{font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.07em;padding:.38rem .9rem;border-radius:3px;cursor:pointer;border:1px solid;transition:all .18s;white-space:nowrap;display:inline-flex;align-items:center;gap:.35rem;}
+.enc-btn-red{background:rgba(155,21,21,.2);border-color:var(--red-d);color:var(--text);}
+.enc-btn-red:hover{background:rgba(155,21,21,.36);}
+.enc-btn-gold{background:rgba(180,110,40,.15);border-color:var(--gold-d);color:var(--gold);}
+.enc-btn-gold:hover{background:rgba(180,110,40,.28);}
+.enc-btn-ghost{background:transparent;border-color:var(--border);color:var(--text-m);}
+.enc-btn-ghost:hover{border-color:var(--gold-d);color:var(--gold);}
+.enc-btn-green{background:rgba(60,110,30,.2);border-color:rgba(60,110,30,.5);color:#80c060;}
+.enc-btn-green:hover{background:rgba(60,110,30,.35);}
+.enc-btn-danger{background:rgba(155,21,21,.1);border-color:rgba(155,21,21,.35);color:var(--red);}
+.enc-btn-danger:hover{background:rgba(155,21,21,.25);}
+.enc-btn-purple{background:rgba(107,63,160,.2);border-color:rgba(107,63,160,.5);color:#c8a8f8;}
+.enc-btn-purple:hover{background:rgba(107,63,160,.35);}
+.enc-btn-sm{padding:.2rem .55rem;font-size:.6rem;}
+.ae-input{background:rgba(13,8,4,.7);border:1px solid var(--border);border-radius:3px;padding:.32rem .55rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:.82rem;outline:none;}
+.ae-input:focus{border-color:var(--gold-d);}
+.ae-lbl{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-d);display:block;margin-bottom:.15rem;}
+.spinner-sm{width:16px;height:16px;border:2px solid rgba(200,160,50,.12);border-top-color:rgba(200,160,50,.5);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══ SESSION BROWSER ═══════════════════════════════════ */
+#screen-browser{display:none;max-width:720px;margin:0 auto;padding:2.5rem 1.2rem 5rem;}
+.browser-title{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:900;color:var(--text);margin-bottom:.3rem;}
+.browser-sub{color:var(--text-m);font-style:italic;font-size:.92rem;margin-bottom:2rem;}
+.session-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:5px;
+  padding:1.1rem 1.3rem;margin-bottom:.8rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  transition:border-color .18s;
+}
+.session-card:hover{border-color:rgba(180,110,40,.4);}
+.sc-info{flex:1;}
+.sc-name{font-family:'Cinzel',serif;font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:.2rem;}
+.sc-dm{font-size:.8rem;color:var(--text-m);}
+.sc-players{font-size:.75rem;color:var(--text-d);margin-top:.15rem;}
+.sc-actions{flex-shrink:0;display:flex;gap:.4rem;align-items:center;}
+.sc-status-badge{font-family:'Cinzel',serif;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;padding:.12rem .5rem;border-radius:2px;}
+.sc-pending{background:rgba(107,63,160,.18);border:1px solid rgba(107,63,160,.45);color:#c8a8f8;}
+.no-sessions{text-align:center;padding:3rem;color:var(--text-d);font-style:italic;font-size:.9rem;}
+
+/* ═══ LEAVE SESSION BANNER ══════════════════════════════ */
+.leave-banner{
+  background:rgba(13,8,4,.95);border-bottom:1px solid var(--border);
+  padding:.45rem 1.2rem;display:flex;align-items:center;justify-content:space-between;
+  font-family:'Cinzel',serif;font-size:.65rem;color:var(--text-m);gap:.8rem;flex-shrink:0;
+}
+
+/* ═══ ENCOUNTER HUD LAYOUT ══════════════════════════════ */
 .enc-layout{display:grid;grid-template-columns:370px 1fr;height:calc(100vh - 54px);overflow:hidden;}
 @media(max-width:860px){.enc-layout{grid-template-columns:1fr;height:auto;overflow:auto;}}
 
-/* ── LEFT PANEL ── */
+/* ═══ LEFT PANEL (CHARACTER SHEET) ═════════════════════ */
 .enc-left{border-right:2px solid var(--border);overflow-y:auto;background:linear-gradient(180deg,rgba(240,228,180,.96),rgba(235,220,170,.98));position:relative;}
 .enc-left-hdr{display:flex;align-items:center;justify-content:space-between;padding:.5rem .8rem;background:rgba(120,80,20,.12);border-bottom:1px solid rgba(120,80,20,.25);position:sticky;top:0;z-index:10;}
 .enc-left-lbl{font-family:'Cinzel',serif;font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#4a3018;}
@@ -43,7 +91,7 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
 .sk-line{font-size:.7rem;color:#4a3018;display:flex;align-items:center;gap:.25rem;line-height:1.55;}
 .sk-val{font-family:'Cinzel',serif;font-size:.6rem;font-weight:700;color:#1e1006;min-width:18px;text-align:right;}
 .pip{width:9px;height:9px;border-radius:50%;border:1.5px solid #4a3018;flex-shrink:0;}
-.pip.f{background:#4a3018;} .pip.e{background:#9b1515;border-color:#9b1515;}
+.pip.f{background:#4a3018;}.pip.e{background:#9b1515;border-color:#9b1515;}
 .hp-panel{border:2px solid rgba(120,80,20,.28);border-radius:4px;padding:.5rem .65rem;margin-bottom:.45rem;}
 .hp-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.25rem;text-align:center;margin-bottom:.28rem;}
 .hp-n{font-family:'Cinzel',serif;font-size:1.2rem;font-weight:900;color:#1e1006;}
@@ -56,7 +104,7 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
 .cbt-v{font-family:'Cinzel',serif;font-size:1rem;font-weight:900;color:#1e1006;}
 .cbt-l{font-family:'Cinzel',serif;font-size:.42rem;letter-spacing:.09em;text-transform:uppercase;color:#8a6040;}
 
-/* ── RIGHT PANEL ── */
+/* ═══ RIGHT PANEL ═══════════════════════════════════════ */
 .enc-right{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
 .enc-sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:.5rem .9rem;border-bottom:1px solid var(--border);background:rgba(13,10,8,.55);flex-shrink:0;}
 .enc-sec-lbl{font-family:'Cinzel',serif;font-size:.62rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text-d);display:flex;align-items:center;gap:.45rem;}
@@ -64,30 +112,15 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
 .enc-cards-area{padding:.7rem .9rem;flex:0 0 auto;overflow-x:auto;overflow-y:hidden;}
 .enc-cards-grid{display:flex;flex-wrap:wrap;gap:.5rem;}
 
-/* ── COMBATANT CARDS ── */
-.cc{
-  width:150px;flex-shrink:0;background:var(--bg-card);
-  border:1px solid var(--border);border-radius:5px;
-  padding:.5rem .55rem;cursor:pointer;
-  transition:all .18s;position:relative;overflow:hidden;
-}
+/* ═══ COMBATANT CARDS ════════════════════════════════════ */
+.cc{width:150px;flex-shrink:0;background:var(--bg-card);border:1px solid var(--border);border-radius:5px;padding:.5rem .55rem;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;}
 .cc:hover:not(.dead):not(.no-click){border-color:rgba(180,110,40,.5);transform:translateY(-2px);box-shadow:0 4px 18px rgba(0,0,0,.45);}
 .cc.dead{opacity:.4;cursor:default;}
 .cc.no-click{cursor:default;}
-.cc.active-turn{
-  box-shadow:0 0 0 2px var(--gold),0 0 20px rgba(200,149,42,.35);
-  border-color:var(--gold) !important;
-  animation:turn-glow 2s ease-in-out infinite;
-}
+.cc.active-turn{box-shadow:0 0 0 2px var(--gold),0 0 20px rgba(200,149,42,.35);border-color:var(--gold)!important;animation:turn-glow 2s ease-in-out infinite;}
 @keyframes turn-glow{0%,100%{box-shadow:0 0 0 2px var(--gold),0 0 20px rgba(200,149,42,.35);}50%{box-shadow:0 0 0 2px var(--gold),0 0 35px rgba(200,149,42,.6);}}
-.cc-turn-badge{
-  position:absolute;top:-1px;left:-1px;
-  background:var(--gold);color:#1e1006;
-  font-family:'Cinzel',serif;font-size:.55rem;font-weight:900;
-  padding:.05rem .35rem;border-radius:0 0 4px 0;
-  min-width:18px;text-align:center;
-}
-.cc-turn-badge.active{background:var(--gold);color:#1e1006;animation:badge-pulse 1.2s ease-in-out infinite;}
+.cc-turn-badge{position:absolute;top:-1px;left:-1px;background:var(--gold);color:#1e1006;font-family:'Cinzel',serif;font-size:.55rem;font-weight:900;padding:.05rem .35rem;border-radius:0 0 4px 0;min-width:18px;text-align:center;}
+.cc-turn-badge.active{animation:badge-pulse 1.2s ease-in-out infinite;}
 @keyframes badge-pulse{0%,100%{opacity:1;}50%{opacity:.6;}}
 .cc-name{font-family:'Cinzel',serif;font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-top:.05rem;}
 .cc-sub{font-size:.65rem;color:var(--text-d);margin-bottom:.3rem;}
@@ -101,12 +134,10 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
 .sb-critical{background:rgba(139,16,16,.2);border:1px solid rgba(139,16,16,.44);color:#e06060;}
 .sb-unconscious{background:rgba(60,8,8,.4);border:1px solid rgba(90,8,8,.5);color:#c06060;}
 .cc-conds{font-size:.58rem;color:#e06060;margin-top:.16rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-
-/* Player card class-colour accent */
 .cc.player{border-left-width:3px;}
 .cc.enemy{border-left:3px solid var(--red-d);}
 
-/* ── NOTES ── */
+/* ═══ NOTES PANEL ════════════════════════════════════════ */
 .enc-notes{flex:1 1 0;min-height:100px;overflow:hidden;display:flex;flex-direction:column;border-top:2px solid var(--border);border-bottom:2px solid var(--border);}
 .enc-notes-body{flex:1;overflow:auto;padding:.7rem .9rem;}
 .enc-notes-img{max-width:100%;max-height:150px;object-fit:contain;border-radius:3px;margin-bottom:.5rem;display:block;}
@@ -116,40 +147,29 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
 .dm-notes-ta{width:100%;background:rgba(13,8,4,.7);border:1px solid var(--border);border-radius:3px;padding:.42rem .65rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:.82rem;resize:none;outline:none;margin-bottom:.38rem;}
 .dm-notes-ta:focus{border-color:var(--gold-d);}
 .dm-notes-row{display:flex;gap:.38rem;align-items:center;flex-wrap:wrap;}
-.ae-input{background:rgba(13,8,4,.7);border:1px solid var(--border);border-radius:3px;padding:.32rem .55rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:.82rem;outline:none;}
-.ae-input:focus{border-color:var(--gold-d);}
-.ae-lbl{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-d);display:block;margin-bottom:.15rem;}
-
-/* ── PARTY AREA ── */
 .enc-party-area{padding:.7rem .9rem;flex:0 0 auto;overflow-x:auto;}
 
-/* ── BUTTONS ── */
-.enc-btn{font-family:'Cinzel',serif;font-size:.68rem;font-weight:600;letter-spacing:.07em;padding:.38rem .9rem;border-radius:3px;cursor:pointer;border:1px solid;transition:all .18s;white-space:nowrap;}
-.enc-btn-red{background:rgba(155,21,21,.2);border-color:var(--red-d);color:var(--text);}
-.enc-btn-red:hover{background:rgba(155,21,21,.35);}
-.enc-btn-gold{background:rgba(180,110,40,.15);border-color:var(--gold-d);color:var(--gold);}
-.enc-btn-gold:hover{background:rgba(180,110,40,.28);}
-.enc-btn-ghost{background:transparent;border-color:var(--border);color:var(--text-m);}
-.enc-btn-ghost:hover{border-color:var(--gold-d);color:var(--gold);}
-.enc-btn-green{background:rgba(60,110,30,.2);border-color:rgba(60,110,30,.5);color:#80c060;}
-.enc-btn-green:hover{background:rgba(60,110,30,.35);}
-.enc-btn-danger{background:rgba(155,21,21,.1);border-color:rgba(155,21,21,.35);color:var(--red);}
-.enc-btn-danger:hover{background:rgba(155,21,21,.25);}
-.enc-btn-sm{padding:.2rem .55rem;font-size:.58rem;}
-.enc-btn-purple{background:rgba(107,63,160,.2);border-color:rgba(107,63,160,.5);color:#c8a8f8;}
-.enc-btn-purple:hover{background:rgba(107,63,160,.35);}
+/* ═══ MANAGE SESSION OVERLAY ═════════════════════════════ */
+#manage-overlay{display:none;position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.82);backdrop-filter:blur(3px);align-items:flex-end;justify-content:center;}
+#manage-overlay.open{display:flex;}
+.manage-panel{background:#1a1410;border:1px solid rgba(180,110,40,.4);border-bottom:none;border-radius:8px 8px 0 0;width:100%;max-width:680px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(0,0,0,.65);animation:panel-up .26s ease;}
+@keyframes panel-up{from{transform:translateY(100%);}to{transform:none;}}
+.mp-hdr{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1.2rem;border-bottom:1px solid rgba(180,110,40,.2);flex-shrink:0;}
+.mp-title{font-family:'Cinzel',serif;font-size:.88rem;font-weight:700;color:var(--text);}
+.mp-close{background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--text-m);font-family:'Cinzel',serif;font-size:.7rem;padding:.22rem .65rem;cursor:pointer;transition:all .18s;}
+.mp-close:hover{border-color:var(--red-d);color:var(--red);}
+.mp-body{overflow-y:auto;flex:1;padding:.9rem 1.2rem;}
+.mp-section{margin-bottom:1.3rem;}
+.mp-sec-title{font-family:'Cinzel',serif;font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-d);border-bottom:1px solid rgba(180,110,40,.18);padding-bottom:.22rem;margin-bottom:.6rem;}
+.mp-player-row{display:flex;align-items:center;justify-content:space-between;padding:.45rem .6rem;border:1px solid rgba(180,110,40,.15);border-radius:3px;margin-bottom:.3rem;background:rgba(180,110,40,.04);}
+.mp-player-name{font-family:'Cinzel',serif;font-size:.75rem;color:var(--text);}
+.mp-player-sub{font-size:.7rem;color:var(--text-d);margin-top:.1rem;}
+.req-row{display:flex;align-items:center;justify-content:space-between;padding:.45rem .6rem;border:1px solid rgba(107,63,160,.25);border-radius:3px;margin-bottom:.3rem;background:rgba(107,63,160,.06);}
+.req-name{font-family:'Cinzel',serif;font-size:.75rem;color:#c8a8f8;}
+.req-sub{font-size:.7rem;color:var(--text-d);margin-top:.1rem;}
 
-/* ── INITIATIVE ROLL BUTTON ── */
-.init-btn-wrap{display:flex;align-items:center;gap:.5rem;}
-
-/* ── PENDING PANEL (DM) ── */
-.pend-panel{
-  position:fixed;bottom:1rem;right:1rem;
-  background:var(--bg-card);border:2px solid var(--border-red);
-  border-radius:5px;width:310px;max-height:370px;z-index:300;
-  display:none;flex-direction:column;
-  box-shadow:0 8px 32px rgba(0,0,0,.6);
-}
+/* ═══ PENDING PANEL (DM) ════════════════════════════════ */
+.pend-panel{position:fixed;bottom:1rem;right:1rem;background:var(--bg-card);border:2px solid var(--border-red);border-radius:5px;width:310px;max-height:370px;z-index:300;display:none;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.6);}
 .pend-panel.show{display:flex;}
 .pp-hdr{display:flex;align-items:center;justify-content:space-between;padding:.45rem .75rem;border-bottom:1px solid var(--border-red);font-family:'Cinzel',serif;font-size:.68rem;font-weight:700;letter-spacing:.1em;color:var(--red);}
 .pp-body{overflow-y:auto;flex:1;}
@@ -160,31 +180,28 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
 .pp-btn{font-family:'Cinzel',serif;font-size:.6rem;font-weight:600;letter-spacing:.06em;padding:.25rem .65rem;border-radius:3px;cursor:pointer;border:1px solid;transition:all .18s;}
 .pp-hit{background:rgba(60,110,30,.2);border-color:rgba(60,110,30,.5);color:#80c060;}
 .pp-miss{background:rgba(155,21,21,.15);border-color:var(--red-d);color:var(--red);}
-.pp-override{background:rgba(180,110,40,.12);border-color:var(--gold-d);color:var(--gold);}
 .pp-inp{width:60px;background:rgba(13,8,4,.7);border:1px solid var(--border);border-radius:3px;padding:.18rem .38rem;color:var(--text);font-family:'Cinzel',serif;font-size:.73rem;text-align:center;outline:none;}
+/* Join request item inside pending panel */
+.pp-join{background:rgba(107,63,160,.1);border-left:3px solid rgba(107,63,160,.6);}
 
-/* ── PENDING ACTION BANNER (player) ── */
-.pending-banner{
-  position:fixed;bottom:0;left:0;right:0;z-index:200;
-  background:rgba(107,63,160,.25);border-top:2px solid rgba(107,63,160,.6);
-  padding:.4rem 1.2rem;display:none;
-  align-items:center;justify-content:space-between;
-  font-family:'Cinzel',serif;font-size:.68rem;color:#c8a8f8;
-  gap:.6rem;
-}
+/* ═══ PLAYER BANNERS ════════════════════════════════════ */
+.pending-banner{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(107,63,160,.25);border-top:2px solid rgba(107,63,160,.6);padding:.4rem 1.2rem;display:none;align-items:center;justify-content:space-between;font-family:'Cinzel',serif;font-size:.68rem;color:#c8a8f8;gap:.6rem;}
 .pending-banner.show{display:flex;}
-
-/* ── TURN BANNER (active player) ── */
-.turn-banner{
-  position:fixed;bottom:0;left:0;right:0;z-index:201;
-  background:rgba(200,149,42,.18);border-top:2px solid var(--gold);
-  padding:.4rem 1.2rem;display:none;
-  align-items:center;justify-content:space-between;
-  font-family:'Cinzel',serif;font-size:.72rem;color:var(--gold);
-}
+.turn-banner{position:fixed;bottom:0;left:0;right:0;z-index:201;background:rgba(200,149,42,.18);border-top:2px solid var(--gold);padding:.4rem 1.2rem;display:none;align-items:center;justify-content:space-between;font-family:'Cinzel',serif;font-size:.72rem;color:var(--gold);}
 .turn-banner.show{display:flex;}
 
-/* ── MODALS ── */
+/* ═══ SLOT MACHINE ══════════════════════════════════════ */
+.slot-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;align-items:center;justify-content:center;}
+.slot-modal.open{display:flex;}
+.slot-card{background:linear-gradient(180deg,#1a1006,#120c04);border:2px solid var(--gold);border-radius:8px;padding:2.5rem 3rem;text-align:center;box-shadow:0 0 60px rgba(200,149,42,.25);min-width:260px;}
+.slot-title{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.5rem;letter-spacing:.08em;}
+.slot-sub{font-size:.82rem;color:var(--text-m);margin-bottom:2rem;font-style:italic;}
+.slot-reel{font-family:'Cinzel',serif;font-size:4.5rem;font-weight:900;color:var(--gold);width:100px;height:100px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;border:2px solid rgba(200,149,42,.3);border-radius:6px;background:rgba(0,0,0,.4);position:relative;overflow:hidden;}
+.slot-reel-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+.slot-result{font-family:'Cinzel',serif;font-size:.9rem;color:var(--text);margin-top:.5rem;letter-spacing:.06em;}
+.slot-result b{color:var(--gold);font-size:1.2rem;}
+
+/* ═══ MODALS ════════════════════════════════════════════ */
 .mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:400;align-items:center;justify-content:center;padding:1rem;}
 .mbg.open{display:flex;}
 .mc{background:var(--bg-card);border:1px solid var(--border-red);border-radius:6px;padding:1.7rem;width:100%;max-width:400px;position:relative;max-height:90vh;overflow-y:auto;}
@@ -207,181 +224,176 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
 .mc-green{background:rgba(60,110,30,.2);border-color:rgba(60,110,30,.5);color:#80c060;}
 .mc-green:hover{background:rgba(60,110,30,.35);}
 
-/* ── SETUP SCREEN ── */
-.setup-wrap{max-width:620px;margin:2rem auto;padding:0 1rem;}
-.setup-card{background:var(--bg-card);border:1px solid var(--border-red);border-radius:5px;padding:1.8rem;}
-.setup-title{font-family:'Cinzel',serif;font-size:.95rem;font-weight:700;color:var(--red);margin-bottom:1rem;}
-.form-lbl{display:block;font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-m);margin-bottom:.2rem;}
-.form-inp{width:100%;background:rgba(13,8,4,.7);border:1px solid var(--border);border-radius:3px;padding:.48rem .72rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:.88rem;outline:none;margin-bottom:.62rem;}
-.form-inp:focus{border-color:var(--gold-d);}
-.picker-grid{display:grid;grid-template-columns:1fr 1fr;gap:.28rem;max-height:190px;overflow-y:auto;margin-bottom:.75rem;}
-.pick-lbl{display:flex;align-items:center;gap:.38rem;font-size:.8rem;color:var(--text-m);cursor:pointer;padding:.18rem 0;}
-
-/* ── SLOT MACHINE MODAL ── */
-.slot-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;align-items:center;justify-content:center;}
-.slot-modal.open{display:flex;}
-.slot-card{
-  background:linear-gradient(180deg,#1a1006,#120c04);
-  border:2px solid var(--gold);border-radius:8px;
-  padding:2.5rem 3rem;text-align:center;
-  box-shadow:0 0 60px rgba(200,149,42,.25);
-  min-width:260px;
-}
-.slot-title{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.5rem;letter-spacing:.08em;}
-.slot-sub{font-size:.82rem;color:var(--text-m);margin-bottom:2rem;font-style:italic;}
-.slot-reel{
-  font-family:'Cinzel',serif;font-size:4.5rem;font-weight:900;
-  color:var(--gold);width:100px;height:100px;
-  display:flex;align-items:center;justify-content:center;
-  margin:0 auto 1.5rem;
-  border:2px solid rgba(200,149,42,.3);border-radius:6px;
-  background:rgba(0,0,0,.4);
-  position:relative;overflow:hidden;
-}
-.slot-reel-num{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  transition:none;
-}
-.slot-result{
-  font-family:'Cinzel',serif;font-size:.9rem;color:var(--text);
-  margin-top:.5rem;letter-spacing:.06em;
-}
-.slot-result b{color:var(--gold);font-size:1.2rem;}
-
-/* ── ADD ENEMY AREA ── */
-.add-enemy-wrap{display:flex;gap:.4rem;flex-wrap:wrap;align-items:flex-end;}
-.template-select{background:rgba(13,8,4,.7);border:1px solid var(--border);border-radius:3px;padding:.32rem .55rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:.82rem;outline:none;max-width:180px;}
-.template-select:focus{border-color:var(--gold-d);}
-.template-select option{background:#1a1006;color:var(--text);}
-
-/* ── NO SESSION ── */
-.no-session-msg{text-align:center;padding:3rem 1rem;font-style:italic;color:var(--text-d);font-size:.88rem;}
-
-/* ── TOASTS ── */
+/* ═══ TOASTS ════════════════════════════════════════════ */
 .toasts{position:fixed;top:70px;right:1rem;z-index:600;display:flex;flex-direction:column;gap:.3rem;align-items:flex-end;}
-.toast{background:var(--bg-card);border:1px solid;border-radius:4px;padding:.5rem 1rem;font-size:.8rem;animation:tin .22s ease;white-space:nowrap;max-width:280px;}
+.toast{background:var(--bg-card);border:1px solid;border-radius:4px;padding:.5rem 1rem;font-size:.8rem;animation:tin .22s ease;white-space:nowrap;max-width:290px;}
 @keyframes tin{from{opacity:0;transform:translateX(8px);}to{opacity:1;}}
 .toast.success{border-color:#3d7018;color:#80c060;}
 .toast.error{border-color:var(--red-d);color:var(--red);}
 .toast.info{border-color:var(--gold-d);color:var(--gold);}
+
+/* ═══ ADD ENEMY AREA ════════════════════════════════════ */
+.add-enemy-wrap{display:flex;gap:.4rem;flex-wrap:wrap;align-items:flex-end;}
+.template-select{background:rgba(13,8,4,.7);border:1px solid var(--border);border-radius:3px;padding:.32rem .55rem;color:var(--text);font-family:'Crimson Pro',serif;font-size:.82rem;outline:none;max-width:180px;}
+.template-select:focus{border-color:var(--gold-d);}
+.template-select option{background:#1a1006;color:var(--text);}
 </style>
 </head>
 <body>
 <div id="main-nav"></div>
 
-<!-- ── SETUP SCREEN ── -->
-<div id="screen-setup" style="display:none;">
-  <div id="ss-dm" style="display:none;">
-    <div class="setup-wrap">
-      <div class="setup-card">
-        <div class="setup-title">&#9876; Start Encounter</div>
-        <label class="form-lbl">Session Name</label>
-        <input class="form-inp" id="ss-name" type="text" placeholder="e.g. The Crypt of Shadows">
-        <label class="form-lbl">Select Party Members</label>
-        <div class="picker-grid" id="party-picker">
-          <div style="grid-column:1/-1;color:var(--text-d);font-style:italic;font-size:.8rem;">Loading...</div>
-        </div>
-        <button class="enc-btn enc-btn-red" onclick="startSession()" style="width:100%;">&#9876; Begin Encounter</button>
-      </div>
-    </div>
-  </div>
-  <div id="ss-player" style="display:none;">
-    <div class="no-session-msg">&#9889; No active encounter right now.<br>Your DM will start one when the session begins.</div>
-  </div>
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN: SESSION BROWSER (not yet in a session)
+═══════════════════════════════════════════════════════ -->
+<div id="screen-browser">
+  <div class="browser-title">&#9889; Live Encounters</div>
+  <div class="browser-sub" id="browser-sub">Select a session to join</div>
+  <div id="session-list"><div style="text-align:center;padding:2rem;color:var(--text-d);font-style:italic;">Loading sessions...</div></div>
 </div>
 
-<!-- ── ENCOUNTER HUD ── -->
-<div id="screen-enc" style="display:none;" class="enc-layout">
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN: ENCOUNTER HUD
+═══════════════════════════════════════════════════════ -->
+<div id="screen-enc" style="display:none;flex-direction:column;">
 
-  <!-- LEFT: Character Sheet -->
-  <div class="enc-left">
-    <div class="enc-left-hdr">
-      <div class="enc-left-lbl" id="enc-sheet-lbl">Character Sheet</div>
-      <div id="sheet-nav" style="display:flex;gap:.3rem;">
-        <button class="snav-btn" id="btn-sprev" onclick="navSheet(-1)" disabled>&#8592;</button>
-        <button class="snav-btn" id="btn-snext" onclick="navSheet(1)" disabled>&#8594;</button>
-      </div>
-    </div>
-    <div class="enc-sheet" id="enc-sheet-root">
-      <div class="no-session-msg">Loading...</div>
-    </div>
+  <!-- Leave session banner (players only, not DM) -->
+  <div class="leave-banner" id="leave-banner" style="display:none;">
+    <span>Session: <b id="session-name-display" style="color:var(--text);">—</b></span>
+    <button class="enc-btn enc-btn-danger enc-btn-sm" onclick="confirmLeaveSession()">Leave Session</button>
   </div>
 
-  <!-- RIGHT: HUD -->
-  <div class="enc-right">
+  <div class="enc-layout">
+    <!-- LEFT: Character Sheet -->
+    <div class="enc-left">
+      <div class="enc-left-hdr">
+        <div class="enc-left-lbl" id="enc-sheet-lbl">Character Sheet</div>
+        <div id="sheet-nav" style="display:flex;gap:.3rem;">
+          <button class="snav-btn" id="btn-sprev" onclick="navSheet(-1)" disabled>&#8592;</button>
+          <button class="snav-btn" id="btn-snext" onclick="navSheet(1)" disabled>&#8594;</button>
+        </div>
+      </div>
+      <div class="enc-sheet" id="enc-sheet-root">
+        <div style="padding:1rem;font-style:italic;color:#8a6040;font-size:.82rem;">Loading...</div>
+      </div>
+    </div>
 
-    <!-- HOSTILES -->
-    <div class="enc-sec-hdr">
-      <div class="enc-sec-lbl">&#9761; Hostiles <span class="sec-count" id="hostile-count">0</span></div>
-      <div id="dm-hostile-ctrl" style="display:none;flex-shrink:0;">
-        <div class="add-enemy-wrap">
-          <div>
-            <div class="ae-lbl">Template</div>
+    <!-- RIGHT: HUD -->
+    <div class="enc-right">
+
+      <!-- HOSTILES -->
+      <div class="enc-sec-hdr">
+        <div class="enc-sec-lbl">&#9761; Hostiles <span class="sec-count" id="hostile-count">0</span></div>
+        <div id="dm-hostile-ctrl" style="display:none;">
+          <div class="add-enemy-wrap">
+            <div><div class="ae-lbl">Template</div>
             <select class="template-select" id="enemy-template" onchange="fillEnemyTemplate()">
               <option value="">— Custom —</option>
+            </select></div>
+            <div><div class="ae-lbl">Name</div><input class="ae-input" id="e-name" type="text" placeholder="Enemy" style="width:100px;"></div>
+            <div><div class="ae-lbl">HP</div><input class="ae-input" id="e-hp" type="number" min="1" max="999" value="12" style="width:55px;"></div>
+            <div><div class="ae-lbl">AC</div><input class="ae-input" id="e-ac" type="number" min="1" max="30" value="12" style="width:48px;"></div>
+            <div><div class="ae-lbl">Init Mod</div><input class="ae-input" id="e-init" type="number" min="-5" max="10" value="0" style="width:50px;"></div>
+            <div><div class="ae-lbl">Always</div>
+              <div style="display:flex;gap:.25rem;font-size:.72rem;color:var(--text-d);margin-top:.15rem;">
+                <label style="cursor:pointer;display:flex;align-items:center;gap:.2rem;"><input type="checkbox" id="e-first"> 1st</label>
+                <label style="cursor:pointer;display:flex;align-items:center;gap:.2rem;"><input type="checkbox" id="e-last"> Last</label>
+              </div>
+            </div>
+            <div style="padding-bottom:.02rem;"><div class="ae-lbl">&nbsp;</div><button class="enc-btn enc-btn-red enc-btn-sm" onclick="addEnemy()">+ Add</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="enc-cards-area" style="min-height:90px;">
+        <div class="enc-cards-grid" id="hostile-cards"></div>
+      </div>
+
+      <!-- NOTES -->
+      <div class="enc-notes">
+        <div class="enc-sec-hdr">
+          <div class="enc-sec-lbl">&#128221; Encounter Notes</div>
+          <div style="display:flex;gap:.4rem;align-items:center;">
+            <div id="initiative-ctrl" style="display:none;flex-shrink:0;">
+              <div style="display:flex;align-items:center;gap:.3rem;">
+                <button class="enc-btn enc-btn-purple enc-btn-sm" id="btn-roll-init" onclick="rollInitiative()">&#9682; Roll Initiative</button>
+                <button class="enc-btn enc-btn-ghost enc-btn-sm" id="btn-reset-init" onclick="resetInitiative()" style="display:none;">&#8635; Reset</button>
+              </div>
+            </div>
+            <button class="enc-btn enc-btn-ghost enc-btn-sm" id="btn-manage-session" style="display:none;" onclick="openManageSession()">&#9881; Manage Session</button>
+            <button class="enc-btn enc-btn-ghost enc-btn-sm" id="btn-edit-notes" style="display:none;" onclick="toggleNotesEdit()">Edit Notes</button>
+          </div>
+        </div>
+        <div class="enc-notes-body" id="notes-display"><div class="enc-notes-empty">No notes posted yet.</div></div>
+        <div class="dm-notes-form" id="notes-form" style="display:none;">
+          <textarea class="dm-notes-ta" id="notes-text" rows="3" placeholder="Describe the scene..."></textarea>
+          <div class="dm-notes-row">
+            <input class="ae-input" id="notes-img-url" type="text" placeholder="Image URL (optional)" style="flex:1;">
+            <button class="enc-btn enc-btn-gold enc-btn-sm" onclick="saveNotes()">Save</button>
+            <button class="enc-btn enc-btn-ghost enc-btn-sm" onclick="toggleNotesEdit()">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PARTY -->
+      <div class="enc-sec-hdr">
+        <div class="enc-sec-lbl">&#9876; Party <span class="sec-count" id="party-count">0</span></div>
+        <div id="dm-session-ctrl" style="display:none;display:flex;gap:.4rem;">
+          <button class="enc-btn enc-btn-ghost enc-btn-sm" id="btn-next-turn" onclick="advanceTurn()" style="display:none;">&#9654; Next Turn</button>
+          <button class="enc-btn enc-btn-danger enc-btn-sm" onclick="endSession()">End Session</button>
+        </div>
+      </div>
+      <div class="enc-party-area">
+        <div class="enc-cards-grid" id="party-cards"></div>
+      </div>
+
+    </div><!-- /enc-right -->
+  </div><!-- /enc-layout -->
+</div><!-- /screen-enc -->
+
+<!-- ═══ MANAGE SESSION OVERLAY ═══════════════════════════ -->
+<div id="manage-overlay">
+  <div class="manage-panel">
+    <div class="mp-hdr">
+      <div class="mp-title">&#9881; Manage Session</div>
+      <button class="mp-close" onclick="closeManageSession()">&#10005; Close</button>
+    </div>
+    <div class="mp-body">
+      <!-- Rename -->
+      <div class="mp-section">
+        <div class="mp-sec-title">Session Name</div>
+        <div style="display:flex;gap:.4rem;">
+          <input class="ae-input" id="mp-session-name" type="text" placeholder="Session name" style="flex:1;">
+          <button class="enc-btn enc-btn-gold enc-btn-sm" onclick="renameSession()">Save</button>
+        </div>
+      </div>
+      <!-- Pending join requests -->
+      <div class="mp-section">
+        <div class="mp-sec-title">Join Requests</div>
+        <div id="mp-requests"><div style="font-size:.78rem;color:var(--text-d);font-style:italic;">No pending requests.</div></div>
+      </div>
+      <!-- Current players -->
+      <div class="mp-section">
+        <div class="mp-sec-title">Current Players</div>
+        <div id="mp-players"><div style="font-size:.78rem;color:var(--text-d);font-style:italic;">No players yet.</div></div>
+      </div>
+      <!-- Add player -->
+      <div class="mp-section">
+        <div class="mp-sec-title">Add Player</div>
+        <div style="display:flex;gap:.4rem;align-items:flex-end;">
+          <div style="flex:1;">
+            <div class="ae-lbl">Select User</div>
+            <select class="ae-input" id="mp-add-user" style="width:100%;">
+              <option value="">— Choose a user —</option>
             </select>
           </div>
-          <div><div class="ae-lbl">Name</div><input class="ae-input" id="e-name" type="text" placeholder="Enemy" style="width:100px;"></div>
-          <div><div class="ae-lbl">HP</div><input class="ae-input" id="e-hp" type="number" min="1" max="999" value="12" style="width:55px;"></div>
-          <div><div class="ae-lbl">AC</div><input class="ae-input" id="e-ac" type="number" min="1" max="30" value="12" style="width:48px;"></div>
-          <div><div class="ae-lbl">Init Mod</div><input class="ae-input" id="e-init" type="number" min="-5" max="10" value="0" style="width:50px;"></div>
-          <div><div class="ae-lbl">Always</div>
-            <div style="display:flex;gap:.25rem;font-size:.72rem;color:var(--text-d);margin-top:.15rem;">
-              <label style="cursor:pointer;display:flex;align-items:center;gap:.2rem;"><input type="checkbox" id="e-first"> 1st</label>
-              <label style="cursor:pointer;display:flex;align-items:center;gap:.2rem;"><input type="checkbox" id="e-last"> Last</label>
-            </div>
-          </div>
-          <div style="padding-bottom:.02rem;"><div class="ae-lbl">&nbsp;</div><button class="enc-btn enc-btn-red enc-btn-sm" onclick="addEnemy()">+ Add</button></div>
+          <button class="enc-btn enc-btn-green enc-btn-sm" onclick="dmAddPlayer()">+ Add</button>
         </div>
+        <p id="mp-add-err" style="font-size:.76rem;color:var(--red);margin-top:.4rem;display:none;"></p>
       </div>
     </div>
-    <div class="enc-cards-area" style="min-height:90px;">
-      <div class="enc-cards-grid" id="hostile-cards"></div>
-    </div>
-
-    <!-- NOTES -->
-    <div class="enc-notes">
-      <div class="enc-sec-hdr">
-        <div class="enc-sec-lbl">&#128221; Encounter Notes</div>
-        <div style="display:flex;gap:.4rem;align-items:center;">
-          <div id="initiative-ctrl" style="display:none;flex-shrink:0;">
-            <div class="init-btn-wrap">
-              <button class="enc-btn enc-btn-purple enc-btn-sm" id="btn-roll-init" onclick="rollInitiative()">&#9682; Roll Initiative</button>
-              <button class="enc-btn enc-btn-ghost enc-btn-sm" id="btn-reset-init" onclick="resetInitiative()" style="display:none;">&#8635; Reset</button>
-            </div>
-          </div>
-          <button class="enc-btn enc-btn-ghost enc-btn-sm" id="btn-edit-notes" style="display:none;" onclick="toggleNotesEdit()">Edit</button>
-        </div>
-      </div>
-      <div class="enc-notes-body" id="notes-display">
-        <div class="enc-notes-empty">No notes posted yet.</div>
-      </div>
-      <div class="dm-notes-form" id="notes-form" style="display:none;">
-        <textarea class="dm-notes-ta" id="notes-text" rows="3" placeholder="Describe the scene..."></textarea>
-        <div class="dm-notes-row">
-          <input class="ae-input" id="notes-img-url" type="text" placeholder="Image URL (optional)" style="flex:1;">
-          <button class="enc-btn enc-btn-gold enc-btn-sm" onclick="saveNotes()">Save</button>
-          <button class="enc-btn enc-btn-ghost enc-btn-sm" onclick="toggleNotesEdit()">Cancel</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- PARTY -->
-    <div class="enc-sec-hdr">
-      <div class="enc-sec-lbl">&#9876; Party <span class="sec-count" id="party-count">0</span></div>
-      <div id="dm-session-ctrl" style="display:none;display:flex;gap:.4rem;">
-        <button class="enc-btn enc-btn-ghost enc-btn-sm" id="btn-next-turn" onclick="advanceTurn()" style="display:none;">&#9654; Next Turn</button>
-        <button class="enc-btn enc-btn-danger enc-btn-sm" onclick="endSession()">End Session</button>
-      </div>
-    </div>
-    <div class="enc-party-area">
-      <div class="enc-cards-grid" id="party-cards"></div>
-    </div>
-
   </div>
 </div>
 
-<!-- ── PENDING PANEL (DM) ── -->
+<!-- ═══ PENDING PANEL (DM) ═══════════════════════════════ -->
 <div class="pend-panel" id="pend-panel">
   <div class="pp-hdr">
     &#9888; Pending Actions
@@ -390,26 +402,22 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
   <div class="pp-body" id="pend-body"></div>
 </div>
 
-<!-- ── PENDING ACTION BANNER (player) ── -->
+<!-- ═══ PLAYER BANNERS ════════════════════════════════════ -->
 <div class="pending-banner" id="pending-banner">
   <span>&#9677; Action pending — awaiting DM confirmation</span>
   <button class="enc-btn enc-btn-ghost enc-btn-sm" onclick="cancelMyAction()">Cancel</button>
 </div>
-
-<!-- ── TURN BANNER (active player) ── -->
 <div class="turn-banner" id="turn-banner">
   <span id="turn-banner-txt">&#9670; It's your turn!</span>
-  <button class="enc-btn enc-btn-gold enc-btn-sm" id="btn-end-turn" onclick="playerEndTurn()">End Turn &#8594;</button>
+  <button class="enc-btn enc-btn-gold enc-btn-sm" onclick="playerEndTurn()">End Turn &#8594;</button>
 </div>
 
-<!-- ── SLOT MACHINE MODAL ── -->
+<!-- ═══ SLOT MACHINE ═════════════════════════════════════ -->
 <div class="slot-modal" id="slot-modal">
   <div class="slot-card">
     <div class="slot-title">&#9682; Roll Initiative!</div>
     <div class="slot-sub">Rolling for turn order…</div>
-    <div class="slot-reel" id="slot-reel">
-      <div class="slot-reel-num" id="slot-num">?</div>
-    </div>
+    <div class="slot-reel"><div class="slot-reel-num" id="slot-num">?</div></div>
     <div class="slot-result" id="slot-result" style="display:none;">
       You rolled <b id="slot-final">—</b>!<br>
       <span style="font-size:.76rem;color:var(--text-d);">Results will be locked in by your DM.</span>
@@ -417,7 +425,7 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
   </div>
 </div>
 
-<!-- ── ACTION MODAL ── -->
+<!-- ═══ ACTION MODAL ═════════════════════════════════════ -->
 <div class="mbg" id="m-action">
   <div class="mc">
     <div class="mc-title" id="m-action-title">Combat Action</div>
@@ -425,7 +433,7 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
   </div>
 </div>
 
-<!-- ── DM ADJUST MODAL ── -->
+<!-- ═══ DM ADJUST MODAL ══════════════════════════════════ -->
 <div class="mbg" id="m-dm-adj">
   <div class="mc">
     <div class="mc-title" id="m-adj-title">Adjust</div>
@@ -433,13 +441,12 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
   </div>
 </div>
 
-<!-- ── TOASTS ── -->
 <div class="toasts" id="toasts"></div>
 
 <script>
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  FIREBASE
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 firebase.initializeApp({
   apiKey:'AIzaSyAWpUnUirhcI3nhW9WF_7aqDInOCvIbsIY',
   authDomain:'jcca-dnd.firebaseapp.com',projectId:'jcca-dnd',
@@ -449,226 +456,253 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  CONSTANTS
-// ════════════════════════════════════════════════════════
-const SKEYS = ['str','dex','con','int','wis','cha'];
-const SABRV = {str:'STR',dex:'DEX',con:'CON',int:'INT',wis:'WIS',cha:'CHA'};
-const SNAMES = {str:'Strength',dex:'Dexterity',con:'Constitution',int:'Intelligence',wis:'Wisdom',cha:'Charisma'};
-const SKILL_AB = {Acrobatics:'dex','Animal Handling':'wis',Arcana:'int',Athletics:'str',Deception:'cha',History:'int',Insight:'wis',Intimidation:'cha',Investigation:'int',Medicine:'wis',Nature:'int',Perception:'wis',Performance:'cha',Persuasion:'cha',Religion:'int','Sleight of Hand':'dex',Stealth:'dex',Survival:'wis'};
-const ALL_SKILLS = Object.keys(SKILL_AB);
-const PROF_BY_LV = {1:2,2:2,3:2,4:2,5:3,6:3,7:3,8:3,9:4,10:4,11:4,12:4,13:5,14:5,15:5,16:5,17:6,18:6,19:6,20:6};
-const HIT_DIE = {Barbarian:12,Bard:8,Cleric:8,Druid:8,Fighter:10,Monk:8,Paladin:10,Ranger:10,Rogue:8,Sorcerer:6,Warlock:8,Wizard:6};
-const CLASS_COLORS = {
-  Barbarian:'#c44040',Bard:'#1a9688',Cleric:'#8090a8',
-  Druid:'#4a8a38',Fighter:'#5a7a9a',Monk:'#2a8a5a',
-  Paladin:'#c8952a',Ranger:'#7a5c2e',Rogue:'#4a4a60',
-  Sorcerer:'#9b40c8',Warlock:'#5b2090',Wizard:'#5040b8'
-};
-
-// ── ENEMY TEMPLATES (AL Tier 1, up to CR 1) ──
-const ENEMY_TEMPLATES = [
-  {name:'Bandit',hp:11,ac:12,initMod:1,cr:'1/8',note:'Pack Tactics variant'},
-  {name:'Cultist',hp:9,ac:12,initMod:1,cr:'1/8',note:'Dark Devotion'},
-  {name:'Giant Rat',hp:7,ac:12,initMod:2,cr:'1/8',note:'Pack Tactics'},
-  {name:'Kobold',hp:5,ac:12,initMod:2,cr:'1/8',note:'Pack Tactics, Sunlight Sensitivity'},
-  {name:'Merfolk',hp:11,ac:11,initMod:1,cr:'1/8',note:'Amphibious'},
-  {name:'Mud Mephit',hp:27,ac:11,initMod:1,cr:'1/4',note:'Death Burst, False Appearance'},
-  {name:'Pixie',hp:1,ac:15,initMod:5,cr:'1/4',note:'Magic Resistance, Innate Spells'},
-  {name:'Skeleton',hp:13,ac:13,initMod:2,cr:'1/4',note:'Immune Poison, Exhaustion'},
-  {name:'Sprite',hp:2,ac:15,initMod:5,cr:'1/4',note:'Heart Sight, Invisibility'},
-  {name:'Stirge',hp:2,ac:14,initMod:3,cr:'1/8',note:'Blood Drain'},
-  {name:'Wolf',hp:11,ac:13,initMod:2,cr:'1/4',note:'Pack Tactics, Keen Senses'},
-  {name:'Zombie',hp:22,ac:8,initMod:-2,cr:'1/4',note:'Undead Fortitude'},
-  {name:'Goblin',hp:7,ac:15,initMod:2,cr:'1/4',note:'Nimble Escape'},
-  {name:'Hobgoblin',hp:11,ac:18,initMod:1,cr:'1/2',note:'Martial Advantage'},
-  {name:'Orc',hp:15,ac:13,initMod:1,cr:'1/2',note:'Aggressive'},
-  {name:'Ghoul',hp:22,ac:12,initMod:2,cr:'1',note:'Paralyzing Touch'},
-  {name:'Harpy',hp:38,ac:11,initMod:1,cr:'1',note:'Luring Song'},
-  {name:'Spy',hp:27,ac:12,initMod:2,cr:'1',note:'Cunning Action, Sneak Attack'},
-  {name:'Thug',hp:32,ac:11,initMod:0,cr:'1/2',note:'Pack Tactics'},
-  {name:'Vine Blight',hp:26,ac:12,initMod:-1,cr:'1/2',note:'False Appearance, Constrict'},
-  {name:'Bandit Captain',hp:65,ac:15,initMod:2,cr:'2',note:'Multiattack 3 attacks'},
-  {name:'Bugbear',hp:27,ac:16,initMod:2,cr:'1',note:'Surprise Attack, Brute'},
+// ════════════════════════════════════════════════════════════
+const SKEYS=['str','dex','con','int','wis','cha'];
+const SABRV={str:'STR',dex:'DEX',con:'CON',int:'INT',wis:'WIS',cha:'CHA'};
+const SNAMES={str:'Strength',dex:'Dexterity',con:'Constitution',int:'Intelligence',wis:'Wisdom',cha:'Charisma'};
+const SKILL_AB={Acrobatics:'dex','Animal Handling':'wis',Arcana:'int',Athletics:'str',Deception:'cha',History:'int',Insight:'wis',Intimidation:'cha',Investigation:'int',Medicine:'wis',Nature:'int',Perception:'wis',Performance:'cha',Persuasion:'cha',Religion:'int','Sleight of Hand':'dex',Stealth:'dex',Survival:'wis'};
+const ALL_SKILLS=Object.keys(SKILL_AB);
+const PROF_BY_LV={1:2,2:2,3:2,4:2,5:3,6:3,7:3,8:3,9:4,10:4,11:4,12:4,13:5,14:5,15:5,16:5,17:6,18:6,19:6,20:6};
+const HIT_DIE={Barbarian:12,Bard:8,Cleric:8,Druid:8,Fighter:10,Monk:8,Paladin:10,Ranger:10,Rogue:8,Sorcerer:6,Warlock:8,Wizard:6};
+const CLASS_COLORS={Barbarian:'#c44040',Bard:'#1a9688',Cleric:'#8090a8',Druid:'#4a8a38',Fighter:'#5a7a9a',Monk:'#2a8a5a',Paladin:'#c8952a',Ranger:'#7a5c2e',Rogue:'#4a4a60',Sorcerer:'#9b40c8',Warlock:'#5b2090',Wizard:'#5040b8'};
+const ENEMY_TEMPLATES=[
+  {name:'Bandit',hp:11,ac:12,initMod:1,cr:'1/8'},{name:'Cultist',hp:9,ac:12,initMod:1,cr:'1/8'},
+  {name:'Giant Rat',hp:7,ac:12,initMod:2,cr:'1/8'},{name:'Kobold',hp:5,ac:12,initMod:2,cr:'1/8'},
+  {name:'Skeleton',hp:13,ac:13,initMod:2,cr:'1/4'},{name:'Zombie',hp:22,ac:8,initMod:-2,cr:'1/4'},
+  {name:'Goblin',hp:7,ac:15,initMod:2,cr:'1/4'},{name:'Wolf',hp:11,ac:13,initMod:2,cr:'1/4'},
+  {name:'Mud Mephit',hp:27,ac:11,initMod:1,cr:'1/4'},{name:'Stirge',hp:2,ac:14,initMod:3,cr:'1/8'},
+  {name:'Hobgoblin',hp:11,ac:18,initMod:1,cr:'1/2'},{name:'Orc',hp:15,ac:13,initMod:1,cr:'1/2'},
+  {name:'Thug',hp:32,ac:11,initMod:0,cr:'1/2'},{name:'Vine Blight',hp:26,ac:12,initMod:-1,cr:'1/2'},
+  {name:'Ghoul',hp:22,ac:12,initMod:2,cr:'1'},{name:'Harpy',hp:38,ac:11,initMod:1,cr:'1'},
+  {name:'Spy',hp:27,ac:12,initMod:2,cr:'1'},{name:'Bugbear',hp:27,ac:16,initMod:2,cr:'1'},
+  {name:'Bandit Captain',hp:65,ac:15,initMod:2,cr:'2'},
 ];
 
 function statusLabel(pct){
-  if(pct>75)return['Unharmed','fine'];
-  if(pct>50)return['Injured','injured'];
-  if(pct>25)return['Bloodied','bloodied'];
-  if(pct>0) return['Critical','critical'];
+  if(pct>75)return['Unharmed','fine'];if(pct>50)return['Injured','injured'];
+  if(pct>25)return['Bloodied','bloodied'];if(pct>0)return['Critical','critical'];
   return['Unconscious','unconscious'];
 }
 
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  STATE
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 let loggedUser=null,loggedRole=null,loggedName=null;
 let myChar=null;
 let activeSessionId=null,sessionData=null;
-let combatants={};
-let pendingActions={};
+let isDMForSession=false;   // true if loggedUser === sessionData.dmUserId
+let combatants={},pendingActions={};
 let partyChars=[],sheetNavIdx=0;
-let unsubSession=null,unsubCombatants=null,unsubActions=null,unsubMyAction=null;
+let turnOrder=[],currentTurnIdx=0,initiativePhase='none';
 let myPendingActionId=null;
 let actionTarget=null,actionData={};
 let dmAdjTarget=null;
+let unsubSessionDoc=null,unsubCombatants=null,unsubActions=null,unsubMyAction=null,unsubRequests=null,unsubBrowserSessions=null;
 
-// Turn order state
-let turnOrder=[];      // combatant ids in initiative order
-let currentTurnIdx=0;  // index into turnOrder
-let initiativePhase='none'; // 'none'|'rolling'|'active'
-
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  BOOT
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 async function boot(){
   try{await firebase.auth().signInAnonymously();}catch(e){}
-  const keys=['dnd_username','dm_username','admin_username','session_dm_username'];
-  const saved=keys.map(k=>sessionStorage.getItem(k)).find(Boolean);
-  if(!saved){window.location.href='index.html';return;}
+  const keys=['dnd_username','admin_username','session_dm_username','dm_username'];
+  const saved=keys.map(k=>localStorage.getItem(k)).find(Boolean);
+  if(!saved){window.location.href='adventurers_hub.html';return;}
   try{
-    const doc=await db.collection('Users').doc(saved).get();
-    if(!doc.exists){window.location.href='index.html';return;}
-    const d=doc.data();
+    const userDoc=await db.collection('Users').doc(saved).get();
+    if(!userDoc.exists){window.location.href='adventurers_hub.html';return;}
+    const d=userDoc.data();
     loggedUser=saved;loggedRole=d.role;loggedName=d.playerName||saved;
     Nav.init('encounters');
     await loadMyChar();
     buildTemplateDropdown();
-    listenForSession();
-  }catch(e){console.error(e);}
+    // Check if already in a session
+    const currentSid=d.currentSessionId||null;
+    // Check if this user is a DM for an active session
+    const dmSnap=await db.collection('Sessions').where('dmUserId','==',loggedUser).where('isActive','==',true).get();
+    if(!dmSnap.empty){
+      // This user is the DM — load their session
+      const sdoc=dmSnap.docs[0];
+      activeSessionId=sdoc.id; sessionData=sdoc.data();
+      isDMForSession=true;
+      showHUD(); listenSessionDoc(); listenCombatants(); listenPendingActions(); listenJoinRequests();
+    }else if(currentSid){
+      // Player is already in a session
+      const sdoc=await db.collection('Sessions').doc(currentSid).get();
+      if(sdoc.exists&&sdoc.data().isActive){
+        activeSessionId=currentSid; sessionData=sdoc.data();
+        isDMForSession=false;
+        showHUD(); listenSessionDoc(); listenCombatants();
+      }else{
+        // Session ended
+        await db.collection('Users').doc(loggedUser).update({currentSessionId:null});
+        showBrowser();
+      }
+    }else{
+      showBrowser();
+    }
+  }catch(e){console.error(e);toast('Connection error.','error');}
 }
-
-const isDM=()=>['admin','session_dm','dm'].includes(loggedRole);
 
 async function loadMyChar(){
   const snap=await db.collection('Characters').where('playerId','==',loggedUser).where('status','==','Active').get();
   if(!snap.empty){const d=snap.docs[0];myChar={id:d.id,...d.data()};}
 }
 
-function buildTemplateDropdown(){
-  const sel=document.getElementById('enemy-template');
-  ENEMY_TEMPLATES.forEach((t,i)=>{
-    const o=document.createElement('option');
-    o.value=i; o.textContent=`${t.name} (CR ${t.cr})`;
-    sel.appendChild(o);
-  });
-}
-
-function fillEnemyTemplate(){
-  const sel=document.getElementById('enemy-template');
-  if(!sel.value)return;
-  const t=ENEMY_TEMPLATES[parseInt(sel.value)];
-  if(!t)return;
-  document.getElementById('e-name').value=t.name;
-  document.getElementById('e-hp').value=t.hp;
-  document.getElementById('e-ac').value=t.ac;
-  document.getElementById('e-init').value=t.initMod;
-  document.getElementById('e-first').checked=false;
-  document.getElementById('e-last').checked=false;
-}
-
-// ════════════════════════════════════════════════════════
-//  SESSION LISTENER
-// ════════════════════════════════════════════════════════
-function listenForSession(){
-  if(unsubSession)unsubSession();
-  unsubSession=db.collection('ActiveCombat').where('isActive','==',true)
-    .onSnapshot(snap=>{
-      if(snap.empty){noActiveSession();}
-      else{
-        const doc=snap.docs[0];
-        const newId=doc.id;
-        if(newId!==activeSessionId){
-          activeSessionId=newId;
-          sessionData=doc.data();
-          if(unsubCombatants){unsubCombatants();unsubCombatants=null;}
-          if(unsubActions){unsubActions();unsubActions=null;}
-          listenCombatants();
-          if(isDM())listenPendingActions();
-          else listenMyPendingAction();
-        }else{
-          const prevPhase=initiativePhase;
-          sessionData=doc.data();
-          initiativePhase=sessionData.initiativePhase||'none';
-          turnOrder=sessionData.turnOrder||[];
-          currentTurnIdx=sessionData.currentTurnIdx||0;
-          if(initiativePhase==='rolling'&&prevPhase!=='rolling')startSlotMachine();
-          if(initiativePhase==='active'&&prevPhase!=='active'){
-            closeSlotMachine();
-            renderCards();
-            updateTurnUI();
-          }
-          renderNotes();
-        }
-        showHUD();
-      }
-    });
-}
-
-function noActiveSession(){
-  activeSessionId=null;sessionData=null;combatants={};pendingActions={};
-  turnOrder=[];currentTurnIdx=0;initiativePhase='none';
-  if(unsubCombatants){unsubCombatants();unsubCombatants=null;}
-  if(unsubActions){unsubActions();unsubActions=null;}
-  document.getElementById('screen-setup').style.display='block';
+// ════════════════════════════════════════════════════════════
+//  SESSION BROWSER
+// ════════════════════════════════════════════════════════════
+function showBrowser(){
+  document.getElementById('screen-browser').style.display='block';
   document.getElementById('screen-enc').style.display='none';
-  document.getElementById('ss-dm').style.display=isDM()?'block':'none';
-  document.getElementById('ss-player').style.display=isDM()?'none':'block';
-  if(isDM())loadPartyPicker();
+  const sub=document.getElementById('browser-sub');
+  sub.textContent=loggedRole==='admin'?'Admin view — all active sessions':'Select a session to join';
+  if(unsubBrowserSessions){unsubBrowserSessions();unsubBrowserSessions=null;}
+  unsubBrowserSessions=db.collection('Sessions').where('isActive','==',true)
+    .onSnapshot(snap=>renderBrowser(snap));
 }
 
+async function renderBrowser(snap){
+  const list=document.getElementById('session-list');
+  if(snap.empty){list.innerHTML='<div class="no-sessions">No active sessions right now. Check back when your DM is ready.</div>';return;}
+  // Check pending requests for this user
+  let myPendingRequestSessionIds=new Set();
+  try{
+    const reqSnap=await db.collection('SessionRequests').where('playerId','==',loggedUser).where('status','==','pending').get();
+    reqSnap.docs.forEach(d=>myPendingRequestSessionIds.add(d.data().sessionId));
+  }catch(e){}
+
+  const rows=await Promise.all(snap.docs.map(async doc=>{
+    const s=doc.data();
+    let playerCount=0;
+    try{const cs=await db.collection('Sessions').doc(doc.id).collection('combatants').where('type','==','player').get();playerCount=cs.size;}catch(e){}
+    const isPending=myPendingRequestSessionIds.has(doc.id);
+    const adminControls=loggedRole==='admin'?`<button class="enc-btn enc-btn-danger enc-btn-sm" onclick="adminRevokeFromEncounters('${doc.id}','${esc(s.sessionName||'this session')}')">Revoke</button>`:'';
+    return `<div class="session-card">
+      <div class="sc-info">
+        <div class="sc-name">${esc(s.sessionName||'Unnamed Session')}</div>
+        <div class="sc-dm">DM: <b>${esc(s.dmDisplayName||s.dmUserId||'Unknown')}</b></div>
+        <div class="sc-players">${playerCount} player${playerCount!==1?'s':''} joined &nbsp;·&nbsp; Phase: ${esc(s.initiativePhase||'Setup')}</div>
+      </div>
+      <div class="sc-actions">
+        ${isPending?'<span class="sc-status-badge sc-pending">&#9203; Pending</span>':
+          `<button class="enc-btn enc-btn-gold enc-btn-sm" onclick="requestToJoin('${doc.id}')">Request to Join</button>`}
+        ${adminControls}
+      </div>
+    </div>`;
+  }));
+  list.innerHTML=rows.join('');
+}
+
+async function requestToJoin(sessionId){
+  if(!myChar){toast('You need an active character to join a session.','error');return;}
+  // Check not already in a session
+  const userDoc=await db.collection('Users').doc(loggedUser).get();
+  if(userDoc.data()?.currentSessionId){toast('You are already in an active session.','error');return;}
+  // Check no duplicate request
+  const existSnap=await db.collection('SessionRequests')
+    .where('sessionId','==',sessionId).where('playerId','==',loggedUser).where('status','==','pending').get();
+  if(!existSnap.empty){toast('Request already sent.','info');return;}
+  try{
+    await db.collection('SessionRequests').add({
+      sessionId,playerId:loggedUser,
+      playerName:loggedName,
+      characterId:myChar.id,
+      characterName:myChar.characterName||'Unknown',
+      characterClass:myChar.class||'',
+      status:'pending',
+      requestedAt:new Date().toISOString(),
+    });
+    toast('Join request sent — wait for the DM to approve.','success');
+    renderBrowser(await db.collection('Sessions').where('isActive','==',true).get());
+  }catch(e){console.error(e);toast('Failed to send request.','error');}
+}
+
+async function adminRevokeFromEncounters(sessionId,name){
+  if(!confirm(`Revoke "${name}"?`))return;
+  try{
+    const combSnap=await db.collection('Sessions').doc(sessionId).collection('combatants').get();
+    const batch=db.batch();
+    const uids=new Set();
+    combSnap.docs.forEach(d=>{batch.delete(d.ref);if(d.data().playerId)uids.add(d.data().playerId);});
+    uids.forEach(uid=>batch.update(db.collection('Users').doc(uid),{currentSessionId:null}));
+    const reqSnap=await db.collection('SessionRequests').where('sessionId','==',sessionId).get();
+    reqSnap.docs.forEach(d=>batch.delete(d.ref));
+    batch.update(db.collection('Sessions').doc(sessionId),{isActive:false,endedAt:new Date().toISOString()});
+    await batch.commit();
+    toast('Session revoked.','info');
+  }catch(e){toast('Failed.','error');}
+}
+
+// ════════════════════════════════════════════════════════════
+//  SHOW HUD
+// ════════════════════════════════════════════════════════════
 function showHUD(){
-  document.getElementById('screen-setup').style.display='none';
-  document.getElementById('screen-enc').style.display='grid';
-  if(isDM()){
+  document.getElementById('screen-browser').style.display='none';
+  document.getElementById('screen-enc').style.display='flex';
+  if(unsubBrowserSessions){unsubBrowserSessions();unsubBrowserSessions=null;}
+  if(isDMForSession||loggedRole==='admin'){
     document.getElementById('dm-hostile-ctrl').style.display='flex';
     document.getElementById('dm-session-ctrl').style.display='flex';
     document.getElementById('btn-edit-notes').style.display='inline-flex';
     document.getElementById('initiative-ctrl').style.display='flex';
     document.getElementById('sheet-nav').style.display='flex';
+    document.getElementById('btn-manage-session').style.display='inline-flex';
+    document.getElementById('leave-banner').style.display='none';
+  }else{
+    // Player
+    document.getElementById('leave-banner').style.display='flex';
   }
-  const sd=sessionData||{};
-  initiativePhase=sd.initiativePhase||'none';
-  turnOrder=sd.turnOrder||[];
-  currentTurnIdx=sd.currentTurnIdx||0;
-  renderNotes();
-  renderEncSheet();
+  const nameEl=document.getElementById('session-name-display');
+  if(nameEl&&sessionData)nameEl.textContent=sessionData.sessionName||'Active Session';
+  initiativePhase=sessionData?.initiativePhase||'none';
+  turnOrder=sessionData?.turnOrder||[];
+  currentTurnIdx=sessionData?.currentTurnIdx||0;
+  renderNotes();renderEncSheet();
   if(initiativePhase==='active')updateTurnUI();
 }
 
-// ════════════════════════════════════════════════════════
-//  COMBATANTS LISTENER
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+//  REAL-TIME LISTENERS
+// ════════════════════════════════════════════════════════════
+function listenSessionDoc(){
+  if(!activeSessionId||unsubSessionDoc)return;
+  unsubSessionDoc=db.collection('Sessions').doc(activeSessionId).onSnapshot(snap=>{
+    if(!snap.exists){sessionEndedByDM();return;}
+    const d=snap.data();
+    if(!d.isActive){sessionEndedByDM();return;}
+    const prevPhase=initiativePhase;
+    sessionData=d;
+    initiativePhase=d.initiativePhase||'none';
+    turnOrder=d.turnOrder||[];
+    currentTurnIdx=d.currentTurnIdx||0;
+    const nameEl=document.getElementById('session-name-display');
+    if(nameEl)nameEl.textContent=d.sessionName||'Active Session';
+    if(initiativePhase==='rolling'&&prevPhase!=='rolling')startSlotMachine();
+    if(initiativePhase==='active'&&prevPhase!=='active'){closeSlotMachine();renderCards();updateTurnUI();}
+    renderNotes();
+  });
+}
+
 function listenCombatants(){
   if(!activeSessionId)return;
-  unsubCombatants=db.collection('ActiveCombat').doc(activeSessionId)
+  if(unsubCombatants){unsubCombatants();unsubCombatants=null;}
+  unsubCombatants=db.collection('Sessions').doc(activeSessionId)
     .collection('combatants').onSnapshot(snap=>{
       combatants={};
       snap.forEach(d=>{combatants[d.id]={id:d.id,...d.data()};});
       renderCards();
-      if(isDM())loadPartyCharsForNav();
+      if(isDMForSession||loggedRole==='admin')loadPartyCharsForNav();
       updateTurnUI();
     });
 }
 
-async function loadPartyCharsForNav(){
-  const playerCombs=Object.values(combatants).filter(c=>c.type==='player'&&c.characterId);
-  const charIds=[...new Set(playerCombs.map(c=>c.characterId))];
-  if(!charIds.length){partyChars=[];return;}
-  const snaps=await Promise.all(charIds.map(id=>db.collection('Characters').doc(id).get()));
-  partyChars=snaps.filter(d=>d.exists).map(d=>({id:d.id,...d.data()}));
-  updateSheetNav();
-}
-
-// ════════════════════════════════════════════════════════
-//  PENDING ACTIONS (DM)
-// ════════════════════════════════════════════════════════
 function listenPendingActions(){
   if(!activeSessionId)return;
-  unsubActions=db.collection('ActiveCombat').doc(activeSessionId)
-    .collection('combatActions')
-    .where('status','in',['pending','awaitingDamage'])
+  if(unsubActions){unsubActions();unsubActions=null;}
+  unsubActions=db.collection('Sessions').doc(activeSessionId)
+    .collection('combatActions').where('status','in',['pending','awaitingDamage'])
     .onSnapshot(snap=>{
       pendingActions={};
       snap.forEach(d=>{pendingActions[d.id]={id:d.id,...d.data()};});
@@ -676,45 +710,240 @@ function listenPendingActions(){
     });
 }
 
-// Player listens for their own action changing
-function listenMyPendingAction(){
-  // set up re-check when session changes
-  // listening happens when player submits an action
+function listenJoinRequests(){
+  if(!activeSessionId)return;
+  if(unsubRequests){unsubRequests();unsubRequests=null;}
+  unsubRequests=db.collection('SessionRequests')
+    .where('sessionId','==',activeSessionId).where('status','==','pending')
+    .onSnapshot(snap=>{
+      renderJoinRequestsInPanel(snap.docs.map(d=>({id:d.id,...d.data()})));
+    });
 }
 
-// ════════════════════════════════════════════════════════
+function sessionEndedByDM(){
+  activeSessionId=null;sessionData=null;combatants={};isDMForSession=false;
+  if(unsubSessionDoc){unsubSessionDoc();unsubSessionDoc=null;}
+  if(unsubCombatants){unsubCombatants();unsubCombatants=null;}
+  if(unsubActions){unsubActions();unsubActions=null;}
+  if(unsubRequests){unsubRequests();unsubRequests=null;}
+  if(!isDMForSession){
+    db.collection('Users').doc(loggedUser).update({currentSessionId:null}).catch(()=>{});
+  }
+  toast('The session has ended.','info');
+  showBrowser();
+}
+
+// ════════════════════════════════════════════════════════════
+//  MANAGE SESSION OVERLAY
+// ════════════════════════════════════════════════════════════
+async function openManageSession(){
+  document.getElementById('manage-overlay').classList.add('open');
+  document.getElementById('mp-session-name').value=sessionData?.sessionName||'';
+  await renderManagePlayers();
+  await loadAddUserDropdown();
+}
+
+function closeManageSession(){document.getElementById('manage-overlay').classList.remove('open');}
+
+function renderJoinRequestsInPanel(requests){
+  const wrap=document.getElementById('mp-requests');
+  if(!wrap)return;
+  if(!requests.length){wrap.innerHTML='<div style="font-size:.78rem;color:var(--text-d);font-style:italic;">No pending requests.</div>';return;}
+  wrap.innerHTML=requests.map(r=>`
+    <div class="req-row">
+      <div><div class="req-name">${esc(r.playerName||r.playerId)}</div>
+      <div class="req-sub">${esc(r.characterName||'')} (${esc(r.characterClass||'')})</div></div>
+      <div style="display:flex;gap:.3rem;">
+        <button class="enc-btn enc-btn-green enc-btn-sm" onclick="approveJoinRequest('${r.id}','${r.playerId}','${r.characterId}')">&#10003;</button>
+        <button class="enc-btn enc-btn-danger enc-btn-sm" onclick="denyJoinRequest('${r.id}')">&#10007;</button>
+      </div>
+    </div>`).join('');
+  // Also update the pending panel join section
+  renderPendingPanel();
+}
+
+async function approveJoinRequest(reqId,playerId,characterId){
+  if(!activeSessionId)return;
+  // Check player isn't already in another session
+  const userDoc=await db.collection('Users').doc(playerId).get();
+  const curSid=userDoc.data()?.currentSessionId;
+  if(curSid&&curSid!==activeSessionId){toast('Player is already in another session.','error');return;}
+  try{
+    const charDoc=await db.collection('Characters').doc(characterId).get();
+    const c=charDoc.data();
+    const maxHp=(c?.sheet?.maxHp)||(HIT_DIE[c?.class]||8);
+    const curHp=c?.sheet?.hp??maxHp;
+    const dexMod=c?.sheet?.abilityScores?.dex?Math.floor((c.sheet.abilityScores.dex-10)/2):0;
+    const batch=db.batch();
+    batch.set(db.collection('Sessions').doc(activeSessionId).collection('combatants').doc(characterId),{
+      name:c?.characterName||playerId,type:'player',
+      characterId,playerId,characterClass:c?.class||'',
+      level:c?.level||1,maxHp,currentHp:curHp,tempHp:0,
+      armorClass:c?.sheet?.abilityScores?10+Math.floor(((c.sheet.abilityScores.dex||10)-10)/2):10,
+      initiativeMod:dexMod,initiative:null,alwaysFirst:false,alwaysLast:false,conditions:[],isDead:false
+    });
+    batch.update(db.collection('Users').doc(playerId),{currentSessionId:activeSessionId});
+    batch.delete(db.collection('SessionRequests').doc(reqId));
+    await batch.commit();
+    toast(`${c?.characterName||playerId} added to session.`,'success');
+    await renderManagePlayers();
+  }catch(e){console.error(e);toast('Failed to approve.','error');}
+}
+
+async function denyJoinRequest(reqId){
+  await db.collection('SessionRequests').doc(reqId).delete();
+  toast('Request denied.','info');
+}
+
+async function renderManagePlayers(){
+  const wrap=document.getElementById('mp-players');
+  if(!wrap)return;
+  const players=Object.values(combatants).filter(c=>c.type==='player');
+  if(!players.length){wrap.innerHTML='<div style="font-size:.78rem;color:var(--text-d);font-style:italic;">No players yet.</div>';return;}
+  wrap.innerHTML=players.map(p=>`
+    <div class="mp-player-row">
+      <div><div class="mp-player-name">${esc(p.name)}</div>
+      <div class="mp-player-sub">${esc(p.characterClass||'')} Lv${p.level||1} · ${esc(p.playerId)}</div></div>
+      <button class="enc-btn enc-btn-danger enc-btn-sm" onclick="removePlayerFromSession('${p.id}','${p.playerId}')">&#10005; Remove</button>
+    </div>`).join('');
+}
+
+async function removePlayerFromSession(combId,playerId){
+  if(!confirm('Remove this player from the session?'))return;
+  try{
+    const batch=db.batch();
+    batch.delete(db.collection('Sessions').doc(activeSessionId).collection('combatants').doc(combId));
+    batch.update(db.collection('Users').doc(playerId),{currentSessionId:null});
+    await batch.commit();
+    await renderManagePlayers();
+    toast('Player removed.','info');
+  }catch(e){toast('Failed.','error');}
+}
+
+async function loadAddUserDropdown(){
+  const sel=document.getElementById('mp-add-user');
+  if(!sel)return;
+  sel.innerHTML='<option value="">— Choose a user —</option>';
+  try{
+    const snap=await db.collection('Users').get();
+    const currentPlayerIds=new Set(Object.values(combatants).filter(c=>c.type==='player').map(c=>c.playerId));
+    snap.docs.forEach(d=>{
+      if(currentPlayerIds.has(d.id))return;
+      const opt=document.createElement('option');
+      opt.value=d.id;opt.textContent=`${d.data().playerName||d.id} (${d.id})`;
+      sel.appendChild(opt);
+    });
+  }catch(e){}
+}
+
+async function dmAddPlayer(){
+  const userId=document.getElementById('mp-add-user').value;
+  const errEl=document.getElementById('mp-add-err');
+  errEl.style.display='none';
+  if(!userId){errEl.textContent='Select a user.';errEl.style.display='block';return;}
+  const userDoc=await db.collection('Users').doc(userId).get();
+  const d=userDoc.data();
+  const curSid=d?.currentSessionId;
+  if(curSid&&curSid!==activeSessionId){
+    errEl.textContent='Player is already assigned to another session.';errEl.style.display='block';return;
+  }
+  // Get their active character
+  const charSnap=await db.collection('Characters').where('playerId','==',userId).where('status','==','Active').get();
+  if(charSnap.empty){errEl.textContent='This user has no active character.';errEl.style.display='block';return;}
+  const charDoc=charSnap.docs[0];
+  const c=charDoc.data();
+  const maxHp=(c?.sheet?.maxHp)||(HIT_DIE[c?.class]||8);
+  const curHp=c?.sheet?.hp??maxHp;
+  const dexMod=c?.sheet?.abilityScores?.dex?Math.floor((c.sheet.abilityScores.dex-10)/2):0;
+  try{
+    const batch=db.batch();
+    batch.set(db.collection('Sessions').doc(activeSessionId).collection('combatants').doc(charDoc.id),{
+      name:c?.characterName||userId,type:'player',
+      characterId:charDoc.id,playerId:userId,characterClass:c?.class||'',
+      level:c?.level||1,maxHp,currentHp:curHp,tempHp:0,
+      armorClass:c?.sheet?.abilityScores?10+Math.floor(((c.sheet.abilityScores.dex||10)-10)/2):10,
+      initiativeMod:dexMod,initiative:null,alwaysFirst:false,alwaysLast:false,conditions:[],isDead:false
+    });
+    batch.update(db.collection('Users').doc(userId),{currentSessionId:activeSessionId});
+    await batch.commit();
+    await renderManagePlayers();await loadAddUserDropdown();
+    toast(`${c?.characterName||userId} added.`,'success');
+    document.getElementById('mp-add-user').value='';
+  }catch(e){toast('Failed.','error');}
+}
+
+async function renameSession(){
+  const name=document.getElementById('mp-session-name').value.trim();
+  if(!name||!activeSessionId)return;
+  await db.collection('Sessions').doc(activeSessionId).update({sessionName:name});
+  toast('Session renamed.','success');
+}
+
+// ════════════════════════════════════════════════════════════
+//  LEAVE SESSION (player)
+// ════════════════════════════════════════════════════════════
+function confirmLeaveSession(){
+  if(!confirm('Are you sure you want to leave this session? You will need to request to join again.'))return;
+  leaveSession();
+}
+
+async function leaveSession(){
+  if(!activeSessionId||!myChar)return;
+  try{
+    const batch=db.batch();
+    batch.delete(db.collection('Sessions').doc(activeSessionId).collection('combatants').doc(myChar.id));
+    batch.update(db.collection('Users').doc(loggedUser),{currentSessionId:null});
+    await batch.commit();
+    if(unsubSessionDoc){unsubSessionDoc();unsubSessionDoc=null;}
+    if(unsubCombatants){unsubCombatants();unsubCombatants=null;}
+    activeSessionId=null;sessionData=null;isDMForSession=false;
+    toast('You have left the session.','info');
+    showBrowser();
+  }catch(e){toast('Failed to leave.','error');}
+}
+
+// ════════════════════════════════════════════════════════════
+//  END SESSION (DM)
+// ════════════════════════════════════════════════════════════
+async function endSession(){
+  if(!activeSessionId||!confirm('End this session? All players will be removed.'))return;
+  try{
+    const combSnap=await db.collection('Sessions').doc(activeSessionId).collection('combatants').get();
+    const actSnap=await db.collection('Sessions').doc(activeSessionId).collection('combatActions').get();
+    const reqSnap=await db.collection('SessionRequests').where('sessionId','==',activeSessionId).get();
+    const batch=db.batch();
+    const uids=new Set();
+    combSnap.docs.forEach(d=>{batch.delete(d.ref);if(d.data().playerId)uids.add(d.data().playerId);});
+    actSnap.docs.forEach(d=>batch.delete(d.ref));
+    reqSnap.docs.forEach(d=>batch.delete(d.ref));
+    uids.forEach(uid=>batch.update(db.collection('Users').doc(uid),{currentSessionId:null}));
+    batch.update(db.collection('Sessions').doc(activeSessionId),{isActive:false,endedAt:new Date().toISOString()});
+    await batch.commit();
+    toast('Session ended.','info');
+  }catch(e){toast('Failed.','error');}
+}
+
+// ════════════════════════════════════════════════════════════
 //  RENDER CARDS
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function hpPct(c,m){return m?Math.max(0,Math.min(100,Math.round((c/m)*100))):0;}
 function hpBg(p){return p>75?'#3d7018':p>50?'#8a9220':p>25?'#9a5e12':p>0?'#8b1010':'#1a0808';}
-function sbCls(pct){
-  if(pct>75)return'fine';if(pct>50)return'injured';
-  if(pct>25)return'bloodied';if(pct>0)return'critical';return'unconscious';
-}
+function sbCls(pct){if(pct>75)return'fine';if(pct>50)return'injured';if(pct>25)return'bloodied';if(pct>0)return'critical';return'unconscious';}
+const isDM=()=>isDMForSession||(loggedRole==='admin');
 
-function getTurnPosition(combId){
-  if(!turnOrder.length)return -1;
-  return turnOrder.indexOf(combId);
-}
-
+function getTurnPos(id){return turnOrder.indexOf(id);}
+function isActiveCard(id){return initiativePhase==='active'&&turnOrder[currentTurnIdx]===id;}
 function isMyTurn(){
   if(!turnOrder.length||initiativePhase!=='active')return false;
-  const activeCombId=turnOrder[currentTurnIdx];
-  const activeComb=combatants[activeCombId];
-  if(!activeComb)return false;
-  return activeComb.type==='player'&&activeComb.playerId===loggedUser;
-}
-
-function isActiveCard(combId){
-  return initiativePhase==='active'&&turnOrder[currentTurnIdx]===combId;
+  const ac=combatants[turnOrder[currentTurnIdx]];
+  return ac&&ac.type==='player'&&ac.playerId===loggedUser;
 }
 
 function renderCards(){
   const sorted=Object.values(combatants).sort((a,b)=>{
-    const pa=getTurnPosition(a.id),pb=getTurnPosition(b.id);
+    const pa=getTurnPos(a.id),pb=getTurnPos(b.id);
     if(pa===-1&&pb===-1)return(b.initiative||0)-(a.initiative||0);
-    if(pa===-1)return 1;if(pb===-1)return -1;
-    return pa-pb;
+    if(pa===-1)return 1;if(pb===-1)return -1;return pa-pb;
   });
   const enemies=sorted.filter(c=>c.type==='enemy');
   const party=sorted.filter(c=>c.type==='player');
@@ -727,296 +956,166 @@ function renderCards(){
 function renderCard(c,type){
   const pct=hpPct(c.currentHp,c.maxHp);
   const [slabel,scls]=statusLabel(pct);
-  const deadCls=c.isDead?' dead':'';
-  const conds=(c.conditions||[]).join(', ');
-  const pos=getTurnPosition(c.id);
-  const isActive=isActiveCard(c.id);
-  const activeCls=isActive?' active-turn':'';
+  const pos=getTurnPos(c.id);const isActive=isActiveCard(c.id);
+  const deadCls=c.isDead?' dead':'';const activeCls=isActive?' active-turn':'';
   const badge=pos>=0?`<div class="cc-turn-badge${isActive?' active':''}">${pos+1}</div>`:'';
-  const dmEndBtns = isDM()&&isActive&&type==='enemy'
-    ? `<div style="margin-top:.3rem;"><button class="enc-btn enc-btn-red enc-btn-sm" onclick="event.stopPropagation();dmEndEnemyTurn()">End Turn &#8594;</button></div>` : '';
-  const dmSkipBtns = isDM()&&isActive&&type==='player'
-    ? `<div style="margin-top:.3rem;"><button class="enc-btn enc-btn-ghost enc-btn-sm" onclick="event.stopPropagation();advanceTurn()">Skip Turn</button></div>` : '';
-
+  const conds=(c.conditions||[]).join(', ');
   if(type==='enemy'){
-    // Players ONLY see status label — no HP bar, no HP numbers
-    const dmHp=isDM()
-      ? `<div class="cc-hp-nums" style="color:var(--text);">${c.currentHp}<span style="color:var(--text-d);font-size:.65rem;">/${c.maxHp}${c.tempHp?' (+'+c.tempHp+')':''}</span></div>
-         <div class="cc-bar-t"><div class="cc-bar-f" style="width:${pct}%;background:${hpBg(pct)};"></div></div>` : '';
-    const clickAttr=!c.isDead?(isDM()?`onclick="openDmAdjust('${c.id}')"`:`onclick="openAttack('${c.id}')"`):'';
+    const dmHp=isDM()?`<div class="cc-hp-nums">${c.currentHp}<span style="color:var(--text-d);font-size:.65rem;">/${c.maxHp}</span></div><div class="cc-bar-t"><div class="cc-bar-f" style="width:${pct}%;background:${hpBg(pct)};"></div></div>`:'';
     const dmBtns=isDM()?`<div style="display:flex;gap:.28rem;margin-top:.32rem;flex-wrap:wrap;">
       <button class="enc-btn enc-btn-green enc-btn-sm" onclick="event.stopPropagation();quickHp('${c.id}','heal',5)">+5</button>
       <button class="enc-btn enc-btn-danger enc-btn-sm" onclick="event.stopPropagation();quickHp('${c.id}','dmg',5)">-5</button>
       <button class="enc-btn enc-btn-ghost enc-btn-sm" onclick="event.stopPropagation();removeEnemy('${c.id}')">&#x2715;</button>
     </div>`:'';
-    return `<div class="cc enemy${deadCls}${activeCls}${isDM()?'':' no-click'}" ${!isDM()?clickAttr:''}>
+    const dmEndBtn=isDM()&&isActive?`<div style="margin-top:.3rem;"><button class="enc-btn enc-btn-red enc-btn-sm" onclick="event.stopPropagation();advanceTurn()">End Turn &#8594;</button></div>`:'';
+    const clickAttr=!c.isDead?(isDM()?`onclick="openDmAdjust('${c.id}')"`:!isMyTurn()&&initiativePhase==='active'?`onclick="toast('Not your turn!','error')"`: `onclick="openAttack('${c.id}')"`):'';
+    return `<div class="cc enemy${deadCls}${activeCls}" ${clickAttr}>
       ${badge}<div class="cc-name">${esc(c.name)}</div>
       <div class="cc-sub">Init ${c.initiative??'?'}${isDM()&&c.armorClass?' · AC '+c.armorClass:''}</div>
-      ${dmHp}
-      <div><span class="sb sb-${scls}">${slabel}</span></div>
+      ${dmHp}<div><span class="sb sb-${scls}">${slabel}</span></div>
       ${conds?`<div class="cc-conds">&#9883; ${esc(conds)}</div>`:''}
-      ${isDM()?dmBtns:''}${isDM()?`<div onclick="openDmAdjust('${c.id}')" style="cursor:pointer;margin-top:.3rem;">`:''}
-      ${!isDM()?`<div style="margin-top:.3rem;" onclick="openAttack('${c.id}')" ${isActive&&!isMyTurn()?'style="opacity:.4;pointer-events:none;"':''}>`:'' }
-      ${isDM()?'</div>':'</div>'}
-      ${dmEndBtns}
+      ${dmBtns}${dmEndBtn}
     </div>`;
   }else{
-    // Party — everyone sees exact HP
     const col=CLASS_COLORS[c.characterClass]||'rgba(180,110,40,.6)';
-    const canAttack=!c.isDead&&!isDM()&&c.playerId===loggedUser;
-    return `<div class="cc player${deadCls}${activeCls}" style="border-left-color:${col};" onclick="${isDM()?`openDmAdjust('${c.id}')`:`openAllyInfo('${c.id}')`}">
+    const dmSkipBtn=isDM()&&isActive?`<div style="margin-top:.3rem;"><button class="enc-btn enc-btn-ghost enc-btn-sm" onclick="event.stopPropagation();advanceTurn()">Skip Turn</button></div>`:'';
+    return `<div class="cc player${deadCls}${activeCls}" style="border-left-color:${col};" onclick="${isDM()?`openDmAdjust('${c.id}')`:c.playerId===loggedUser?`openAllyInfo('${c.id}')`:``}">
       ${badge}<div class="cc-name" style="color:${col};filter:brightness(1.3);">${esc(c.name)}</div>
       <div class="cc-sub">${esc(c.characterClass||'')}${c.level?' Lv'+c.level:''}</div>
       <div class="cc-hp-nums">${c.currentHp}<span style="color:var(--text-d);font-size:.65rem;">/${c.maxHp}${c.tempHp?' (+'+c.tempHp+')':''}</span></div>
       <div class="cc-bar-t"><div class="cc-bar-f" style="width:${pct}%;background:${hpBg(pct)};"></div></div>
       ${conds?`<div class="cc-conds">&#9883; ${esc(conds)}</div>`:''}
-      ${dmSkipBtns}
+      ${dmSkipBtn}
     </div>`;
   }
 }
 
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  INITIATIVE
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 async function rollInitiative(){
   if(!activeSessionId)return;
   if(!Object.keys(combatants).length){toast('Add combatants first.','error');return;}
   try{
-    // Auto-roll for all enemies
-    const batch=db.batch();
-    const rolls={};
-    const always_first=[],always_last=[];
+    const batch=db.batch();const rolls={};
     Object.values(combatants).forEach(c=>{
       let roll;
-      if(c.alwaysFirst){always_first.push(c.id);roll=99;}
-      else if(c.alwaysLast){always_last.push(c.id);roll=-99;}
-      else{roll=Math.floor(Math.random()*20)+1+(parseInt(c.initiativeMod)||0);}
+      if(c.alwaysFirst)roll=99;
+      else if(c.alwaysLast)roll=-99;
+      else roll=Math.floor(Math.random()*20)+1+(parseInt(c.initiativeMod)||0);
       rolls[c.id]=roll;
-      const ref=db.collection('ActiveCombat').doc(activeSessionId).collection('combatants').doc(c.id);
-      batch.update(ref,{initiative:roll});
+      batch.update(db.collection('Sessions').doc(activeSessionId).collection('combatants').doc(c.id),{initiative:roll});
     });
-    // Set session to rolling phase — players will see slot machine
-    await db.collection('ActiveCombat').doc(activeSessionId)
-      .update({initiativePhase:'rolling',initiativeRolls:rolls,initiativeTimestamp:Date.now()});
+    await db.collection('Sessions').doc(activeSessionId).update({initiativePhase:'rolling',initiativeTimestamp:Date.now()});
     await batch.commit();
-    // After animation window, lock in order
-    setTimeout(()=>lockInitiative(rolls),4000);
+    setTimeout(()=>lockInitiative(rolls),4200);
     document.getElementById('btn-roll-init').disabled=true;
     document.getElementById('btn-reset-init').style.display='inline-flex';
-  }catch(e){console.error(e);toast('Failed to roll initiative.','error');}
+  }catch(e){toast('Failed.','error');}
 }
 
 async function lockInitiative(rolls){
   if(!activeSessionId)return;
-  // Sort: always_first first, then by roll desc, always_last last
-  const ids=Object.values(combatants).sort((a,b)=>{
-    const ra=rolls[a.id]??0,rb=rolls[b.id]??0;
-    return rb-ra;
-  }).map(c=>c.id);
-  try{
-    await db.collection('ActiveCombat').doc(activeSessionId)
-      .update({initiativePhase:'active',turnOrder:ids,currentTurnIdx:0});
-    toast('Initiative locked — turn order set!','success');
-  }catch(e){console.error(e);}
+  const ids=Object.values(combatants).sort((a,b)=>(rolls[b.id]??0)-(rolls[a.id]??0)).map(c=>c.id);
+  await db.collection('Sessions').doc(activeSessionId).update({initiativePhase:'active',turnOrder:ids,currentTurnIdx:0});
 }
 
 async function resetInitiative(){
   if(!activeSessionId||!confirm('Reset initiative?'))return;
-  await db.collection('ActiveCombat').doc(activeSessionId)
-    .update({initiativePhase:'none',turnOrder:[],currentTurnIdx:0});
+  await db.collection('Sessions').doc(activeSessionId).update({initiativePhase:'none',turnOrder:[],currentTurnIdx:0});
   document.getElementById('btn-roll-init').disabled=false;
   document.getElementById('btn-reset-init').style.display='none';
 }
 
-// ── SLOT MACHINE ──
 let slotInterval=null;
 function startSlotMachine(){
   const modal=document.getElementById('slot-modal');
-  if(modal.classList.contains('open'))return; // already showing
+  if(modal.classList.contains('open'))return;
   modal.classList.add('open');
-  // Get or generate player's own roll
-  const myRoll=getMyInitiativeRoll();
+  const myRoll=getMyInitRoll();
   const numEl=document.getElementById('slot-num');
   const resultEl=document.getElementById('slot-result');
-  const finalEl=document.getElementById('slot-final');
-  resultEl.style.display='none';
-  let ticks=0;const totalTicks=25;
+  resultEl.style.display='none';numEl.style.color='var(--gold)';
+  let ticks=0;
   slotInterval=setInterval(()=>{
-    numEl.textContent=Math.floor(Math.random()*20)+1;
-    ticks++;
-    if(ticks>=totalTicks){
-      clearInterval(slotInterval);slotInterval=null;
-      numEl.textContent=myRoll;
-      numEl.style.color='var(--gold)';
-      resultEl.style.display='block';
-      finalEl.textContent=myRoll;
-      // Write player's initiative to their combatant doc
-      writePlayerInitiative(myRoll);
+    numEl.textContent=Math.floor(Math.random()*20)+1;ticks++;
+    if(ticks>=28){clearInterval(slotInterval);slotInterval=null;
+      numEl.textContent=myRoll;resultEl.style.display='block';
+      document.getElementById('slot-final').textContent=myRoll;
     }
   },80);
 }
-
-function getMyInitiativeRoll(){
-  // Generate random d20 + dex modifier
-  const dex=(myChar&&myChar.sheet&&myChar.sheet.abilityScores&&myChar.sheet.abilityScores.dex)||10;
-  const dexMod=Math.floor((dex-10)/2);
-  return Math.floor(Math.random()*20)+1+dexMod;
+function getMyInitRoll(){
+  const dex=(myChar?.sheet?.abilityScores?.dex)||10;
+  return Math.floor(Math.random()*20)+1+Math.floor((dex-10)/2);
 }
+function closeSlotMachine(){document.getElementById('slot-modal').classList.remove('open');if(slotInterval){clearInterval(slotInterval);slotInterval=null;}}
 
-async function writePlayerInitiative(roll){
-  if(!myChar||!activeSessionId)return;
-  const combId=Object.values(combatants).find(c=>c.characterId===myChar.id)?.id;
-  if(!combId)return;
-  try{
-    await db.collection('ActiveCombat').doc(activeSessionId).collection('combatants').doc(combId)
-      .update({initiative:roll});
-  }catch(e){console.error(e);}
-}
-
-function closeSlotMachine(){
-  const modal=document.getElementById('slot-modal');
-  modal.classList.remove('open');
-  if(slotInterval){clearInterval(slotInterval);slotInterval=null;}
-  const numEl=document.getElementById('slot-num');
-  numEl.style.color='var(--gold)';
-}
-
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  TURN ORDER
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function updateTurnUI(){
   if(initiativePhase!=='active'||!turnOrder.length)return;
-  const activeCombId=turnOrder[currentTurnIdx];
-  const activeComb=combatants[activeCombId];
-  if(!activeComb)return;
-  // Update turn banner for active player
-  const isPlayer=activeComb.type==='player';
-  const isMe=isPlayer&&activeComb.playerId===loggedUser;
-  const turnBanner=document.getElementById('turn-banner');
-  const pendBanner=document.getElementById('pending-banner');
+  const actId=turnOrder[currentTurnIdx];const actC=combatants[actId];if(!actC)return;
+  const isPlayer=actC.type==='player';const isMe=isPlayer&&actC.playerId===loggedUser;
   if(!isDM()){
-    if(isMe&&!myPendingActionId){
-      turnBanner.classList.add('show');
-      document.getElementById('turn-banner-txt').textContent=`&#9670; It's your turn, ${esc(activeComb.name)}!`;
-    }else{
-      turnBanner.classList.remove('show');
-    }
-    if(myPendingActionId){pendBanner.classList.add('show');}
-    else{pendBanner.classList.remove('show');}
+    document.getElementById('turn-banner').classList.toggle('show',isMe&&!myPendingActionId);
+    if(isMe)document.getElementById('turn-banner-txt').textContent=`&#9670; It's your turn, ${esc(actC.name)}!`;
+    document.getElementById('pending-banner').classList.toggle('show',!!myPendingActionId);
   }
-  // DM: show next-turn button (relabelled based on current combatant type)
   if(isDM()){
     const nb=document.getElementById('btn-next-turn');
     if(nb){nb.style.display='inline-flex';nb.textContent=isPlayer?'⏭ Skip Turn':'▶ Next Turn';}
   }
-  // Rerender to show glows
   renderCards();
 }
 
 async function advanceTurn(){
-  if(!activeSessionId||!isDM())return;
+  if(!activeSessionId)return;
   const next=(currentTurnIdx+1)%turnOrder.length;
-  await db.collection('ActiveCombat').doc(activeSessionId).update({currentTurnIdx:next});
-  currentTurnIdx=next;
-  updateTurnUI();
+  await db.collection('Sessions').doc(activeSessionId).update({currentTurnIdx:next});
 }
-
-async function dmEndEnemyTurn(){await advanceTurn();}
-
 async function playerEndTurn(){
-  // Any player can end their own turn
   if(!isMyTurn())return;
   const next=(currentTurnIdx+1)%turnOrder.length;
-  try{
-    await db.collection('ActiveCombat').doc(activeSessionId).update({currentTurnIdx:next});
-    document.getElementById('turn-banner').classList.remove('show');
-  }catch(e){toast('Failed.','error');}
+  await db.collection('Sessions').doc(activeSessionId).update({currentTurnIdx:next});
+  document.getElementById('turn-banner').classList.remove('show');
 }
 
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  NOTES
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function renderNotes(){
   const area=document.getElementById('notes-display');
   if(!sessionData)return;
-  const notes=sessionData.encounterNotes||'';
-  const imgUrl=sessionData.encounterImageUrl||'';
+  const notes=sessionData.encounterNotes||'',imgUrl=sessionData.encounterImageUrl||'';
   if(!notes&&!imgUrl){area.innerHTML='<div class="enc-notes-empty">No notes posted yet.</div>';return;}
-  area.innerHTML=`
-    ${imgUrl?`<img src="${esc(imgUrl)}" class="enc-notes-img" alt="" onerror="this.style.display='none';">`:''}
-    ${notes?`<div class="enc-notes-text">${esc(notes)}</div>`:''}`;
+  area.innerHTML=`${imgUrl?`<img src="${esc(imgUrl)}" class="enc-notes-img" alt="" onerror="this.style.display='none';">`:''}${notes?`<div class="enc-notes-text">${esc(notes)}</div>`:''}`;
 }
 function toggleNotesEdit(){
-  const form=document.getElementById('notes-form');
-  const vis=form.style.display==='none';
-  form.style.display=vis?'block':'none';
-  if(vis&&sessionData){
-    document.getElementById('notes-text').value=sessionData.encounterNotes||'';
-    document.getElementById('notes-img-url').value=sessionData.encounterImageUrl||'';
-  }
+  const f=document.getElementById('notes-form');const vis=f.style.display==='none';
+  f.style.display=vis?'block':'none';
+  if(vis&&sessionData){document.getElementById('notes-text').value=sessionData.encounterNotes||'';document.getElementById('notes-img-url').value=sessionData.encounterImageUrl||'';}
 }
 async function saveNotes(){
   if(!activeSessionId)return;
-  const notes=document.getElementById('notes-text').value;
-  const imgUrl=document.getElementById('notes-img-url').value.trim();
-  try{
-    await db.collection('ActiveCombat').doc(activeSessionId).update({encounterNotes:notes,encounterImageUrl:imgUrl});
-    toggleNotesEdit();toast('Notes saved.','success');
-  }catch(e){toast('Failed.','error');}
+  await db.collection('Sessions').doc(activeSessionId).update({encounterNotes:document.getElementById('notes-text').value,encounterImageUrl:document.getElementById('notes-img-url').value.trim()});
+  toggleNotesEdit();toast('Saved.','success');
 }
 
-// ════════════════════════════════════════════════════════
-//  SETUP
-// ════════════════════════════════════════════════════════
-async function loadPartyPicker(){
-  const picker=document.getElementById('party-picker');
-  if(!picker)return;
-  try{
-    const snap=await db.collection('Characters').where('status','==','Active').get();
-    const chars=snap.docs.map(d=>({id:d.id,...d.data()}));
-    picker.innerHTML=chars.length?chars.map(c=>`<label class="pick-lbl">
-      <input type="checkbox" value="${c.id}"
-        data-maxhp="${(c.sheet&&c.sheet.maxHp)||HIT_DIE[c.class]||8}"
-        data-name="${esc(c.characterName)}" data-player="${esc(c.playerId)}"
-        data-class="${esc(c.class||'')}" data-level="${c.level||1}"
-        data-ac="${(c.sheet&&c.sheet.abilityScores)?10+Math.floor(((c.sheet.abilityScores.dex||10)-10)/2):10}"
-        data-inmod="${(c.sheet&&c.sheet.abilityScores)?Math.floor(((c.sheet.abilityScores.dex||10)-10)/2):0}">
-      ${esc(c.characterName)} <span style="color:var(--text-d);font-size:.7rem;">(${esc(c.class||'')} Lv${c.level||1} – ${esc(c.playerId)})</span>
-    </label>`).join('')
-    :'<div style="grid-column:1/-1;color:var(--text-d);font-style:italic;font-size:.8rem;">No active characters found.</div>';
-  }catch(e){picker.innerHTML='<div style="color:var(--text-d);font-style:italic;grid-column:1/-1;">Error loading characters.</div>';}
+// ════════════════════════════════════════════════════════════
+//  ADD / REMOVE ENEMIES
+// ════════════════════════════════════════════════════════════
+function buildTemplateDropdown(){
+  const sel=document.getElementById('enemy-template');
+  ENEMY_TEMPLATES.forEach((t,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${t.name} (CR ${t.cr})`;sel.appendChild(o);});
 }
-
-async function startSession(){
-  const name=document.getElementById('ss-name').value.trim()||'Encounter';
-  const checked=[...document.querySelectorAll('#party-picker input:checked')];
-  if(!checked.length){toast('Select at least one party member.','error');return;}
-  try{
-    const sessionRef=db.collection('ActiveCombat').doc();
-    const batch=db.batch();
-    batch.set(sessionRef,{
-      sessionName:name,dmId:loggedUser,isActive:true,
-      createdAt:new Date().toISOString(),
-      encounterNotes:'',encounterImageUrl:'',
-      initiativePhase:'none',turnOrder:[],currentTurnIdx:0
-    });
-    checked.forEach(cb=>{
-      const ref=sessionRef.collection('combatants').doc(cb.value);
-      const maxHp=parseInt(cb.dataset.maxhp)||8;
-      batch.set(ref,{
-        name:cb.dataset.name,type:'player',characterId:cb.value,
-        playerId:cb.dataset.player,characterClass:cb.dataset.class,
-        level:parseInt(cb.dataset.level)||1,maxHp,currentHp:maxHp,tempHp:0,
-        armorClass:parseInt(cb.dataset.ac)||10,
-        initiativeMod:parseInt(cb.dataset.inmod)||0,
-        initiative:null,conditions:[],isDead:false,alwaysFirst:false,alwaysLast:false
-      });
-    });
-    await batch.commit();
-    toast(`"${name}" started!`,'success');
-  }catch(e){console.error(e);toast('Failed to start.','error');}
+function fillEnemyTemplate(){
+  const sel=document.getElementById('enemy-template');if(!sel.value)return;
+  const t=ENEMY_TEMPLATES[parseInt(sel.value)];if(!t)return;
+  document.getElementById('e-name').value=t.name;document.getElementById('e-hp').value=t.hp;
+  document.getElementById('e-ac').value=t.ac;document.getElementById('e-init').value=t.initMod;
 }
-
 async function addEnemy(){
   if(!activeSessionId)return;
   const name=document.getElementById('e-name').value.trim();
@@ -1026,57 +1125,32 @@ async function addEnemy(){
   const alwaysFirst=document.getElementById('e-first').checked;
   const alwaysLast=document.getElementById('e-last').checked;
   if(!name){toast('Enter enemy name.','error');return;}
-  try{
-    await db.collection('ActiveCombat').doc(activeSessionId).collection('combatants').add({
-      name,type:'enemy',maxHp,currentHp:maxHp,tempHp:0,
-      armorClass:ac,initiativeMod:initMod,initiative:null,
-      alwaysFirst,alwaysLast,conditions:[],isDead:false
-    });
-    document.getElementById('e-name').value='';
-    document.getElementById('enemy-template').value='';
-    toast(`${name} added.`,'success');
-  }catch(e){toast('Failed.','error');}
+  await db.collection('Sessions').doc(activeSessionId).collection('combatants').add({name,type:'enemy',maxHp,currentHp:maxHp,tempHp:0,armorClass:ac,initiativeMod:initMod,initiative:null,alwaysFirst,alwaysLast,conditions:[],isDead:false});
+  document.getElementById('e-name').value='';document.getElementById('enemy-template').value='';
+  toast(`${name} added.`,'success');
 }
-
 async function removeEnemy(id){
-  if(!confirm('Remove this enemy?'))return;
-  try{await db.collection('ActiveCombat').doc(activeSessionId).collection('combatants').doc(id).delete();}
-  catch(e){toast('Failed.','error');}
+  if(!confirm('Remove?'))return;
+  await db.collection('Sessions').doc(activeSessionId).collection('combatants').doc(id).delete();
 }
 
-async function endSession(){
-  if(!activeSessionId||!confirm('End this encounter? This cannot be undone.'))return;
-  try{
-    const snap=await db.collection('ActiveCombat').doc(activeSessionId).collection('combatants').get();
-    const snap2=await db.collection('ActiveCombat').doc(activeSessionId).collection('combatActions').get();
-    const batch=db.batch();
-    snap.docs.forEach(d=>batch.delete(d.ref));
-    snap2.docs.forEach(d=>batch.delete(d.ref));
-    batch.update(db.collection('ActiveCombat').doc(activeSessionId),{isActive:false,endedAt:new Date().toISOString()});
-    await batch.commit();
-    toast('Session ended.','info');
-  }catch(e){toast('Failed.','error');}
-}
-
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  HP ADJUSTMENTS
-// ════════════════════════════════════════════════════════
-async function quickHp(combId,action,amt){await applyHp(combId,action,amt);}
+// ════════════════════════════════════════════════════════════
+async function quickHp(id,action,amt){await applyHp(id,action,amt);}
 async function applyHp(combId,action,amt){
-  const c=combatants[combId];if(!c||!activeSessionId)return;
+  const c=combatants[combId];if(!c)return;
   let hp=c.currentHp,tmp=c.tempHp||0;
   if(action==='heal')hp=Math.min(c.maxHp,hp+amt);
   if(action==='dmg'){if(tmp>0){const ab=Math.min(tmp,amt);tmp-=ab;hp=Math.max(0,hp-(amt-ab));}else hp=Math.max(0,hp-amt);}
   if(action==='temp')tmp+=amt;
-  try{
-    await db.collection('ActiveCombat').doc(activeSessionId).collection('combatants').doc(combId).update({currentHp:hp,tempHp:tmp});
-    if(c.characterId)await db.collection('Characters').doc(c.characterId).update({'sheet.hp':hp,'sheet.tempHp':tmp});
-  }catch(e){toast('HP update failed.','error');}
+  await db.collection('Sessions').doc(activeSessionId).collection('combatants').doc(combId).update({currentHp:hp,tempHp:tmp});
+  if(c.characterId)await db.collection('Characters').doc(c.characterId).update({'sheet.hp':hp,'sheet.tempHp':tmp});
 }
 
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  DM ADJUST MODAL
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function openDmAdjust(id){
   dmAdjTarget=id;const c=combatants[id];if(!c)return;
   document.getElementById('m-adj-title').textContent='Adjust: '+esc(c.name);
@@ -1086,426 +1160,168 @@ function openDmAdjust(id){
     <div class="mc-btn-row">
       <button class="mc-btn mc-green" onclick="dmAdj('heal')">+ Heal</button>
       <button class="mc-btn mc-red" onclick="dmAdj('dmg')">&#8722; Damage</button>
-      <button class="mc-btn mc-gold" onclick="dmAdj('temp')">+ Temp HP</button>
+      <button class="mc-btn mc-gold" onclick="dmAdj('temp')">+ Temp</button>
     </div>
-    ${c.type==='enemy'?`<div class="mc-btn-row" style="margin-top:.4rem;">
-      <button class="mc-btn" style="background:rgba(155,21,21,.1);border-color:var(--red-d);color:var(--red);" onclick="dmToggleDead('${id}',${!!c.isDead})">
-        ${c.isDead?'Revive':'Mark Dead'}
-      </button>
-    </div>`:''}
-    <div class="mc-btn-row" style="margin-top:.4rem;">
-      <button class="mc-btn mc-ghost" onclick="document.getElementById('m-dm-adj').classList.remove('open')">Close</button>
-    </div>`;
+    ${c.type==='enemy'?`<div class="mc-btn-row" style="margin-top:.4rem;"><button class="mc-btn" style="background:rgba(155,21,21,.1);border-color:var(--red-d);color:var(--red);" onclick="dmToggleDead('${id}',${!!c.isDead})">${c.isDead?'Revive':'Mark Dead'}</button></div>`:''}
+    <div class="mc-btn-row" style="margin-top:.4rem;"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-dm-adj').classList.remove('open')">Close</button></div>`;
   document.getElementById('m-dm-adj').classList.add('open');
 }
-async function dmAdj(action){
-  const amt=parseInt(document.getElementById('adj-amt').value)||0;
-  if(!amt||!dmAdjTarget)return;
-  await applyHp(dmAdjTarget,action,amt);
-  document.getElementById('m-dm-adj').classList.remove('open');
-}
-async function dmToggleDead(id,wasDead){
-  try{
-    await db.collection('ActiveCombat').doc(activeSessionId).collection('combatants').doc(id)
-      .update({isDead:!wasDead,currentHp:wasDead?1:0});
-    document.getElementById('m-dm-adj').classList.remove('open');
-  }catch(e){toast('Failed.','error');}
-}
+async function dmAdj(a){const amt=parseInt(document.getElementById('adj-amt').value)||0;if(!amt)return;await applyHp(dmAdjTarget,a,amt);document.getElementById('m-dm-adj').classList.remove('open');}
+async function dmToggleDead(id,was){await db.collection('Sessions').doc(activeSessionId).collection('combatants').doc(id).update({isDead:!was,currentHp:was?1:0});document.getElementById('m-dm-adj').classList.remove('open');}
 
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  PLAYER ATTACK MODAL
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function openAttack(combId){
-  // Check turn order
-  if(initiativePhase==='active'&&!isMyTurn()){
-    toast("It's not your turn yet!","error");return;
-  }
-  if(myPendingActionId){
-    toast('You have a pending action — wait for the DM.','error');return;
-  }
+  if(initiativePhase==='active'&&!isMyTurn()){toast("Not your turn!",'error');return;}
+  if(myPendingActionId){toast('You have a pending action.','error');return;}
   actionTarget=combatants[combId];if(!actionTarget)return;
-  actionData={};
-  showAttackStep('choose');
-  document.getElementById('m-action').classList.add('open');
+  actionData={};showAttackStep('choose');document.getElementById('m-action').classList.add('open');
 }
-
 function openAllyInfo(combId){
   const c=combatants[combId];if(!c)return;
-  const pct=hpPct(c.currentHp,c.maxHp);
-  const [sl,scls]=statusLabel(pct);
+  const pct=hpPct(c.currentHp,c.maxHp);const [sl,scls]=statusLabel(pct);
   const col=CLASS_COLORS[c.characterClass]||'var(--gold)';
   document.getElementById('m-action-title').innerHTML=`<span style="color:${col};">${esc(c.name)}</span>`;
-  document.getElementById('m-action-body').innerHTML=`
-    <div class="mc-info"><b>${esc(c.name)}</b> — ${esc(c.characterClass||'')} Lv${c.level||1}<br>
-    HP: <b>${c.currentHp}/${c.maxHp}</b>${c.tempHp?' (+'+c.tempHp+' tmp)':''}<br>
-    Status: <span class="sb sb-${scls}">${sl}</span>
-    ${(c.conditions||[]).length?'<br>Conditions: '+esc(c.conditions.join(', ')):''}</div>
-    <div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-action').classList.remove('open')">Close</button></div>`;
+  document.getElementById('m-action-body').innerHTML=`<div class="mc-info"><b>${esc(c.name)}</b> — HP: ${c.currentHp}/${c.maxHp}<br>Status: <span class="sb sb-${scls}">${sl}</span></div><div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-action').classList.remove('open')">Close</button></div>`;
   document.getElementById('m-action').classList.add('open');
 }
-
 function showAttackStep(step){
-  const body=document.getElementById('m-action-body');
-  const c=actionTarget;
+  const body=document.getElementById('m-action-body');const c=actionTarget;
   document.getElementById('m-action-title').textContent='Attack: '+esc(c.name);
-  if(step==='choose'){
-    body.innerHTML=`
-      <div class="mc-info">Target: <b>${esc(c.name)}</b>${c.armorClass?' — AC '+c.armorClass:' — AC unknown'}</div>
-      <div class="mc-btn-row">
-        <button class="mc-btn mc-red" onclick="showAttackStep('type')">&#9876; Attack</button>
-        <button class="mc-btn mc-ghost" onclick="document.getElementById('m-action').classList.remove('open')">Cancel</button>
-      </div>`;
-  }else if(step==='type'){
-    body.innerHTML=`
-      <div class="mc-info">Choose your attack type:</div>
-      <div class="mc-btn-row">
-        <button class="mc-btn mc-gold" onclick="showAttackStep('attackRoll')">Attack Roll</button>
-        <button class="mc-btn mc-gold" onclick="showAttackStep('savingThrow')">Saving Throw</button>
-      </div>
-      <div class="mc-info" style="margin-top:.5rem;font-size:.76rem;">
-        <b>Attack Roll:</b> d20 + ability mod + prof bonus.<br>
-        <b>Saving Throw:</b> You set the DC; DM resolves the enemy's roll.
-      </div>
-      <div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="showAttackStep('choose')">&#8592; Back</button></div>`;
-  }else if(step==='attackRoll'){
-    body.innerHTML=`
-      <div class="mc-info">Target AC: <b>${c.armorClass||'??'}</b><br>Enter your total attack roll (d20 + mods):</div>
-      <input class="mc-inp" id="roll-val" type="number" min="1" max="30" placeholder="e.g. 17" autofocus>
-      <div class="mc-info" style="font-size:.74rem;"><b>Tip:</b> d20 + ability modifier + proficiency bonus if proficient.</div>
-      <div class="mc-btn-row">
-        <button class="mc-btn mc-red" onclick="submitAttack('attackRoll')">Submit Roll</button>
-        <button class="mc-btn mc-ghost" onclick="showAttackStep('type')">&#8592; Back</button>
-      </div>`;
-  }else if(step==='savingThrow'){
-    body.innerHTML=`
-      <div class="mc-info">Select the saving throw ability and enter the DC:</div>
-      <div class="mc-stat-grid">${SKEYS.map(k=>`<div class="stat-btn" onclick="selectSaveStat('${k}')">${SABRV[k]}</div>`).join('')}</div>
-      <input class="mc-inp" id="dc-val" type="number" min="1" max="30" placeholder="DC e.g. 14" autofocus>
-      <div class="mc-btn-row">
-        <button class="mc-btn mc-red" onclick="submitAttack('savingThrow')">Submit</button>
-        <button class="mc-btn mc-ghost" onclick="showAttackStep('type')">&#8592; Back</button>
-      </div>`;
-  }else if(step==='damage'){
-    body.innerHTML=`
-      <div class="mc-info" style="color:var(--green-b);">&#10003; Hit confirmed! Enter your damage roll:</div>
-      <input class="mc-inp" id="dmg-val" type="number" min="1" max="200" placeholder="e.g. 8" autofocus>
-      <div class="mc-info" style="font-size:.74rem;">Roll your weapon/spell damage dice and enter the total. DM confirms before HP is applied.</div>
-      <div class="mc-btn-row"><button class="mc-btn mc-red" onclick="submitDamage()">Submit Damage</button></div>`;
-    document.getElementById('m-action').classList.add('open');
-  }else if(step==='miss'){
-    body.innerHTML=`
-      <div class="mc-info" style="color:var(--red);">&#10007; Miss — the attack did not connect.</div>
-      <div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-action').classList.remove('open')">Close</button></div>`;
-    document.getElementById('m-action').classList.add('open');
-  }else if(step==='done'){
-    const msg=actionData.doneMsg||'Action resolved.';
-    body.innerHTML=`
-      <div class="mc-info" style="color:var(--green-b);">&#10003; ${msg}</div>
-      <div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-action').classList.remove('open')">Close</button></div>`;
-    document.getElementById('m-action').classList.add('open');
-  }
+  if(step==='choose'){body.innerHTML=`<div class="mc-info">Target: <b>${esc(c.name)}</b>${c.armorClass?' — AC '+c.armorClass:''}</div><div class="mc-btn-row"><button class="mc-btn mc-red" onclick="showAttackStep('type')">&#9876; Attack</button><button class="mc-btn mc-ghost" onclick="document.getElementById('m-action').classList.remove('open')">Cancel</button></div>`;}
+  else if(step==='type'){body.innerHTML=`<div class="mc-info">Choose attack type:</div><div class="mc-btn-row"><button class="mc-btn mc-gold" onclick="showAttackStep('attackRoll')">Attack Roll</button><button class="mc-btn mc-gold" onclick="showAttackStep('savingThrow')">Saving Throw</button></div><div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="showAttackStep('choose')">&#8592; Back</button></div>`;}
+  else if(step==='attackRoll'){body.innerHTML=`<div class="mc-info">Target AC: <b>${c.armorClass||'??'}</b><br>Enter total attack roll:</div><input class="mc-inp" id="roll-val" type="number" min="1" max="30" placeholder="e.g. 17" autofocus><div class="mc-btn-row"><button class="mc-btn mc-red" onclick="submitAttack('attackRoll')">Submit</button><button class="mc-btn mc-ghost" onclick="showAttackStep('type')">&#8592; Back</button></div>`;}
+  else if(step==='savingThrow'){body.innerHTML=`<div class="mc-info">Select stat and enter DC:</div><div class="mc-stat-grid">${SKEYS.map(k=>`<div class="stat-btn" onclick="selectSaveStat('${k}')">${SABRV[k]}</div>`).join('')}</div><input class="mc-inp" id="dc-val" type="number" min="1" max="30" placeholder="DC e.g. 14" autofocus><div class="mc-btn-row"><button class="mc-btn mc-red" onclick="submitAttack('savingThrow')">Submit</button><button class="mc-btn mc-ghost" onclick="showAttackStep('type')">&#8592; Back</button></div>`;}
+  else if(step==='damage'){body.innerHTML=`<div class="mc-info" style="color:var(--green-b);">&#10003; Hit! Enter damage roll:</div><input class="mc-inp" id="dmg-val" type="number" min="1" max="200" placeholder="e.g. 8" autofocus><div class="mc-btn-row"><button class="mc-btn mc-red" onclick="submitDamage()">Submit Damage</button></div>`;document.getElementById('m-action').classList.add('open');}
+  else if(step==='miss'){body.innerHTML=`<div class="mc-info" style="color:var(--red);">&#10007; Miss — attack did not connect.</div><div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-action').classList.remove('open')">Close</button></div>`;document.getElementById('m-action').classList.add('open');}
+  else if(step==='done'){body.innerHTML=`<div class="mc-info" style="color:var(--green-b);">&#10003; ${actionData.doneMsg||'Action resolved.'}</div><div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-action').classList.remove('open')">Close</button></div>`;document.getElementById('m-action').classList.add('open');}
 }
-
-function selectSaveStat(stat){
-  actionData.saveStat=stat;
-  document.querySelectorAll('.stat-btn').forEach(b=>b.classList.remove('sel'));
-  document.querySelector(`.stat-btn[onclick="selectSaveStat('${stat}')"]`)?.classList.add('sel');
-}
-
+function selectSaveStat(s){actionData.saveStat=s;document.querySelectorAll('.stat-btn').forEach(b=>b.classList.remove('sel'));document.querySelector(`.stat-btn[onclick="selectSaveStat('${s}')"]`)?.classList.add('sel');}
 async function submitAttack(type){
   let payload={rollType:type};
-  if(type==='attackRoll'){
-    const v=parseInt(document.getElementById('roll-val').value);
-    if(!v){toast('Enter your roll.','error');return;}
-    payload.rollValue=v;
-  }else{
-    if(!actionData.saveStat){toast('Select a stat.','error');return;}
-    const dc=parseInt(document.getElementById('dc-val').value);
-    if(!dc){toast('Enter a DC.','error');return;}
-    payload.saveStat=actionData.saveStat;payload.dc=dc;
-  }
-  // Close modal, show banner, submit to Firestore
+  if(type==='attackRoll'){const v=parseInt(document.getElementById('roll-val').value);if(!v){toast('Enter roll.','error');return;}payload.rollValue=v;}
+  else{if(!actionData.saveStat){toast('Select stat.','error');return;}const dc=parseInt(document.getElementById('dc-val').value);if(!dc){toast('Enter DC.','error');return;}payload.saveStat=actionData.saveStat;payload.dc=dc;}
   document.getElementById('m-action').classList.remove('open');
   document.getElementById('pending-banner').classList.add('show');
   try{
-    const ref=await db.collection('ActiveCombat').doc(activeSessionId).collection('combatActions').add({
-      attackerPlayerId:loggedUser,
-      attackerName:loggedName||loggedUser,
-      attackerCharName:myChar?.characterName||'',
-      targetCombatantId:actionTarget.id,
-      targetName:actionTarget.name,
-      rollType:payload.rollType,
-      rollValue:payload.rollValue||null,
-      dc:payload.dc||null,
-      saveStat:payload.saveStat||null,
-      status:'pending',
-      submittedAt:new Date().toISOString(),
+    const ref=await db.collection('Sessions').doc(activeSessionId).collection('combatActions').add({
+      attackerPlayerId:loggedUser,attackerName:loggedName,attackerCharName:myChar?.characterName||'',
+      targetCombatantId:actionTarget.id,targetName:actionTarget.name,
+      rollType:payload.rollType,rollValue:payload.rollValue||null,dc:payload.dc||null,saveStat:payload.saveStat||null,
+      status:'pending',submittedAt:new Date().toISOString(),
     });
-    myPendingActionId=ref.id;
-    listenMyAction(ref.id);
-  }catch(e){
-    console.error(e);
-    document.getElementById('pending-banner').classList.remove('show');
-    toast('Failed to submit.','error');
-  }
+    myPendingActionId=ref.id;listenMyAction(ref.id);
+  }catch(e){document.getElementById('pending-banner').classList.remove('show');toast('Failed.','error');}
 }
-
-function listenMyAction(actionId){
+function listenMyAction(id){
   if(unsubMyAction){unsubMyAction();unsubMyAction=null;}
-  unsubMyAction=db.collection('ActiveCombat').doc(activeSessionId)
-    .collection('combatActions').doc(actionId)
+  unsubMyAction=db.collection('Sessions').doc(activeSessionId).collection('combatActions').doc(id)
     .onSnapshot(snap=>{
-      if(!snap.exists)return;
-      const a=snap.data();
-      if(a.status==='hit'){
-        document.getElementById('pending-banner').classList.remove('show');
-        showAttackStep('damage');
-      }else if(a.status==='miss'){
-        document.getElementById('pending-banner').classList.remove('show');
-        myPendingActionId=null;
-        if(unsubMyAction){unsubMyAction();unsubMyAction=null;}
-        showAttackStep('miss');
-      }else if(a.status==='awaitingDamage'){
-        // Player submitted damage, now waiting
-        document.getElementById('pending-banner').classList.add('show');
-        document.getElementById('m-action').classList.remove('open');
-      }else if(a.status==='complete'){
-        document.getElementById('pending-banner').classList.remove('show');
-        document.getElementById('m-action').classList.remove('open');
-        myPendingActionId=null;
-        if(unsubMyAction){unsubMyAction();unsubMyAction=null;}
-        actionData.doneMsg=`${a.finalDamage} damage dealt to ${esc(a.targetName)}!`;
-        showAttackStep('done');
-      }else if(a.status==='cancelled'){
-        document.getElementById('pending-banner').classList.remove('show');
-        document.getElementById('m-action').classList.remove('open');
-        myPendingActionId=null;
-        if(unsubMyAction){unsubMyAction();unsubMyAction=null;}
-      }
+      if(!snap.exists)return;const a=snap.data();
+      if(a.status==='hit'){document.getElementById('pending-banner').classList.remove('show');showAttackStep('damage');}
+      else if(a.status==='miss'){document.getElementById('pending-banner').classList.remove('show');myPendingActionId=null;if(unsubMyAction){unsubMyAction();unsubMyAction=null;}showAttackStep('miss');}
+      else if(a.status==='complete'){document.getElementById('pending-banner').classList.remove('show');document.getElementById('m-action').classList.remove('open');myPendingActionId=null;if(unsubMyAction){unsubMyAction();unsubMyAction=null;}actionData.doneMsg=`${a.finalDamage} damage dealt to ${esc(a.targetName)}!`;showAttackStep('done');}
+      else if(a.status==='cancelled'){document.getElementById('pending-banner').classList.remove('show');document.getElementById('m-action').classList.remove('open');myPendingActionId=null;if(unsubMyAction){unsubMyAction();unsubMyAction=null;}}
     });
 }
-
 async function submitDamage(){
-  const dmg=parseInt(document.getElementById('dmg-val').value);
-  if(!dmg){toast('Enter damage.','error');return;}
-  document.getElementById('m-action').classList.remove('open');
-  document.getElementById('pending-banner').classList.add('show');
-  try{
-    await db.collection('ActiveCombat').doc(activeSessionId)
-      .collection('combatActions').doc(myPendingActionId)
-      .update({damageValue:dmg,status:'awaitingDamage'});
-  }catch(e){toast('Failed.','error');}
+  const dmg=parseInt(document.getElementById('dmg-val').value);if(!dmg){toast('Enter damage.','error');return;}
+  document.getElementById('m-action').classList.remove('open');document.getElementById('pending-banner').classList.add('show');
+  await db.collection('Sessions').doc(activeSessionId).collection('combatActions').doc(myPendingActionId).update({damageValue:dmg,status:'awaitingDamage'});
 }
-
 async function cancelMyAction(){
-  if(myPendingActionId){
-    try{
-      await db.collection('ActiveCombat').doc(activeSessionId)
-        .collection('combatActions').doc(myPendingActionId)
-        .update({status:'cancelled'});
-    }catch(e){}
-    myPendingActionId=null;
-  }
-  if(unsubMyAction){unsubMyAction();unsubMyAction=null;}
+  if(myPendingActionId)await db.collection('Sessions').doc(activeSessionId).collection('combatActions').doc(myPendingActionId).update({status:'cancelled'}).catch(()=>{});
+  myPendingActionId=null;if(unsubMyAction){unsubMyAction();unsubMyAction=null;}
   document.getElementById('pending-banner').classList.remove('show');
 }
 
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  PENDING PANEL (DM)
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function renderPendingPanel(){
-  const panel=document.getElementById('pend-panel');
-  const body=document.getElementById('pend-body');
-  const badge=document.getElementById('pend-badge');
+  const panel=document.getElementById('pend-panel');const body=document.getElementById('pend-body');const badge=document.getElementById('pend-badge');
   const items=Object.values(pendingActions).filter(a=>a.status==='pending'||a.status==='awaitingDamage');
   badge.textContent=items.length||'';
   if(!items.length){panel.classList.remove('show');return;}
   panel.classList.add('show');
   body.innerHTML=items.map(a=>{
-    const c=combatants[a.targetCombatantId];
-    const ac=c?.armorClass;
+    const c=combatants[a.targetCombatantId];const ac=c?.armorClass;
     if(a.status==='pending'){
       if(a.rollType==='attackRoll'){
         const hit=ac?(a.rollValue>=ac):null;
-        const hitLabel=ac?(hit?`<span style="color:var(--green-b);">HITS (AC ${ac})</span>`:`<span style="color:var(--red);">MISSES (AC ${ac})</span>`):`Roll: ${a.rollValue} — AC unknown`;
-        return `<div class="pp-item">
-          <div class="pp-title">&#9876; ${esc(a.attackerCharName||a.attackerName)} → ${esc(a.targetName)}</div>
-          <div class="pp-detail">Attack Roll: <b>${a.rollValue}</b> — ${hitLabel}</div>
-          ${!ac?`<div style="margin:.3rem 0;display:flex;align-items:center;gap:.35rem;"><input class="pp-inp" id="ac-${a.id}" type="number" min="1" max="30" placeholder="AC"><span style="font-size:.7rem;color:var(--text-d);">Enter AC</span></div>`:''}
-          <div class="pp-row">
-            <button class="pp-btn pp-hit" onclick="dmHit('${a.id}',true)">&#10003; Hit</button>
-            <button class="pp-btn pp-miss" onclick="dmHit('${a.id}',false)">&#10007; Miss</button>
-          </div>
-        </div>`;
-      }else{
-        return `<div class="pp-item">
-          <div class="pp-title">&#9876; ${esc(a.attackerCharName||a.attackerName)} → ${esc(a.targetName)} (Saving Throw)</div>
-          <div class="pp-detail">Stat: <b>${SABRV[a.saveStat]||a.saveStat}</b> — DC: <b>${a.dc}</b></div>
-          <div class="pp-row">
-            <button class="pp-btn pp-hit" onclick="dmHit('${a.id}',true)">Failed → Damage</button>
-            <button class="pp-btn pp-miss" onclick="dmHit('${a.id}',false)">Passed ✓</button>
-          </div>
-        </div>`;
-      }
+        const hl=ac?(hit?`<span style="color:var(--green-b);">HITS (AC ${ac})</span>`:`<span style="color:var(--red);">MISSES</span>`):` Roll: ${a.rollValue}`;
+        return `<div class="pp-item"><div class="pp-title">&#9876; ${esc(a.attackerCharName)} → ${esc(a.targetName)}</div><div class="pp-detail">Roll: <b>${a.rollValue}</b> ${hl}</div>${!ac?`<div style="display:flex;gap:.3rem;align-items:center;margin:.3rem 0;"><input class="pp-inp" id="ac-${a.id}" type="number" min="1" max="30" placeholder="AC"><span style="font-size:.7rem;color:var(--text-d);">Enter AC</span></div>`:''}<div class="pp-row"><button class="pp-btn pp-hit" onclick="dmHit('${a.id}',true)">&#10003; Hit</button><button class="pp-btn pp-miss" onclick="dmHit('${a.id}',false)">&#10007; Miss</button></div></div>`;
+      }else{return `<div class="pp-item"><div class="pp-title">&#9876; ${esc(a.attackerCharName)} → ${esc(a.targetName)} (Save)</div><div class="pp-detail">Stat: <b>${SABRV[a.saveStat]||a.saveStat}</b> DC:<b>${a.dc}</b></div><div class="pp-row"><button class="pp-btn pp-hit" onclick="dmHit('${a.id}',true)">Failed → Dmg</button><button class="pp-btn pp-miss" onclick="dmHit('${a.id}',false)">Passed</button></div></div>`;}
     }else if(a.status==='awaitingDamage'){
-      return `<div class="pp-item">
-        <div class="pp-title">&#9760; ${esc(a.attackerCharName||a.attackerName)} → ${esc(a.targetName)}: ${a.damageValue} dmg</div>
-        <div class="pp-detail">Confirm or override damage before applying:</div>
-        <div style="display:flex;align-items:center;gap:.35rem;margin:.3rem 0;">
-          <input class="pp-inp" id="ov-${a.id}" type="number" min="0" max="999" value="${a.damageValue}">
-          <span style="font-size:.7rem;color:var(--text-d);">Override if needed</span>
-        </div>
-        <div class="pp-row">
-          <button class="pp-btn pp-hit" onclick="dmApplyDamage('${a.id}','${a.targetCombatantId}')">&#10003; Apply</button>
-          <button class="pp-btn pp-miss" onclick="dmDeny('${a.id}')">Cancel</button>
-        </div>
-      </div>`;
+      return `<div class="pp-item"><div class="pp-title">&#9760; ${esc(a.attackerCharName)} → ${esc(a.targetName)}: ${a.damageValue} dmg</div><div style="display:flex;align-items:center;gap:.35rem;margin:.3rem 0;"><input class="pp-inp" id="ov-${a.id}" type="number" min="0" max="999" value="${a.damageValue}"><span style="font-size:.7rem;color:var(--text-d);">Override</span></div><div class="pp-row"><button class="pp-btn pp-hit" onclick="dmApplyDamage('${a.id}','${a.targetCombatantId}')">&#10003; Apply</button><button class="pp-btn pp-miss" onclick="dmDeny('${a.id}')">Cancel</button></div></div>`;
     }
     return '';
   }).join('');
 }
-
-async function dmHit(actionId,isHit){
-  const acInp=document.getElementById('ac-'+actionId);
-  const ac=acInp?parseInt(acInp.value)||null:null;
+async function dmHit(id,isHit){
+  const acInp=document.getElementById('ac-'+id);const ac=acInp?parseInt(acInp.value)||null:null;
   const update={status:isHit?'hit':'miss'};
-  if(ac){
-    update.targetAC=ac;
-    const a=pendingActions[actionId];
-    if(a?.targetCombatantId&&combatants[a.targetCombatantId]){
-      await db.collection('ActiveCombat').doc(activeSessionId).collection('combatants').doc(a.targetCombatantId).update({armorClass:ac});
-    }
-  }
-  await db.collection('ActiveCombat').doc(activeSessionId).collection('combatActions').doc(actionId).update(update);
+  if(ac){update.targetAC=ac;const a=pendingActions[id];if(a?.targetCombatantId)await db.collection('Sessions').doc(activeSessionId).collection('combatants').doc(a.targetCombatantId).update({armorClass:ac});}
+  await db.collection('Sessions').doc(activeSessionId).collection('combatActions').doc(id).update(update);
 }
-
-async function dmApplyDamage(actionId,combId){
-  const ovEl=document.getElementById('ov-'+actionId);
-  const finalDmg=ovEl?parseInt(ovEl.value)||0:pendingActions[actionId]?.damageValue||0;
-  try{
-    await db.collection('ActiveCombat').doc(activeSessionId).collection('combatActions').doc(actionId)
-      .update({status:'complete',finalDamage:finalDmg});
-    await applyHp(combId,'dmg',finalDmg);
-    toast(`${finalDmg} damage applied.`,'success');
-  }catch(e){toast('Failed.','error');}
+async function dmApplyDamage(id,combId){
+  const ov=document.getElementById('ov-'+id);const dmg=ov?parseInt(ov.value)||0:pendingActions[id]?.damageValue||0;
+  await db.collection('Sessions').doc(activeSessionId).collection('combatActions').doc(id).update({status:'complete',finalDamage:dmg});
+  await applyHp(combId,'dmg',dmg);toast(`${dmg} damage applied.`,'success');
 }
+async function dmDeny(id){await db.collection('Sessions').doc(activeSessionId).collection('combatActions').doc(id).update({status:'cancelled'});}
 
-async function dmDeny(actionId){
-  await db.collection('ActiveCombat').doc(activeSessionId).collection('combatActions').doc(actionId).update({status:'cancelled'});
-}
-
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  CHARACTER SHEET (LEFT PANEL)
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+async function loadPartyCharsForNav(){
+  const ids=[...new Set(Object.values(combatants).filter(c=>c.type==='player'&&c.characterId).map(c=>c.characterId))];
+  if(!ids.length){partyChars=[];updateSheetNav();return;}
+  const snaps=await Promise.all(ids.map(id=>db.collection('Characters').doc(id).get()));
+  partyChars=snaps.filter(d=>d.exists).map(d=>({id:d.id,...d.data()}));
+  updateSheetNav();
+}
 function updateSheetNav(){
-  const prev=document.getElementById('btn-sprev');
-  const next=document.getElementById('btn-snext');
-  const lbl=document.getElementById('enc-sheet-lbl');
+  const prev=document.getElementById('btn-sprev');const next=document.getElementById('btn-snext');const lbl=document.getElementById('enc-sheet-lbl');
   if(!isDM()||!partyChars.length){if(prev)prev.disabled=true;if(next)next.disabled=true;return;}
   sheetNavIdx=Math.max(0,Math.min(sheetNavIdx,partyChars.length-1));
-  if(prev)prev.disabled=(sheetNavIdx===0);
-  if(next)next.disabled=(sheetNavIdx===partyChars.length-1);
-  const c=partyChars[sheetNavIdx];
-  if(lbl&&c)lbl.textContent=c.characterName||'Sheet';
+  if(prev)prev.disabled=(sheetNavIdx===0);if(next)next.disabled=(sheetNavIdx===partyChars.length-1);
+  const c=partyChars[sheetNavIdx];if(lbl&&c)lbl.textContent=c.characterName||'Sheet';
   renderEncSheet();
 }
 function navSheet(d){sheetNavIdx=Math.max(0,Math.min(sheetNavIdx+d,partyChars.length-1));updateSheetNav();}
-
 function renderEncSheet(){
   const root=document.getElementById('enc-sheet-root');
   const char=isDM()?partyChars[sheetNavIdx]:myChar;
   if(!char){root.innerHTML='<div style="padding:1rem;font-style:italic;color:#8a6040;font-size:.82rem;">No character loaded.</div>';return;}
-  const s=char.sheet||{};
-  const sc=s.abilityScores||{str:10,dex:10,con:10,int:10,wis:10,cha:10};
-  const lv=char.level||1;
-  const pb=PROF_BY_LV[Math.min(20,Math.max(1,lv))];
-  const saves=s.savingThrowProficiencies||[];
-  const skillP=s.skillProficiencies||[];
-  const skillE=s.skillExpertises||[];
-  const maxHp=s.maxHp||(HIT_DIE[char.class]||8);
-  const curHp=s.hp??maxHp;
-  const pct=hpPct(curHp,maxHp);
-  const m=x=>Math.floor(((x||10)-10)/2);
-  const ms=x=>{const v=m(x);return(v>=0?'+':'')+v;};
+  const s=char.sheet||{};const sc=s.abilityScores||{str:10,dex:10,con:10,int:10,wis:10,cha:10};
+  const lv=char.level||1;const pb=PROF_BY_LV[Math.min(20,Math.max(1,lv))];
+  const saves=s.savingThrowProficiencies||[];const skillP=s.skillProficiencies||[];const skillE=s.skillExpertises||[];
+  const maxHp=s.maxHp||(HIT_DIE[char.class]||8);const curHp=s.hp??maxHp;const pct=hpPct(curHp,maxHp);
+  const m=x=>Math.floor(((x||10)-10)/2);const ms=x=>{const v=m(x);return(v>=0?'+':'')+v;};
   let ac=10+m(sc.dex||10);
   if(char.class==='Barbarian')ac=10+m(sc.dex)+m(sc.con||10);
   if(char.class==='Monk')ac=10+m(sc.dex)+m(sc.wis||10);
   const pperc=10+m(sc.wis||10)+(skillP.includes('Perception')?pb:0)+(skillE.includes('Perception')?pb:0);
-  const abHtml=SKEYS.map(k=>`<div class="ab-cell">
-    <div class="ab-nm">${SABRV[k]}</div>
-    <div class="ab-mod">${ms(sc[k]||10)}</div>
-    <div class="ab-sc">${sc[k]||10}</div>
-    ${saves.includes(k)?'<div style="width:5px;height:5px;border-radius:50%;background:#9b1515;margin:.05rem auto 0;"></div>':''}
-  </div>`).join('');
-  const skillHtml=ALL_SKILLS.map(sk=>{
-    const ab=SKILL_AB[sk];const exp=skillE.includes(sk);const prf=skillP.includes(sk)||exp;
-    const v=m(sc[ab]||10)+(exp?pb*2:prf?pb:0);
-    return `<div class="sk-line"><div class="pip${exp?' e':prf?' f':''}"></div><span class="sk-val">${v>=0?'+':''}${v}</span><span>${sk}</span></div>`;
-  }).join('');
+  const abHtml=SKEYS.map(k=>`<div class="ab-cell"><div class="ab-nm">${SABRV[k]}</div><div class="ab-mod">${ms(sc[k]||10)}</div><div class="ab-sc">${sc[k]||10}</div>${saves.includes(k)?'<div style="width:5px;height:5px;border-radius:50%;background:#9b1515;margin:.05rem auto 0;"></div>':''}</div>`).join('');
+  const skillHtml=ALL_SKILLS.map(sk=>{const ab=SKILL_AB[sk];const exp=skillE.includes(sk);const prf=skillP.includes(sk)||exp;const v=m(sc[ab]||10)+(exp?pb*2:prf?pb:0);return`<div class="sk-line"><div class="pip${exp?' e':prf?' f':''}"></div><span class="sk-val">${v>=0?'+':''}${v}</span><span>${sk}</span></div>`;}).join('');
   const ds=s.deathSaves||{};
-  const adjHtml=isDM()?`
-    <div style="display:flex;gap:.3rem;margin-top:.4rem;">
-      <button class="snav-btn" onclick="adjSheet('heal')">+ Heal</button>
-      <button class="snav-btn" onclick="adjSheet('dmg')">&#8722; Dmg</button>
-      <input class="ae-input" id="sheet-adj-amt" type="number" min="1" max="999" value="5" style="width:52px;font-size:.78rem;">
-    </div>`:
-    '<div style="font-size:.68rem;color:#8a6040;font-style:italic;margin-top:.35rem;">HP managed by your DM.</div>';
-  root.innerHTML=`
-    <div class="cs-name">${esc(char.characterName||'Unknown')}</div>
-    <div class="cs-meta">
-      <div class="cs-meta-item"><span>Class/Lv</span>${esc(char.class||'—')} ${lv}</div>
-      <div class="cs-meta-item"><span>Species</span>${esc(char.race||'—')}</div>
-      <div class="cs-meta-item"><span>Gold</span>${char.gold||0} gp</div>
-    </div>
-    <div class="cs-sec">Abilities</div>
-    <div class="ab-row">${abHtml}</div>
-    <div class="cbt-row">
-      <div class="cbt-box"><div class="cbt-v">${ac}</div><div class="cbt-l">AC</div></div>
-      <div class="cbt-box"><div class="cbt-v">${ms(sc.dex||10)}</div><div class="cbt-l">Init</div></div>
-      <div class="cbt-box"><div class="cbt-v">+${pb}</div><div class="cbt-l">Prof</div></div>
-    </div>
-    <div class="cs-sec">Hit Points</div>
-    <div class="hp-panel">
-      <div class="hp-row">
-        <div><div class="hp-n" id="enc-hp-cur">${curHp}</div><div class="hp-l">Current</div></div>
-        <div><div class="hp-n">${maxHp}</div><div class="hp-l">Max</div></div>
-        <div><div class="hp-n" style="font-size:1.1rem;color:#4a3018;">${s.tempHp||0}</div><div class="hp-l">Temp</div></div>
-      </div>
-      <div class="hp-bar-t"><div class="hp-bar-f" style="width:${pct}%;background:${hpBg(pct)};"></div></div>
-      ${adjHtml}
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;">
-      <div>
-        <div class="cs-sec">Saves</div>
-        ${SKEYS.map(k=>{const p=saves.includes(k);const v=m(sc[k]||10)+(p?pb:0);return`<div class="sk-line"><div class="pip${p?' f':''}"></div><span class="sk-val">${v>=0?'+':''}${v}</span><span>${SABRV[k]}</span></div>`;}).join('')}
-      </div>
-      <div>
-        <div class="cs-sec">Top Skills</div>
-        ${skillHtml.split('</div>').slice(0,8).join('</div>')+'</div>'}
-        <div style="font-size:.65rem;color:#8a6040;margin-top:.18rem;">Passive Perc: ${pperc}</div>
-      </div>
-    </div>
-    <div class="cs-sec">Death Saves</div>
-    <div style="display:flex;flex-direction:column;gap:.18rem;margin-bottom:.4rem;">
-      <div class="sk-line"><span style="min-width:60px;color:#8a6040;">Successes</span>${[0,1,2].map(i=>`<div class="pip${(ds.successes||0)>i?' f':''}"></div>`).join('')}</div>
-      <div class="sk-line"><span style="min-width:60px;color:#8a6040;">Failures</span>${[0,1,2].map(i=>`<div class="pip${(ds.failures||0)>i?' e':''}"></div>`).join('')}</div>
-    </div>`;
+  const adjHtml=isDM()?`<div style="display:flex;gap:.3rem;margin-top:.4rem;"><button class="snav-btn" onclick="adjSheet('heal')">+ Heal</button><button class="snav-btn" onclick="adjSheet('dmg')">&#8722; Dmg</button><input class="ae-input" id="sheet-adj-amt" type="number" min="1" max="999" value="5" style="width:52px;font-size:.78rem;"></div>`:'<div style="font-size:.68rem;color:#8a6040;font-style:italic;margin-top:.35rem;">HP managed by your DM.</div>';
+  root.innerHTML=`<div class="cs-name">${esc(char.characterName||'Unknown')}</div><div class="cs-meta"><div class="cs-meta-item"><span>Class/Lv</span>${esc(char.class||'—')} ${lv}</div><div class="cs-meta-item"><span>Species</span>${esc(char.race||'—')}</div><div class="cs-meta-item"><span>Gold</span>${char.gold||0} gp</div></div><div class="cs-sec">Abilities</div><div class="ab-row">${abHtml}</div><div class="cbt-row"><div class="cbt-box"><div class="cbt-v">${ac}</div><div class="cbt-l">AC</div></div><div class="cbt-box"><div class="cbt-v">${ms(sc.dex||10)}</div><div class="cbt-l">Init</div></div><div class="cbt-box"><div class="cbt-v">+${pb}</div><div class="cbt-l">Prof</div></div></div><div class="cs-sec">Hit Points</div><div class="hp-panel"><div class="hp-row"><div><div class="hp-n">${curHp}</div><div class="hp-l">Current</div></div><div><div class="hp-n">${maxHp}</div><div class="hp-l">Max</div></div><div><div class="hp-n" style="font-size:1.1rem;color:#4a3018;">${s.tempHp||0}</div><div class="hp-l">Temp</div></div></div><div class="hp-bar-t"><div class="hp-bar-f" style="width:${pct}%;background:${hpBg(pct)};"></div></div>${adjHtml}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;"><div><div class="cs-sec">Saves</div>${SKEYS.map(k=>{const p=saves.includes(k);const v=m(sc[k]||10)+(p?pb:0);return`<div class="sk-line"><div class="pip${p?' f':''}"></div><span class="sk-val">${v>=0?'+':''}${v}</span><span>${SABRV[k]}</span></div>`;}).join('')}</div><div><div class="cs-sec">Top Skills</div>${skillHtml.split('</div>').slice(0,8).join('</div>')+'</div>'}<div style="font-size:.65rem;color:#8a6040;margin-top:.18rem;">Passive Perc: ${pperc}</div></div></div><div class="cs-sec">Death Saves</div><div style="display:flex;flex-direction:column;gap:.18rem;"><div class="sk-line"><span style="min-width:60px;color:#8a6040;">Successes</span>${[0,1,2].map(i=>`<div class="pip${(ds.successes||0)>i?' f':''}"></div>`).join('')}</div><div class="sk-line"><span style="min-width:60px;color:#8a6040;">Failures</span>${[0,1,2].map(i=>`<div class="pip${(ds.failures||0)>i?' e':''}"></div>`).join('')}</div></div>`;
 }
-
 async function adjSheet(action){
-  const c=partyChars[sheetNavIdx];if(!c||!activeSessionId)return;
-  const amt=parseInt(document.getElementById('sheet-adj-amt')?.value)||0;
-  if(!amt)return;
+  const c=partyChars[sheetNavIdx];if(!c)return;
+  const amt=parseInt(document.getElementById('sheet-adj-amt')?.value)||0;if(!amt)return;
   const combId=Object.values(combatants).find(x=>x.characterId===c.id)?.id;
   if(combId)await applyHp(combId,action,amt);
 }
 
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 //  UTILS
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(msg,type='info'){const w=document.getElementById('toasts'),el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;w.appendChild(el);setTimeout(()=>el.remove(),4500);}
-function hpBg(p){return p>75?'#3d7018':p>50?'#8a9220':p>25?'#9a5e12':p>0?'#8b1010':'#1a0808';}
 
 boot();
 </script>

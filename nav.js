@@ -1,7 +1,7 @@
 /* nav.js — Shared navigation for D&D Club
    Include this script on every page, then call Nav.init('pageId') after auth resolves.
    The calling page must have a <div id="main-nav"></div> as the first child of body.
-   On login, store role in sessionStorage key 'dnd_role'.
+   On login, store role in localStorage key 'dnd_role'.
 */
 (function() {
   const PAGES = [
@@ -54,10 +54,10 @@
 `;
 
   function getRole() {
-    return sessionStorage.getItem('dnd_role') ||
-      (sessionStorage.getItem('admin_username')      ? 'admin'      :
-       sessionStorage.getItem('session_dm_username') ? 'session_dm' :
-       sessionStorage.getItem('dm_username')          ? 'dm'         : 'player');
+    return localStorage.getItem('dnd_role') ||
+      (localStorage.getItem('admin_username')      ? 'admin'      :
+       localStorage.getItem('session_dm_username') ? 'session_dm' :
+       localStorage.getItem('dm_username')          ? 'dm'         : 'player');
   }
 
   function inject() {
@@ -88,7 +88,7 @@
 
   function signOut() {
     ['dnd_username','dm_username','admin_username','session_dm_username','dnd_role']
-      .forEach(k => sessionStorage.removeItem(k));
+      .forEach(k => localStorage.removeItem(k));
     window.location.href = 'index.html';
   }
 

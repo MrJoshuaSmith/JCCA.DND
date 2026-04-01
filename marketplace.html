@@ -175,7 +175,7 @@ body{background:var(--bg);background-image:radial-gradient(ellipse 80% 50% at 50
 
 <script>
 const keys = ['dnd_username','admin_username','session_dm_username','dm_username'];
-const u = keys.map(k => sessionStorage.getItem(k)).find(Boolean);
+const u = keys.map(k => localStorage.getItem(k)).find(Boolean);
 if (!u) { window.location.href = 'index.html'; }
 else Nav.init('market');
 </script>

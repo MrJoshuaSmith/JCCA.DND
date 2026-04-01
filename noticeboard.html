@@ -522,7 +522,7 @@ let calMonth=new Date();calMonth.setDate(1);
 async function boot(){
   try{await auth.signInAnonymously();}catch(e){}
   for(const k of['dnd_username','dm_username','admin_username']){
-    const saved=sessionStorage.getItem(k);
+    const saved=localStorage.getItem(k);
     if(!saved)continue;
     try{
       const doc=await db.collection('Users').doc(saved).get();
@@ -544,13 +544,13 @@ async function doLogin(){
       errEl.textContent='Invalid username or password.';errEl.style.display='block';return;
     }
     const d=doc.data();user=u;role=d.role;name=d.playerName||u;
-    sessionStorage.setItem(d.role==='admin'?'admin_username':d.role==='session_dm'?'session_dm_username':'dnd_username',u);
+    localStorage.setItem(d.role==='admin'?'admin_username':d.role==='session_dm'?'session_dm_username':'dnd_username',u);
     showApp();
   }catch(e){errEl.textContent='Login failed. Please try again.';errEl.style.display='block';}
 }
 
 function doSignOut(){
-  ['dnd_username','dm_username','admin_username','session_dm_username'].forEach(k=>sessionStorage.removeItem(k));
+  ['dnd_username','dm_username','admin_username','session_dm_username'].forEach(k=>localStorage.removeItem(k));
   user=null;role=null;name=null;notices=[];sessions=[];
   document.getElementById('screen-app').style.display='none';
   document.getElementById('screen-login').classList.add('show');

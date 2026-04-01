@@ -1224,13 +1224,13 @@ async function boot() {
   }
 
   // Check if already logged in this session
-  const savedUsername = sessionStorage.getItem('dnd_username') || sessionStorage.getItem('admin_username') || sessionStorage.getItem('session_dm_username') || sessionStorage.getItem('dm_username');
+  const savedUsername = localStorage.getItem('dnd_username') || localStorage.getItem('admin_username') || localStorage.getItem('session_dm_username') || localStorage.getItem('dm_username');
   if (savedUsername) {
     try {
       await loadPlayerSession(savedUsername);
       return;
     } catch (e) {
-      ['dnd_username','dm_username','admin_username','session_dm_username'].forEach(k=>sessionStorage.removeItem(k));
+      ['dnd_username','dm_username','admin_username','session_dm_username'].forEach(k=>localStorage.removeItem(k));
     }
   }
 
@@ -1285,7 +1285,7 @@ async function doLogin() {
     }
 
     // Store session and load app
-    sessionStorage.setItem('dnd_username', username);
+    localStorage.setItem('dnd_username', username);
     loggedInUsername = username;
     await loadPlayerSession(username);
 
@@ -1314,7 +1314,7 @@ async function loadPlayerSession(username) {
 // ================================================================
 
 function doSignOut() {
-  sessionStorage.removeItem('dnd_username');
+  localStorage.removeItem('dnd_username');
   loggedInUsername = null;
   playerRecord     = null;
   activeChar       = null;
@@ -2780,6 +2780,17 @@ function spawnParticles(colour) {
 //  BOOT
 // ================================================================
 
+// ── Synchronous: render nav immediately, no async needed ──
+(function() {
+  const _keys = ['dnd_username','admin_username','session_dm_username','dm_username'];
+  if (!_keys.some(k => localStorage.getItem(k))) {
+    window.location.href = 'adventurers_hub.html';
+  } else {
+    if (typeof Nav !== 'undefined') Nav.init('portal');
+  }
+})();
+
+// ── Async: load firebase + player data ──
 boot().catch(e => {
   console.error(e);
   showErr('screen-loading', 'Something went wrong. Please refresh the page.');

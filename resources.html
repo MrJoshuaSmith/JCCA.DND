@@ -143,7 +143,7 @@ body{background:var(--bg);background-image:radial-gradient(ellipse 80% 55% at 50
 <script>
 // ── AUTH CHECK ──
 const _authKeys=['dnd_username','admin_username','session_dm_username','dm_username'];
-if(!_authKeys.some(k=>sessionStorage.getItem(k)))window.location.href='adventurers_hub.html';
+if(!_authKeys.some(k=>localStorage.getItem(k)))window.location.href='adventurers_hub.html';
 else Nav.init('resources');
 
 // ── ARTICLES ──

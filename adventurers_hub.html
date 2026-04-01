@@ -255,7 +255,7 @@ async function boot(){
   try{await firebase.auth().signInAnonymously();}catch(e){}
   // Check for existing session
   const sessionKeys=['dnd_username','admin_username','session_dm_username','dm_username'];
-  const saved=sessionKeys.map(k=>sessionStorage.getItem(k)).find(Boolean);
+  const saved=sessionKeys.map(k=>localStorage.getItem(k)).find(Boolean);
   if(saved){await showApp(saved);return;}
   // Show login
   document.getElementById('screen-login').style.display='flex';
@@ -284,10 +284,10 @@ async function doLogin(){
     }
     // Store role-based session key
     loggedUser=username;loggedRole=d.role;
-    if(d.role==='admin'){sessionStorage.setItem('admin_username',username);}
-    else if(d.role==='session_dm'){sessionStorage.setItem('session_dm_username',username);}
-    else if(d.role==='dm'){sessionStorage.setItem('dm_username',username);}
-    else{sessionStorage.setItem('dnd_username',username);}
+    if(d.role==='admin'){localStorage.setItem('admin_username',username);}
+    else if(d.role==='session_dm'){localStorage.setItem('session_dm_username',username);}
+    else if(d.role==='dm'){localStorage.setItem('dm_username',username);}
+    else{localStorage.setItem('dnd_username',username);}
     await showApp(username);
   }catch(e){
     console.error(e);
@@ -299,7 +299,7 @@ async function doLogin(){
 async function showApp(username){
   loggedUser=username;
   const userDoc=await db.collection('Users').doc(username).get();
-  if(!userDoc.exists){sessionStorage.clear();boot();return;}
+  if(!userDoc.exists){localStorage.clear();boot();return;}
   const d=userDoc.data();
   loggedRole=d.role;
   // Show nav
