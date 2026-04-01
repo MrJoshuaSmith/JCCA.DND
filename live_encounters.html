@@ -118,6 +118,7 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
 .cc.dead{opacity:.4;cursor:default;}
 .cc.no-click{cursor:default;}
 .cc.active-turn{box-shadow:0 0 0 2px var(--gold),0 0 20px rgba(200,149,42,.35);border-color:var(--gold)!important;animation:turn-glow 2s ease-in-out infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
 @keyframes turn-glow{0%,100%{box-shadow:0 0 0 2px var(--gold),0 0 20px rgba(200,149,42,.35);}50%{box-shadow:0 0 0 2px var(--gold),0 0 35px rgba(200,149,42,.6);}}
 .cc-turn-badge{position:absolute;top:-1px;left:-1px;background:var(--gold);color:#1e1006;font-family:'Cinzel',serif;font-size:.55rem;font-weight:900;padding:.05rem .35rem;border-radius:0 0 4px 0;min-width:18px;text-align:center;}
 .cc-turn-badge.active{animation:badge-pulse 1.2s ease-in-out infinite;}
@@ -253,6 +254,14 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
 </head>
 <body>
 <div id="main-nav"></div>
+
+<!-- Loading screen — shown while boot() runs -->
+<div id="screen-loading" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:900;">
+  <div style="text-align:center;">
+    <div style="width:32px;height:32px;border:3px solid rgba(200,149,42,.12);border-top-color:rgba(200,149,42,.6);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto;"></div>
+    <p style="font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.15em;color:rgba(200,149,42,.5);margin-top:.8rem;">LOADING</p>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════
      SCREEN: SESSION BROWSER (not yet in a session)
@@ -589,7 +598,13 @@ async function boot(){
     }else{
       showBrowser();
     }
-  }catch(e){console.error(e);toast('Connection error.','error');}
+  }catch(e){
+    console.error('boot error:', e);
+    toast('Connection error — retrying...','error');
+    // Always show browser so the page isn't a blank black screen
+    document.getElementById('screen-loading').style.display='none';
+    showBrowser();
+  }
 }
 
 async function loadMyChar(){
@@ -601,6 +616,7 @@ async function loadMyChar(){
 //  SESSION BROWSER
 // ════════════════════════════════════════════════════════════
 function showBrowser(){
+  document.getElementById('screen-loading').style.display='none';
   document.getElementById('screen-browser').style.display='block';
   document.getElementById('screen-enc').style.display='none';
   const sub=document.getElementById('browser-sub');
@@ -705,6 +721,7 @@ async function adminRevokeFromEncounters(sessionId,name){
 //  SHOW HUD
 // ════════════════════════════════════════════════════════════
 function showHUD(){
+  document.getElementById('screen-loading').style.display='none';
   document.getElementById('screen-browser').style.display='none';
   document.getElementById('screen-enc').style.display='flex';
   if(unsubBrowserSessions){unsubBrowserSessions();unsubBrowserSessions=null;}

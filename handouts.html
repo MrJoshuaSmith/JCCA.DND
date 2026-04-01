@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handouts — D&D Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="nav.js"></script>
+<style>
+:root{--bg:#0d0a08;--bg-card:#1a1410;--border:rgba(180,110,40,.22);--gold:#c8952a;--text:#e0d8c8;--text-m:#a89880;--text-d:#6a5840;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--text);}
+.page{max-width:860px;margin:0 auto;padding:3rem 1.5rem 6rem;}
+.page-title{font-family:'Cinzel',serif;font-size:1.4rem;font-weight:900;color:var(--text);margin-bottom:.3rem;}
+.page-sub{color:var(--text-m);font-style:italic;margin-bottom:3rem;}
+.coming-card{background:var(--bg-card);border:1px solid var(--border);border-radius:5px;padding:3rem 2rem;text-align:center;}
+.coming-icon{font-size:3rem;margin-bottom:1rem;opacity:.4;}
+.coming-title{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.6rem;}
+.coming-text{color:var(--text-d);font-size:.9rem;line-height:1.7;}
+</style>
+</head>
+<body>
+<div id="main-nav"></div>
+<div class="page">
+  <div class="page-title">&#128196; Handouts</div>
+  <div class="page-sub">Maps, rules references, and session materials</div>
+  <div class="coming-card">
+    <div class="coming-icon">&#128196;</div>
+    <div class="coming-title">Coming Soon</div>
+    <div class="coming-text">Your DM will post session handouts, maps, and reference materials here.<br>Check back after your next session!</div>
+  </div>
+</div>
+<script>
+const _k=['dnd_username','admin_username','session_dm_username','dm_username'];
+if(!_k.some(k=>localStorage.getItem(k))){window.location.href='adventurers_hub.html';}
+else Nav.init('handouts');
+</script>
+</body>
+</html>

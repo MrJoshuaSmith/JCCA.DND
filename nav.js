@@ -10,6 +10,7 @@
     { id:'board',      href:'noticeboard.html',       icon:'&#128204;', label:'Quest Board' },
     { id:'market',     href:'marketplace.html',       icon:'&#128717;', label:'Market' },
     { id:'resources',  href:'resources.html',         icon:'&#128218;', label:'Resources' },
+    { id:'handouts',   href:'handouts.html',          icon:'&#128196;', label:'Handouts' },
   ];
 
   const CSS = `
