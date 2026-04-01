@@ -102,6 +102,7 @@ body{background:var(--bg);background-image:radial-gradient(ellipse 90% 55% at 50
 <div id="main-nav"></div>
 
 <div class="shop-hero">
+  <a href="marketplace.html" style="position:absolute;top:1.2rem;left:1.4rem;z-index:10;font-family:'Cinzel',serif;font-size:.65rem;font-weight:600;letter-spacing:.08em;padding:.3rem .75rem;border-radius:3px;border:1px solid rgba(180,110,40,.35);background:rgba(180,110,40,.1);color:#a89880;text-decoration:none;transition:all .18s;" onmouseover="this.style.color='#c8952a';this.style.borderColor='rgba(180,110,40,.6)'" onmouseout="this.style.color='#a89880';this.style.borderColor='rgba(180,110,40,.35)'">&#8592; Marketplace</a>
   <div class="shop-sign">
     <span class="shop-lantern">&#127976;</span>
     <div class="shop-sign-plank">
@@ -163,6 +164,7 @@ firebase.initializeApp({
 const db = firebase.firestore();
 
 // ── Boot ──
+let _shopReady = false;
 (async function() {
   try { await firebase.auth().signInAnonymously(); } catch(e) {}
   const _authKeys=['dnd_username','admin_username','session_dm_username','dm_username'];
@@ -170,6 +172,7 @@ const db = firebase.firestore();
     window.location.href = 'adventurers_hub.html';
     return;
   }
+  _shopReady = true;
   Nav.init('market');
 })();
 
@@ -255,9 +258,14 @@ async function loadShopData() {
   } catch(e) { console.error(e); }
 }
 
-function openShop() {
+async function openShop() {
+  // Wait up to 3s for firebase auth to be ready
+  if (!_shopReady) {
+    let waited = 0;
+    while (!_shopReady && waited < 3000) { await new Promise(r=>setTimeout(r,100)); waited+=100; }
+  }
   document.getElementById('shop-overlay').classList.add('open');
-  loadShopData();
+  await loadShopData();
   renderShopItems(spFilter);
 }
 

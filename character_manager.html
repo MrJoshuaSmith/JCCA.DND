@@ -1347,6 +1347,7 @@ async function loadApp() {
   // Has characters but none active → pending request
   if (activeChars.length === 0) {
     show('screen-app');
+    if (typeof Nav !== 'undefined') Nav.init('portal');
     const pending = await getPendingRequest(loggedInUsername);
     if (pending) document.getElementById('pending-notice').style.display = 'block';
     loadCharactersTab();
@@ -1363,7 +1364,8 @@ async function loadApp() {
   const pendingChests = onCharManager ? await getPendingChests(loggedInUsername) : [];
   if (pendingChests.length > 0) {
     show('screen-app');
-      loadCharactersTab();
+    if (typeof Nav !== 'undefined') Nav.init('portal');
+    loadCharactersTab();
     loadInventory();
     await showChestOverlay(pendingChests);
     return;
@@ -2660,6 +2662,7 @@ async function createCharacter() {
     clearDraft();
     toast(`${charName} is ready for adventure!`,'success');
     show('screen-app');
+    if (typeof Nav !== 'undefined') Nav.init('portal');
     // Clean up the ApprovedBuild request now that character is built
     try {
       const reqSnap = await db.collection('CharacterRequests')
