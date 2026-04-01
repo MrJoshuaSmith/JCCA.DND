@@ -378,17 +378,11 @@ body{
 ════════════════════════════════════════════════════════ -->
 <div id="screen-app" style="display:none;">
   <!-- Topbar -->
-  <div class="topbar">
-    <div class="tb-brand">&#9878; <b>Quest Board</b></div>
-    <div class="tb-right">
-      <!-- Post button: DM ONLY — hidden by default, shown in showApp() for DM role -->
-      <button class="btn btn-red btn-sm" id="btn-post" style="display:none;" onclick="openPostModal()">+ Post Notice</button>
-      <button class="btn btn-gold btn-sm" id="btn-add-session" style="display:none;" onclick="openSessionModal()">+ Schedule Session</button>
-      <a href="shop_portal.html" class="btn btn-ghost btn-sm">Portal</a>
-      <a href="index.html" class="btn btn-ghost btn-sm">&#8962; Home</a>
-      <button class="btn btn-ghost btn-sm" onclick="doSignOut()">Sign Out</button>
-    </div>
-  </div>
+  
+
+  <!-- Hidden button hooks for JS references -->
+  <button id="btn-post" style="display:none;" onclick="openPostModal()"></button>
+  <button id="btn-add-session" style="display:none;" onclick="openSessionModal()"></button>
 
   <!-- View tabs -->
   <div class="view-tabs">
@@ -565,11 +559,28 @@ function doSignOut(){
 function showApp(){
   document.getElementById('screen-login').classList.remove('show');
   document.getElementById('screen-app').style.display='block';
-  // DM-ONLY controls: post button, add session button
-  // Players NEVER see these buttons — role is the sole gate
-  const isDM=role==='admin';
-  document.getElementById('btn-post').style.display=isDM?'inline-flex':'none';
-  document.getElementById('btn-add-session').style.display=isDM?'inline-flex':'none';
+  // Render the shared nav — injects admin buttons if role === admin
+  Nav.init('board');
+  // Inject admin-only Post Notice + Schedule Session into the nav bar right side
+  if (role === 'admin') {
+    const navEl = document.getElementById('main-nav');
+    if (navEl) {
+      // Insert admin action buttons before the Sign Out button
+      const adminBtns = document.createElement('div');
+      adminBtns.id = 'nb-admin-btns';
+      adminBtns.style.cssText = 'display:flex;align-items:center;gap:.3rem;margin-left:.4rem;';
+      adminBtns.innerHTML = `
+        <button onclick="openPostModal()" style="font-family:'Cinzel',serif;font-size:.62rem;font-weight:600;letter-spacing:.07em;padding:.28rem .7rem;border-radius:3px;cursor:pointer;background:rgba(196,30,30,.2);border:1px solid rgba(196,30,30,.55);color:#e0d8c8;transition:all .18s;" onmouseover="this.style.background='rgba(196,30,30,.35)'" onmouseout="this.style.background='rgba(196,30,30,.2)'">+ Post Notice</button>
+        <button onclick="openSessionModal()" style="font-family:'Cinzel',serif;font-size:.62rem;font-weight:600;letter-spacing:.07em;padding:.28rem .7rem;border-radius:3px;cursor:pointer;background:rgba(180,110,40,.18);border:1px solid rgba(180,110,40,.5);color:#c8952a;transition:all .18s;" onmouseover="this.style.background='rgba(180,110,40,.32)'" onmouseout="this.style.background='rgba(180,110,40,.18)'">+ Schedule Session</button>`;
+      // Insert before sign-out button (last child of .nav-right)
+      const navRight = navEl.querySelector('.nav-right');
+      if (navRight) navRight.insertBefore(adminBtns, navRight.firstChild);
+    }
+  }
+  // Keep a dummy placeholder for the old btn-post/btn-add-session refs (won't be visible but prevents JS errors)
+  const dummyPost = document.getElementById('btn-post');
+  const dummySess = document.getElementById('btn-add-session');
+  // These are now hidden via display:none in HTML, nothing to do
   loadAll();
 }
 

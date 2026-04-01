@@ -43,8 +43,8 @@ body{background:var(--bg);background-image:radial-gradient(ellipse 90% 55% at 50
 .sp-gold-bar{display:flex;align-items:center;gap:.5rem;font-family:'Cinzel',serif;font-size:.66rem;color:#a89880;padding:.4rem 1.2rem;border-top:1px solid rgba(180,110,40,.12);flex-shrink:0;}
 .sp-gold-val{color:#c8952a;font-weight:700;}
 .sp-empty{text-align:center;padding:2.5rem;color:#6a5840;font-style:italic;font-size:.85rem;}
-.open-shop-btn{position:fixed;bottom:1.5rem;right:1.5rem;z-index:300;font-family:'Cinzel',serif;font-size:.75rem;font-weight:700;letter-spacing:.1em;padding:.65rem 1.4rem;border-radius:4px;cursor:pointer;background:rgba(200,149,42,.2);border:2px solid rgba(200,149,42,.58);color:#e0d8c8;transition:all .22s;box-shadow:0 4px 20px rgba(200,149,42,.12);}
-.open-shop-btn:hover{background:rgba(200,149,42,.32);border-color:#c8952a;box-shadow:0 6px 28px rgba(200,149,42,.28);}
+.open-shop-btn{position:fixed;bottom:1.5rem;right:1.5rem;z-index:300;font-family:'Cinzel',serif;font-size:.8rem;font-weight:700;letter-spacing:.12em;padding:.75rem 1.7rem;border-radius:4px;cursor:pointer;background:rgba(200,149,42,.35);border:2px solid #c8952a;color:#f0e8d8;transition:all .22s;box-shadow:0 4px 24px rgba(200,149,42,.35),0 0 0 1px rgba(200,149,42,.15);}
+.open-shop-btn:hover{background:rgba(200,149,42,.52);border-color:#e0b040;color:#fff;box-shadow:0 6px 32px rgba(200,149,42,.5),0 0 0 1px rgba(200,149,42,.3);}
 
 /* ── SHOP ATMOSPHERE ── */
 .shop-hero{
@@ -162,9 +162,16 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-const _authKeys=['dnd_username','admin_username','session_dm_username','dm_username'];
-if(!_authKeys.some(k=>sessionStorage.getItem(k))){window.location.href='adventurers_hub.html';}
-else Nav.init('market');
+// ── Boot ──
+(async function() {
+  try { await firebase.auth().signInAnonymously(); } catch(e) {}
+  const _authKeys=['dnd_username','admin_username','session_dm_username','dm_username'];
+  if (!_authKeys.some(k => sessionStorage.getItem(k))) {
+    window.location.href = 'adventurers_hub.html';
+    return;
+  }
+  Nav.init('market');
+})();
 
 
 const SHOP_ITEMS = [

@@ -525,6 +525,7 @@ body {
 </style>
 </head>
 <body>
+<div id="main-nav"></div>
 <div id="stars"></div>
 
 <!-- ================================================================
@@ -2658,7 +2659,16 @@ async function createCharacter() {
     }
     clearDraft();
     toast(`${charName} is ready for adventure!`,'success');
-    show('screen-app'); updateTopBar(activeChar);
+    show('screen-app');
+    // Clean up the ApprovedBuild request now that character is built
+    try {
+      const reqSnap = await db.collection('CharacterRequests')
+        .where('playerId','==',loggedInUsername)
+        .where('status','==','ApprovedBuild').get();
+      const batch = db.batch();
+      reqSnap.docs.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    } catch(e) { console.warn('Could not clean up character request:', e); }
     loadInventory(); loadShopTab(); loadEmporiumTab(); loadCharactersTab();
   } catch(e) {
     console.error(e); err.textContent='Failed to create character. Please try again.';

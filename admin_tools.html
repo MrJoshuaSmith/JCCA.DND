@@ -385,7 +385,7 @@ body{background:var(--void);background-image:radial-gradient(ellipse 80% 50% at 
     <div id="modal-approve-char-body"></div>
     <div style="display:flex;gap:.6rem;margin-top:1.2rem;">
       <button class="btn btn-primary" onclick="closeModal('modal-approve-char')">Cancel</button>
-      <button class="btn btn-success" onclick="confirmApproveChar()">Approve &amp; Create Character</button>
+      <button class="btn btn-success" onclick="confirmApproveChar()">Approve Request</button>
     </div>
   </div>
 </div>
@@ -799,11 +799,10 @@ async function confirmApproveChar() {
     const doc=await db.collection('CharacterRequests').doc(pendingCharId).get();
     const r=doc.data();
     // Set status to ApprovedBuild — player will use character creator to build it
-    await db.collection('CharacterRequests').doc(pendingCharId).update({
-      status:'ApprovedBuild', approvedAt:new Date().toISOString(), approvedBy:dmUsername,
-    });
     // Flag the User doc so the portal shows a toast + Build Character button on next login
     await db.collection('Users').doc(r.playerId).update({ characterApproved: true });
+    // Delete the request — no longer needed once actioned
+    await db.collection('CharacterRequests').doc(pendingCharId).delete();
     closeModal('modal-approve-char');
     toast(`Approved — ${r.playerId} will be notified to build their character.`,'success');
     loadCharRequests(); loadOverview();
@@ -825,9 +824,8 @@ function openRejectChar(id) {
 async function confirmRejectChar() {
   const reason=document.getElementById('reject-char-reason').value.trim()||'No reason given.';
   try {
-    await db.collection('CharacterRequests').doc(pendingCharId).update({
-      status:'Rejected', dmNotes:reason, rejectedAt:new Date().toISOString(), rejectedBy:dmUsername,
-    });
+    // Delete the request after rejection — keeps the list clean
+    await db.collection('CharacterRequests').doc(pendingCharId).delete();
     closeModal('modal-reject-char');
     toast('Character request rejected.','info');
     loadCharRequests();
