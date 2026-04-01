@@ -260,15 +260,12 @@ async function loadShopData() {
   } catch(e) { console.error(e); }
 }
 
-async function openShop() {
-  // Wait up to 3s for firebase auth to be ready
-  if (!_shopReady) {
-    let waited = 0;
-    while (!_shopReady && waited < 3000) { await new Promise(r=>setTimeout(r,100)); waited+=100; }
-  }
+function openShop() {
+  // Open the overlay immediately — SHOP_ITEMS is a local array, no Firebase needed
   document.getElementById('shop-overlay').classList.add('open');
-  await loadShopData();
   renderShopItems(spFilter);
+  // Load character gold data in the background (needs Firebase, show when ready)
+  loadShopData().then(() => renderShopItems(spFilter)).catch(e => console.warn('loadShopData:', e));
 }
 
 function closeShop() {

@@ -2154,6 +2154,15 @@ function show(id) {
     if (!el) return;
     if (s === 'screen-app') {
       el.style.display = s === id ? 'block' : 'none';
+      // Trigger the active tab load whenever screen-app becomes visible
+      if (s === id) {
+        const activeTabBtn = document.querySelector('.nav-tab.active');
+        if (activeTabBtn && activeTabBtn.id) {
+          const tabName = activeTabBtn.id.replace('tab-btn-','');
+          // Small delay so DOM is rendered before loading data
+          setTimeout(() => switchTab(tabName, activeTabBtn), 0);
+        }
+      }
     } else {
       el.style.display = s === id ? 'flex' : 'none';
     }

@@ -225,12 +225,24 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
 .mc-green:hover{background:rgba(60,110,30,.35);}
 
 /* ═══ TOASTS ════════════════════════════════════════════ */
-.toasts{position:fixed;top:70px;right:1rem;z-index:600;display:flex;flex-direction:column;gap:.3rem;align-items:flex-end;}
+.toasts{position:fixed;bottom:4.5rem;left:50%;transform:translateX(-50%);z-index:600;display:flex;flex-direction:column;gap:.3rem;align-items:center;pointer-events:none;}
 .toast{background:var(--bg-card);border:1px solid;border-radius:4px;padding:.5rem 1rem;font-size:.8rem;animation:tin .22s ease;white-space:nowrap;max-width:290px;}
 @keyframes tin{from{opacity:0;transform:translateX(8px);}to{opacity:1;}}
 .toast.success{border-color:#3d7018;color:#80c060;}
 .toast.error{border-color:var(--red-d);color:var(--red);}
 .toast.info{border-color:var(--gold-d);color:var(--gold);}
+
+/* ═══ CONDITIONS ════════════════════════════════════════ */
+.cond-badge{
+  display:inline-flex;align-items:center;gap:.2rem;
+  font-family:'Cinzel',serif;font-size:.48rem;font-weight:600;letter-spacing:.07em;
+  text-transform:uppercase;padding:.08rem .38rem;border-radius:2px;
+  border:1px solid;cursor:pointer;transition:opacity .18s;margin:.1rem .1rem 0 0;
+}
+.cond-badge:hover{opacity:.7;}
+.cond-active{background:rgba(200,80,40,.22);border-color:rgba(200,80,40,.55);color:#e08060;}
+.cond-inactive{background:rgba(60,50,40,.15);border-color:rgba(100,80,60,.25);color:var(--text-d);}
+.cond-grid{display:flex;flex-wrap:wrap;gap:.2rem;margin-top:.5rem;}
 
 /* ═══ ADD ENEMY AREA ════════════════════════════════════ */
 .add-enemy-wrap{display:flex;gap:.4rem;flex-wrap:wrap;align-items:flex-end;}
@@ -284,23 +296,7 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
       <div class="enc-sec-hdr">
         <div class="enc-sec-lbl">&#9761; Hostiles <span class="sec-count" id="hostile-count">0</span></div>
         <div id="dm-hostile-ctrl" style="display:none;">
-          <div class="add-enemy-wrap">
-            <div><div class="ae-lbl">Template</div>
-            <select class="template-select" id="enemy-template" onchange="fillEnemyTemplate()">
-              <option value="">— Custom —</option>
-            </select></div>
-            <div><div class="ae-lbl">Name</div><input class="ae-input" id="e-name" type="text" placeholder="Enemy" style="width:100px;"></div>
-            <div><div class="ae-lbl">HP</div><input class="ae-input" id="e-hp" type="number" min="1" max="999" value="12" style="width:55px;"></div>
-            <div><div class="ae-lbl">AC</div><input class="ae-input" id="e-ac" type="number" min="1" max="30" value="12" style="width:48px;"></div>
-            <div><div class="ae-lbl">Init Mod</div><input class="ae-input" id="e-init" type="number" min="-5" max="10" value="0" style="width:50px;"></div>
-            <div><div class="ae-lbl">Always</div>
-              <div style="display:flex;gap:.25rem;font-size:.72rem;color:var(--text-d);margin-top:.15rem;">
-                <label style="cursor:pointer;display:flex;align-items:center;gap:.2rem;"><input type="checkbox" id="e-first"> 1st</label>
-                <label style="cursor:pointer;display:flex;align-items:center;gap:.2rem;"><input type="checkbox" id="e-last"> Last</label>
-              </div>
-            </div>
-            <div style="padding-bottom:.02rem;"><div class="ae-lbl">&nbsp;</div><button class="enc-btn enc-btn-red enc-btn-sm" onclick="addEnemy()">+ Add</button></div>
-          </div>
+          <button class="enc-btn enc-btn-red enc-btn-sm" onclick="openManageHostiles()">&#9761; Manage Hostiles</button>
         </div>
       </div>
       <div class="enc-cards-area" style="min-height:90px;">
@@ -318,6 +314,7 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
                 <button class="enc-btn enc-btn-ghost enc-btn-sm" id="btn-reset-init" onclick="resetInitiative()" style="display:none;">&#8635; Reset</button>
               </div>
             </div>
+            <button class="enc-btn enc-btn-ghost enc-btn-sm" id="btn-manage-hostiles-bar" style="display:none;" onclick="openManageHostiles()">&#9761; Hostiles</button>
             <button class="enc-btn enc-btn-ghost enc-btn-sm" id="btn-manage-session" style="display:none;" onclick="openManageSession()">&#9881; Manage Session</button>
             <button class="enc-btn enc-btn-ghost enc-btn-sm" id="btn-edit-notes" style="display:none;" onclick="toggleNotesEdit()">Edit Notes</button>
           </div>
@@ -391,6 +388,43 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
       </div>
     </div>
   </div>
+<!-- ═══ MANAGE HOSTILES OVERLAY ════════════════════════════ -->
+<div id="hostiles-overlay" style="display:none;position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.82);backdrop-filter:blur(3px);align-items:flex-end;justify-content:center;">
+  <div class="manage-panel">
+    <div class="mp-hdr">
+      <div class="mp-title">&#9761; Manage Hostiles</div>
+      <button class="mp-close" onclick="closeManageHostiles()">&#10005; Close</button>
+    </div>
+    <div class="mp-body">
+      <div class="mp-section">
+        <div class="mp-sec-title">Add Hostile</div>
+        <div style="margin-bottom:.6rem;">
+          <div class="ae-lbl">Template</div>
+          <select class="ae-input" id="mh-template" onchange="fillHostileTemplate()" style="width:100%;">
+            <option value="">— Custom / No template —</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.5rem;">
+          <div><div class="ae-lbl">Name</div><input class="ae-input" id="mh-name" type="text" placeholder="e.g. Goblin" style="width:100%;"></div>
+          <div><div class="ae-lbl">Max HP</div><input class="ae-input" id="mh-hp" type="number" min="1" max="999" value="12" style="width:100%;"></div>
+          <div><div class="ae-lbl">Armour Class</div><input class="ae-input" id="mh-ac" type="number" min="1" max="30" value="12" style="width:100%;"></div>
+          <div><div class="ae-lbl">Initiative Mod</div><input class="ae-input" id="mh-init" type="number" min="-5" max="10" value="0" style="width:100%;"></div>
+        </div>
+        <div style="display:flex;gap:.8rem;margin-bottom:.6rem;flex-wrap:wrap;">
+          <label style="cursor:pointer;display:flex;align-items:center;gap:.3rem;font-size:.76rem;color:var(--text-m);"><input type="checkbox" id="mh-first"> Always goes first</label>
+          <label style="cursor:pointer;display:flex;align-items:center;gap:.3rem;font-size:.76rem;color:var(--text-m);"><input type="checkbox" id="mh-last"> Always goes last</label>
+        </div>
+        <button class="enc-btn enc-btn-red" onclick="addHostileFromOverlay()" style="width:100%;justify-content:center;">+ Add Hostile</button>
+        <p id="mh-status" style="font-size:.76rem;color:var(--green-b);margin-top:.4rem;min-height:1.2em;"></p>
+      </div>
+      <div class="mp-section">
+        <div class="mp-sec-title">Current Hostiles</div>
+        <div id="mh-current-list"><div style="font-size:.78rem;color:var(--text-d);font-style:italic;">No hostiles yet.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <!-- ═══ PENDING PANEL (DM) ═══════════════════════════════ -->
@@ -409,7 +443,20 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
 </div>
 <div class="turn-banner" id="turn-banner">
   <span id="turn-banner-txt">&#9670; It's your turn!</span>
-  <button class="enc-btn enc-btn-gold enc-btn-sm" onclick="playerEndTurn()">End Turn &#8594;</button>
+  <div style="display:flex;gap:.4rem;align-items:center;">
+    <button class="enc-btn enc-btn-ghost enc-btn-sm" onclick="openUseItemModal()" title="Use a healing item from your inventory">&#127921; Use Item</button>
+    <button class="enc-btn enc-btn-gold enc-btn-sm" onclick="playerEndTurn()">End Turn &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ USE ITEM MODAL ═══════════════════════════════════ -->
+<div class="mbg" id="m-use-item">
+  <div class="mc">
+    <div class="mc-title">&#127921; Use Healing Item</div>
+    <div id="m-use-item-body">
+      <div style="text-align:center;padding:1rem;color:var(--text-d);font-style:italic;">Loading inventory...</div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══ SLOT MACHINE ═════════════════════════════════════ -->
@@ -561,6 +608,25 @@ function showBrowser(){
   if(unsubBrowserSessions){unsubBrowserSessions();unsubBrowserSessions=null;}
   unsubBrowserSessions=db.collection('Sessions').where('isActive','==',true)
     .onSnapshot(snap=>renderBrowser(snap));
+
+  // Listen to own user doc — auto-join when DM adds us or approves request
+  if(!_unsubUserDoc){
+    _unsubUserDoc = db.collection('Users').doc(loggedUser).onSnapshot(async snap=>{
+      if(!snap.exists) return;
+      const d = snap.data();
+      const sid = d.currentSessionId;
+      if(sid && sid !== activeSessionId){
+        // We've been assigned a session — load it
+        const sdoc = await db.collection('Sessions').doc(sid).get();
+        if(sdoc.exists && sdoc.data().isActive){
+          if(_unsubUserDoc){_unsubUserDoc();_unsubUserDoc=null;}
+          if(unsubBrowserSessions){unsubBrowserSessions();unsubBrowserSessions=null;}
+          activeSessionId = sid; sessionData = sdoc.data(); isDMForSession = false;
+          showHUD(); listenSessionDoc(); listenCombatants();
+        }
+      }
+    });
+  }
 }
 
 async function renderBrowser(snap){
@@ -649,6 +715,7 @@ function showHUD(){
     document.getElementById('initiative-ctrl').style.display='flex';
     document.getElementById('sheet-nav').style.display='flex';
     document.getElementById('btn-manage-session').style.display='inline-flex';
+    document.getElementById('btn-manage-hostiles-bar').style.display='inline-flex';
     document.getElementById('leave-banner').style.display='none';
   }else{
     // Player
@@ -726,6 +793,7 @@ function sessionEndedByDM(){
   if(unsubCombatants){unsubCombatants();unsubCombatants=null;}
   if(unsubActions){unsubActions();unsubActions=null;}
   if(unsubRequests){unsubRequests();unsubRequests=null;}
+  if(_unsubUserDoc){_unsubUserDoc();_unsubUserDoc=null;}
   if(!isDMForSession){
     db.collection('Users').doc(loggedUser).update({currentSessionId:null}).catch(()=>{});
   }
@@ -940,6 +1008,9 @@ function isMyTurn(){
 }
 
 function renderCards(){
+  // If manage-hostiles overlay is open, keep its list fresh
+  const hovOpen=document.getElementById('hostiles-overlay');
+  if(hovOpen&&hovOpen.style.display==='flex') renderCurrentHostilesList();
   const sorted=Object.values(combatants).sort((a,b)=>{
     const pa=getTurnPos(a.id),pb=getTurnPos(b.id);
     if(pa===-1&&pb===-1)return(b.initiative||0)-(a.initiative||0);
@@ -973,7 +1044,7 @@ function renderCard(c,type){
       ${badge}<div class="cc-name">${esc(c.name)}</div>
       <div class="cc-sub">Init ${c.initiative??'?'}${isDM()&&c.armorClass?' · AC '+c.armorClass:''}</div>
       ${dmHp}<div><span class="sb sb-${scls}">${slabel}</span></div>
-      ${conds?`<div class="cc-conds">&#9883; ${esc(conds)}</div>`:''}
+      <div class="cc-conds-wrap">${renderCondBadges(c,true)}</div>
       ${dmBtns}${dmEndBtn}
     </div>`;
   }else{
@@ -984,7 +1055,7 @@ function renderCard(c,type){
       <div class="cc-sub">${esc(c.characterClass||'')}${c.level?' Lv'+c.level:''}</div>
       <div class="cc-hp-nums">${c.currentHp}<span style="color:var(--text-d);font-size:.65rem;">/${c.maxHp}${c.tempHp?' (+'+c.tempHp+')':''}</span></div>
       <div class="cc-bar-t"><div class="cc-bar-f" style="width:${pct}%;background:${hpBg(pct)};"></div></div>
-      ${conds?`<div class="cc-conds">&#9883; ${esc(conds)}</div>`:''}
+      <div class="cc-conds-wrap">${renderCondBadges(c,false)}</div>
       ${dmSkipBtn}
     </div>`;
   }
@@ -1028,7 +1099,15 @@ async function resetInitiative(){
 }
 
 let slotInterval=null;
+
+// Players see the slot machine modal — DM sees rolls appear over each card
 function startSlotMachine(){
+  if(isDM()){
+    // DM: show initiative rolls as floating overlays on each combatant card
+    showDMInitiativeRolls();
+    return;
+  }
+  // Player: show the spinning reel modal
   const modal=document.getElementById('slot-modal');
   if(modal.classList.contains('open'))return;
   modal.classList.add('open');
@@ -1045,6 +1124,47 @@ function startSlotMachine(){
     }
   },80);
 }
+
+function showDMInitiativeRolls(){
+  // Show a brief "rolling..." overlay on every hostile and party card
+  // then reveal the actual initiative value
+  const allCards=[
+    ...document.querySelectorAll('#hostile-cards .cc'),
+    ...document.querySelectorAll('#party-cards .cc')
+  ];
+  allCards.forEach(card=>{
+    const overlay=document.createElement('div');
+    overlay.className='init-roll-overlay';
+    overlay.style.cssText='position:absolute;inset:0;background:rgba(13,8,4,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:5px;z-index:10;';
+    overlay.innerHTML='<div style="font-family:'Cinzel',serif;font-size:1.4rem;font-weight:900;color:var(--gold);" class="init-rolling">?</div><div style="font-family:'Cinzel',serif;font-size:.52rem;letter-spacing:.1em;color:var(--text-d);margin-top:.2rem;">ROLLING</div>';
+    card.style.position='relative';
+    card.appendChild(overlay);
+    // Animate the number
+    let ticks=0;
+    const numEl=overlay.querySelector('.init-rolling');
+    const interval=setInterval(()=>{
+      numEl.textContent=Math.floor(Math.random()*20)+1;ticks++;
+      if(ticks>=22){
+        clearInterval(interval);
+        // Show actual initiative from combatant data
+        const combId=card.querySelector('[id]')?.id||'';
+        const comb=Object.values(combatants).find(c=>
+          card.querySelector('.cc-name')?.textContent?.trim()===c.name
+        );
+        const roll=comb?.initiative??'?';
+        numEl.textContent=roll;
+        overlay.querySelector('div:last-child').textContent='INITIATIVE';
+        // Fade out after 2.5s
+        setTimeout(()=>{
+          overlay.style.transition='opacity .5s';
+          overlay.style.opacity='0';
+          setTimeout(()=>overlay.remove(),500);
+        },2500);
+      }
+    },80);
+  });
+}
+
 function getMyInitRoll(){
   const dex=(myChar?.sheet?.abilityScores?.dex)||10;
   return Math.floor(Math.random()*20)+1+Math.floor((dex-10)/2);
@@ -1107,8 +1227,107 @@ async function saveNotes(){
 //  ADD / REMOVE ENEMIES
 // ════════════════════════════════════════════════════════════
 function buildTemplateDropdown(){
-  const sel=document.getElementById('enemy-template');
-  ENEMY_TEMPLATES.forEach((t,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${t.name} (CR ${t.cr})`;sel.appendChild(o);});
+  // Also populate the Manage Hostiles overlay template dropdown
+  ['enemy-template','mh-template'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    ENEMY_TEMPLATES.forEach((t,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${t.name} (CR ${t.cr})`;sel.appendChild(o);});
+  });
+}
+
+// ── MANAGE HOSTILES OVERLAY ──────────────────────────────────────
+function openManageHostiles(){
+  document.getElementById('hostiles-overlay').style.display='flex';
+  renderCurrentHostilesList();
+}
+function closeManageHostiles(){
+  document.getElementById('hostiles-overlay').style.display='none';
+}
+
+function fillHostileTemplate(){
+  const sel=document.getElementById('mh-template');
+  if(!sel.value)return;
+  const t=ENEMY_TEMPLATES[parseInt(sel.value)];if(!t)return;
+  document.getElementById('mh-name').value=t.name;
+  document.getElementById('mh-hp').value=t.hp;
+  document.getElementById('mh-ac').value=t.ac;
+  document.getElementById('mh-init').value=t.initMod;
+  document.getElementById('mh-first').checked=false;
+  document.getElementById('mh-last').checked=false;
+}
+
+function renderCurrentHostilesList(){
+  const wrap=document.getElementById('mh-current-list');if(!wrap)return;
+  const enemies=Object.values(combatants).filter(c=>c.type==='enemy');
+  if(!enemies.length){wrap.innerHTML='<div style="font-size:.78rem;color:var(--text-d);font-style:italic;">No hostiles in session yet.</div>';return;}
+  wrap.innerHTML=enemies.map(e=>`
+    <div class="mp-player-row">
+      <div><div class="mp-player-name">${esc(e.name)}</div>
+      <div class="mp-player-sub">${e.currentHp}/${e.maxHp} HP &nbsp;·&nbsp; AC ${e.armorClass||'?'} &nbsp;·&nbsp; Init ${e.initiative??'?'}</div></div>
+      <button class="enc-btn enc-btn-danger enc-btn-sm" onclick="removeEnemyFromOverlay('${e.id}')">&#10005;</button>
+    </div>`).join('');
+}
+
+async function addHostileFromOverlay(){
+  if(!activeSessionId)return;
+  const name=document.getElementById('mh-name').value.trim();
+  const maxHp=parseInt(document.getElementById('mh-hp').value)||10;
+  const ac=parseInt(document.getElementById('mh-ac').value)||12;
+  const initMod=parseInt(document.getElementById('mh-init').value)||0;
+  const alwaysFirst=document.getElementById('mh-first').checked;
+  const alwaysLast=document.getElementById('mh-last').checked;
+  const statusEl=document.getElementById('mh-status');
+  if(!name){statusEl.style.color='var(--red)';statusEl.textContent='Enter a hostile name.';return;}
+
+  try{
+    // Determine initiative for new enemy if combat is active
+    let initiative=null;
+    if(initiativePhase==='active'){
+      // Auto-roll initiative for the new enemy
+      initiative=Math.floor(Math.random()*20)+1+initMod;
+    }
+
+    const ref=await db.collection('Sessions').doc(activeSessionId).collection('combatants').add({
+      name,type:'enemy',maxHp,currentHp:maxHp,tempHp:0,
+      armorClass:ac,initiativeMod:initMod,initiative,
+      alwaysFirst,alwaysLast,conditions:[],isDead:false
+    });
+
+    // If initiative is active, insert the new enemy after current turn
+    if(initiativePhase==='active'&&turnOrder.length>0){
+      const insertAt=currentTurnIdx+1;
+      const newOrder=[...turnOrder];
+      newOrder.splice(insertAt,0,ref.id);
+      await db.collection('Sessions').doc(activeSessionId).update({turnOrder:newOrder});
+    }
+
+    // Show success, keep fields populated for repeat adds (only clear name)
+    statusEl.style.color='var(--green-b)';
+    statusEl.textContent=`${name} added!${initiativePhase==='active'?' (Initiative: '+initiative+')':''}`;
+    setTimeout(()=>{if(statusEl)statusEl.textContent='';},3000);
+    renderCurrentHostilesList();
+    // Don't clear the form — DM may want to add another of the same type
+  }catch(e){
+    console.error(e);
+    statusEl.style.color='var(--red)';
+    statusEl.textContent='Failed to add hostile.';
+  }
+}
+
+async function removeEnemyFromOverlay(id){
+  if(!confirm('Remove this hostile?'))return;
+  try{
+    await db.collection('Sessions').doc(activeSessionId).collection('combatants').doc(id).delete();
+    // Also remove from turnOrder if present
+    if(turnOrder.includes(id)){
+      const newOrder=turnOrder.filter(i=>i!==id);
+      let newIdx=currentTurnIdx;
+      const removedPos=turnOrder.indexOf(id);
+      if(removedPos<=currentTurnIdx&&newIdx>0)newIdx--;
+      await db.collection('Sessions').doc(activeSessionId).update({turnOrder:newOrder,currentTurnIdx:Math.min(newIdx,newOrder.length-1)});
+    }
+    renderCurrentHostilesList();
+  }catch(e){toast('Failed to remove.','error');}
 }
 function fillEnemyTemplate(){
   const sel=document.getElementById('enemy-template');if(!sel.value)return;
@@ -1163,7 +1382,11 @@ function openDmAdjust(id){
       <button class="mc-btn mc-gold" onclick="dmAdj('temp')">+ Temp</button>
     </div>
     ${c.type==='enemy'?`<div class="mc-btn-row" style="margin-top:.4rem;"><button class="mc-btn" style="background:rgba(155,21,21,.1);border-color:var(--red-d);color:var(--red);" onclick="dmToggleDead('${id}',${!!c.isDead})">${c.isDead?'Revive':'Mark Dead'}</button></div>`:''}
-    <div class="mc-btn-row" style="margin-top:.4rem;"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-dm-adj').classList.remove('open')">Close</button></div>`;
+    <div class="mc-sec" style="margin-top:.8rem;border-top:1px solid rgba(180,110,40,.15);padding-top:.6rem;">
+      <div style="font-family:'Cinzel',serif;font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-d);margin-bottom:.4rem;">Conditions</div>
+      <div class="cond-grid">${renderCondButtons(c)}</div>
+    </div>
+    <div class="mc-btn-row" style="margin-top:.8rem;"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-dm-adj').classList.remove('open')">Close</button></div>`;
   document.getElementById('m-dm-adj').classList.add('open');
 }
 async function dmAdj(a){const amt=parseInt(document.getElementById('adj-amt').value)||0;if(!amt)return;await applyHp(dmAdjTarget,a,amt);document.getElementById('m-dm-adj').classList.remove('open');}
@@ -1306,9 +1529,8 @@ function renderEncSheet(){
   const pperc=10+m(sc.wis||10)+(skillP.includes('Perception')?pb:0)+(skillE.includes('Perception')?pb:0);
   const abHtml=SKEYS.map(k=>`<div class="ab-cell"><div class="ab-nm">${SABRV[k]}</div><div class="ab-mod">${ms(sc[k]||10)}</div><div class="ab-sc">${sc[k]||10}</div>${saves.includes(k)?'<div style="width:5px;height:5px;border-radius:50%;background:#9b1515;margin:.05rem auto 0;"></div>':''}</div>`).join('');
   const skillHtml=ALL_SKILLS.map(sk=>{const ab=SKILL_AB[sk];const exp=skillE.includes(sk);const prf=skillP.includes(sk)||exp;const v=m(sc[ab]||10)+(exp?pb*2:prf?pb:0);return`<div class="sk-line"><div class="pip${exp?' e':prf?' f':''}"></div><span class="sk-val">${v>=0?'+':''}${v}</span><span>${sk}</span></div>`;}).join('');
-  const ds=s.deathSaves||{};
   const adjHtml=isDM()?`<div style="display:flex;gap:.3rem;margin-top:.4rem;"><button class="snav-btn" onclick="adjSheet('heal')">+ Heal</button><button class="snav-btn" onclick="adjSheet('dmg')">&#8722; Dmg</button><input class="ae-input" id="sheet-adj-amt" type="number" min="1" max="999" value="5" style="width:52px;font-size:.78rem;"></div>`:'<div style="font-size:.68rem;color:#8a6040;font-style:italic;margin-top:.35rem;">HP managed by your DM.</div>';
-  root.innerHTML=`<div class="cs-name">${esc(char.characterName||'Unknown')}</div><div class="cs-meta"><div class="cs-meta-item"><span>Class/Lv</span>${esc(char.class||'—')} ${lv}</div><div class="cs-meta-item"><span>Species</span>${esc(char.race||'—')}</div><div class="cs-meta-item"><span>Gold</span>${char.gold||0} gp</div></div><div class="cs-sec">Abilities</div><div class="ab-row">${abHtml}</div><div class="cbt-row"><div class="cbt-box"><div class="cbt-v">${ac}</div><div class="cbt-l">AC</div></div><div class="cbt-box"><div class="cbt-v">${ms(sc.dex||10)}</div><div class="cbt-l">Init</div></div><div class="cbt-box"><div class="cbt-v">+${pb}</div><div class="cbt-l">Prof</div></div></div><div class="cs-sec">Hit Points</div><div class="hp-panel"><div class="hp-row"><div><div class="hp-n">${curHp}</div><div class="hp-l">Current</div></div><div><div class="hp-n">${maxHp}</div><div class="hp-l">Max</div></div><div><div class="hp-n" style="font-size:1.1rem;color:#4a3018;">${s.tempHp||0}</div><div class="hp-l">Temp</div></div></div><div class="hp-bar-t"><div class="hp-bar-f" style="width:${pct}%;background:${hpBg(pct)};"></div></div>${adjHtml}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;"><div><div class="cs-sec">Saves</div>${SKEYS.map(k=>{const p=saves.includes(k);const v=m(sc[k]||10)+(p?pb:0);return`<div class="sk-line"><div class="pip${p?' f':''}"></div><span class="sk-val">${v>=0?'+':''}${v}</span><span>${SABRV[k]}</span></div>`;}).join('')}</div><div><div class="cs-sec">Top Skills</div>${skillHtml.split('</div>').slice(0,8).join('</div>')+'</div>'}<div style="font-size:.65rem;color:#8a6040;margin-top:.18rem;">Passive Perc: ${pperc}</div></div></div><div class="cs-sec">Death Saves</div><div style="display:flex;flex-direction:column;gap:.18rem;"><div class="sk-line"><span style="min-width:60px;color:#8a6040;">Successes</span>${[0,1,2].map(i=>`<div class="pip${(ds.successes||0)>i?' f':''}"></div>`).join('')}</div><div class="sk-line"><span style="min-width:60px;color:#8a6040;">Failures</span>${[0,1,2].map(i=>`<div class="pip${(ds.failures||0)>i?' e':''}"></div>`).join('')}</div></div>`;
+  root.innerHTML=`<div class="cs-name">${esc(char.characterName||'Unknown')}</div><div class="cs-meta"><div class="cs-meta-item"><span>Class/Lv</span>${esc(char.class||'—')} ${lv}</div><div class="cs-meta-item"><span>Species</span>${esc(char.race||'—')}</div><div class="cs-meta-item"><span>Gold</span>${char.gold||0} gp</div></div><div class="cs-sec">Abilities</div><div class="ab-row">${abHtml}</div><div class="cbt-row"><div class="cbt-box"><div class="cbt-v">${ac}</div><div class="cbt-l">AC</div></div><div class="cbt-box"><div class="cbt-v">${ms(sc.dex||10)}</div><div class="cbt-l">Init</div></div><div class="cbt-box"><div class="cbt-v">+${pb}</div><div class="cbt-l">Prof</div></div></div><div class="cs-sec">Hit Points</div><div class="hp-panel"><div class="hp-row"><div><div class="hp-n">${curHp}</div><div class="hp-l">Current</div></div><div><div class="hp-n">${maxHp}</div><div class="hp-l">Max</div></div><div><div class="hp-n" style="font-size:1.1rem;color:#4a3018;">${s.tempHp||0}</div><div class="hp-l">Temp</div></div></div><div class="hp-bar-t"><div class="hp-bar-f" style="width:${pct}%;background:${hpBg(pct)};"></div></div>${adjHtml}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;"><div><div class="cs-sec">Saves</div>${SKEYS.map(k=>{const p=saves.includes(k);const v=m(sc[k]||10)+(p?pb:0);return`<div class="sk-line"><div class="pip${p?' f':''}"></div><span class="sk-val">${v>=0?'+':''}${v}</span><span>${SABRV[k]}</span></div>`;}).join('')}</div><div><div class="cs-sec">Top Skills</div>${skillHtml.split('</div>').slice(0,8).join('</div>')+'</div>'}<div style="font-size:.65rem;color:#8a6040;margin-top:.18rem;">Passive Perc: ${pperc}</div></div></div>`;
 }
 async function adjSheet(action){
   const c=partyChars[sheetNavIdx];if(!c)return;
@@ -1322,6 +1544,184 @@ async function adjSheet(action){
 // ════════════════════════════════════════════════════════════
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(msg,type='info'){const w=document.getElementById('toasts'),el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;w.appendChild(el);setTimeout(()=>el.remove(),4500);}
+
+
+
+// ════════════════════════════════════════════════════════════
+//  PLAYER SELF-HEAL FROM INVENTORY
+// ════════════════════════════════════════════════════════════
+// Healing item definitions — amounts will be configurable later
+const HEALING_ITEMS = {
+  'Potion of Healing':         { dice:2, sides:4, bonus:2,  label:'2d4+2' },
+  'Potion of Greater Healing': { dice:4, sides:4, bonus:4,  label:'4d4+4' },
+  'Potion of Superior Healing':{ dice:8, sides:4, bonus:8,  label:'8d4+8' },
+  'Potion of Supreme Healing': { dice:10,sides:4, bonus:20, label:'10d4+20' },
+  "Elixir of Health":          { dice:0, sides:0, bonus:1,  label:'1 HP + clears conditions' },
+};
+
+function rollHeal(item){
+  let total = item.bonus || 0;
+  for(let i=0;i<(item.dice||0);i++) total += Math.floor(Math.random()*((item.sides||4)))+1;
+  return total;
+}
+
+async function openUseItemModal(){
+  const body = document.getElementById('m-use-item-body');
+  body.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-d);font-style:italic;">Loading...</div>';
+  document.getElementById('m-use-item').classList.add('open');
+
+  if(!myChar){
+    body.innerHTML='<div class="mc-info" style="color:var(--red);">No active character found.</div><div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-use-item').classList.remove('open')">Close</button></div>';
+    return;
+  }
+  try{
+    const snap = await db.collection('Inventory')
+      .where('characterId','==',myChar.id).get();
+    const allItems = snap.docs.map(d=>({id:d.id,...d.data()}));
+    // Filter to only healing items
+    const healItems = allItems.filter(i=>HEALING_ITEMS[i.itemName]);
+
+    if(!healItems.length){
+      body.innerHTML=`<div class="mc-info">You have no healing items in your inventory.</div>
+        <div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-use-item').classList.remove('open')">Close</button></div>`;
+      return;
+    }
+
+    body.innerHTML = `
+      <div class="mc-info" style="margin-bottom:.6rem;">
+        Select an item to use. Healing is applied immediately — no DM approval needed.
+      </div>
+      ${healItems.map(item=>{
+        const def = HEALING_ITEMS[item.itemName];
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .6rem;border:1px solid rgba(180,110,40,.18);border-radius:3px;margin-bottom:.3rem;background:rgba(180,110,40,.04);">
+          <div>
+            <div style="font-family:'Cinzel',serif;font-size:.76rem;color:var(--text);">${esc(item.itemName)}</div>
+            <div style="font-size:.7rem;color:var(--text-d);">Heals ${def.label} HP &nbsp;·&nbsp; Qty: ${item.quantity||1}</div>
+          </div>
+          <button class="enc-btn enc-btn-green enc-btn-sm" onclick="useHealingItem('${item.id}','${esc(item.itemName)}')">Use</button>
+        </div>`;
+      }).join('')}
+      <div class="mc-btn-row" style="margin-top:.6rem;">
+        <button class="mc-btn mc-ghost" onclick="document.getElementById('m-use-item').classList.remove('open')">Close</button>
+      </div>`;
+  }catch(e){
+    console.error(e);
+    body.innerHTML='<div class="mc-info" style="color:var(--red);">Failed to load inventory.</div><div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-use-item').classList.remove('open')">Close</button></div>';
+  }
+}
+
+async function useHealingItem(invItemId, itemName){
+  if(!myChar || !activeSessionId) return;
+  const def = HEALING_ITEMS[itemName];
+  if(!def){ toast('Unknown healing item.','error'); return; }
+
+  try{
+    // Roll the heal
+    const healAmount = rollHeal(def);
+    const myCombId = Object.values(combatants).find(c=>c.characterId===myChar.id)?.id;
+
+    // Apply heal to combatant and Characters doc
+    if(myCombId){
+      await applyHp(myCombId, 'heal', healAmount);
+    } else {
+      // Not in combatants — just update the Characters doc directly
+      const newHp = Math.min(
+        (myChar.sheet?.maxHp || 8),
+        (myChar.sheet?.hp ?? (myChar.sheet?.maxHp || 8)) + healAmount
+      );
+      await db.collection('Characters').doc(myChar.id).update({'sheet.hp': newHp});
+      if(myChar.sheet) myChar.sheet.hp = newHp;
+    }
+
+    // Consume the item from inventory
+    const itemDoc = await db.collection('Inventory').doc(invItemId).get();
+    const qty = (itemDoc.data()?.quantity || 1);
+    if(qty <= 1){
+      await db.collection('Inventory').doc(invItemId).delete();
+    } else {
+      await db.collection('Inventory').doc(invItemId).update({quantity: qty - 1});
+    }
+
+    // If Elixir of Health — also clear conditions on this combatant
+    if(itemName === 'Elixir of Health' && myCombId){
+      await db.collection('Sessions').doc(activeSessionId)
+        .collection('combatants').doc(myCombId).update({conditions:[]});
+    }
+
+    document.getElementById('m-use-item').classList.remove('open');
+    toast(`Used ${itemName} — healed ${healAmount} HP!`, 'success');
+
+    // Refresh sheet display
+    renderEncSheet();
+  }catch(e){
+    console.error(e);
+    toast('Failed to use item.','error');
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  CONDITIONS
+// ════════════════════════════════════════════════════════════
+const DND_CONDITIONS = [
+  {name:'Blinded',    color:'#9090a0'},
+  {name:'Charmed',    color:'#d080d0'},
+  {name:'Deafened',   color:'#8090a0'},
+  {name:'Exhausted',  color:'#a08060'},
+  {name:'Frightened', color:'#c08040'},
+  {name:'Grappled',   color:'#80a060'},
+  {name:'Incapacitated', color:'#c06060'},
+  {name:'Invisible',  color:'#60c0c0'},
+  {name:'Paralyzed',  color:'#d0d060'},
+  {name:'Petrified',  color:'#a0a090'},
+  {name:'Poisoned',   color:'#60c060'},
+  {name:'Prone',      color:'#c09060'},
+  {name:'Restrained', color:'#a06080'},
+  {name:'Stunned',    color:'#d0a040'},
+  {name:'Unconscious',color:'#c05050'},
+];
+
+function renderCondBadges(c, isEnemy){
+  const active = c.conditions || [];
+  if(!isDM() && !active.length) return '';
+  if(!isDM()) {
+    // Players see active conditions only as read-only badges
+    return active.map(cond=>{
+      const def = DND_CONDITIONS.find(d=>d.name===cond);
+      const col = def?.color || '#c08040';
+      return `<span class="cond-badge cond-active" style="border-color:${col}55;color:${col};">${esc(cond)}</span>`;
+    }).join('');
+  }
+  // DM sees active conditions only on cards (click card to manage via adjust modal)
+  return active.map(cond=>{
+    const def = DND_CONDITIONS.find(d=>d.name===cond);
+    const col = def?.color || '#c08040';
+    return `<span class="cond-badge cond-active" style="border-color:${col}55;color:${col};">${esc(cond)}</span>`;
+  }).join('');
+}
+
+function renderCondButtons(c){
+  const active = new Set(c.conditions || []);
+  return DND_CONDITIONS.map(def=>{
+    const isActive = active.has(def.name);
+    const cls = isActive ? 'cond-active' : 'cond-inactive';
+    const styleActive = isActive ? `border-color:${def.color}77;color:${def.color};` : '';
+    return `<span class="cond-badge ${cls}" style="${styleActive}" onclick="toggleCondition('${c.id}','${def.name}')">${isActive?'✓ ':''}${esc(def.name)}</span>`;
+  }).join('');
+}
+
+async function toggleCondition(combId, condName){
+  const c = combatants[combId]; if(!c || !activeSessionId) return;
+  const current = c.conditions || [];
+  const newConds = current.includes(condName)
+    ? current.filter(x => x !== condName)
+    : [...current, condName];
+  try{
+    await db.collection('Sessions').doc(activeSessionId)
+      .collection('combatants').doc(combId).update({conditions: newConds});
+    // Re-render the adjust modal to reflect change
+    openDmAdjust(combId);
+  } catch(e){ toast('Failed to update conditions.','error'); }
+}
 
 boot();
 </script>
