@@ -1334,6 +1334,20 @@ function doSignOut() {
 async function loadApp() {
   document.getElementById('acct-username-display').textContent = loggedInUsername;
 
+  // Admins and DMs bypass character requirements — go straight to the app
+  const isAdminRole = playerRecord && (playerRecord.role === 'admin' || playerRecord.role === 'dm' || playerRecord.role === 'session_dm');
+  if (isAdminRole) {
+    allChars = await getCharactersForPlayer(loggedInUsername);
+    const activeChars = allChars.filter(c => c.status === 'Active');
+    activeChar = activeChars[0] || null;
+    show('screen-app');
+    if (typeof Nav !== 'undefined') Nav.init('portal');
+    loadInventory();
+    loadCharactersTab();
+    checkCharacterApprovalToast();
+    return;
+  }
+
   // Load characters
   allChars = await getCharactersForPlayer(loggedInUsername);
   const activeChars = allChars.filter(c => c.status === 'Active');

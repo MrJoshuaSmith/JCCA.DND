@@ -313,16 +313,19 @@ async function showApp(username){
   const nameEl=document.getElementById('welcome-name');
   const subEl=document.getElementById('welcome-char');
   nameEl.textContent='Welcome back, '+(d.playerName||username)+'!';
-  // Load active character
+  // Load active character (admins/DMs show role badge instead of character requirement)
+  const isAdminRole = d.role === 'admin' || d.role === 'dm' || d.role === 'session_dm';
   try{
     const charSnap=await db.collection('Characters').where('playerId','==',username).where('status','==','Active').get();
     if(!charSnap.empty){
       const c=charSnap.docs[0].data();
       subEl.textContent=`Active character: ${c.characterName} — ${c.class||''} Lv${c.level||1} · ${c.gold||0} gp · ${c.xp||0} XP`;
+    }else if(isAdminRole){
+      subEl.textContent='Admin account — no character required.';
     }else{
       subEl.textContent='No active character yet — submit a character request in the portal.';
     }
-  }catch(e){subEl.textContent='';}
+  }catch(e){subEl.textContent=isAdminRole?'Admin account.':'';}
   // Show admin card if admin
   if(loggedRole==='admin'||loggedRole==='dm'||loggedRole==='session_dm'){
     document.getElementById('admin-card-wrap').style.display='block';
