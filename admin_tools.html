@@ -202,14 +202,7 @@ body{background:var(--void);background-image:radial-gradient(ellipse 80% 50% at 
 <!-- MAIN APP -->
 <div id="screen-app" style="display:none">
 <div class="page">
-<div class="topbar">
-  <div class="topbar-brand">Mr. <span>Smith's</span> Emporium &mdash; <span style="color:var(--crystal-dim)">Admin Tools</span></div>
-  <div style="display:flex;align-items:center;gap:.8rem;">
-    <div class="dm-badge">&#9876; ADMIN</div>
-    <button class="btn btn-sm btn-primary" onclick="doSignOut()">Sign Out</button>
-    <a href="index.html" style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--crystal-dim);text-decoration:none;border:1px solid rgba(107,63,160,.3);padding:.28rem .7rem;border-radius:4px;">&#8592; Back</a>
-  </div>
-</div>
+
 
 <div class="main">
   <div class="nav-tabs">
@@ -218,8 +211,39 @@ body{background:var(--void);background-image:radial-gradient(ellipse 80% 50% at 
     <button class="nav-tab"        id="ntab-chars"     onclick="switchTab('chars')">Character Requests <span class="badge-count" id="badge-chars" style="display:none">0</span></button>
     <button class="nav-tab"        id="ntab-override"  onclick="switchTab('override')">Gold &amp; XP</button>
     <button class="nav-tab"        id="ntab-rewards"   onclick="switchTab('rewards')">&#127381; Reward Generator</button>
+    <button class="nav-tab"        id="ntab-sessions"  onclick="switchTab('sessions')">&#9889; Sessions</button>
   </div>
   <div class="tab-border"></div>
+
+  <!-- SESSIONS -->
+  <div id="tab-sessions" style="display:none;">
+    <div class="card" style="margin-bottom:1.2rem;">
+      <div class="card-title">&#9889; Assign Session DM</div>
+      <p style="font-size:.85rem;color:var(--silver-dim);margin-bottom:1rem;">
+        Select a user to become the DM for a new session. This creates the session automatically — the DM does not need to set it up themselves.
+      </p>
+      <div style="display:flex;gap:.6rem;align-items:flex-end;flex-wrap:wrap;">
+        <div>
+          <label class="form-label">Select User</label>
+          <select class="form-input" id="assign-dm-select" style="min-width:200px;">
+            <option value="">— Choose a user —</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Session Name (optional)</label>
+          <input class="form-input" id="assign-session-name" type="text" placeholder="Leave blank for default" style="min-width:200px;">
+        </div>
+        <button class="btn btn-gold" onclick="assignSessionDM()" style="margin-bottom:.05rem;">Create Session</button>
+      </div>
+      <p class="form-error" id="assign-dm-err" style="display:none;margin-top:.5rem;"></p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">&#128221; Active Sessions</div>
+      <div id="active-sessions-list"><div class="spinner"></div></div>
+    </div>
+  </div>
+
 
   <!-- OVERVIEW -->
   <div id="tab-overview">
@@ -905,11 +929,12 @@ async function applyAllOverrides() {
 //  TAB SWITCHING
 // ================================================================
 function switchTab(name) {
-  ['overview','accounts','chars','override','rewards'].forEach(t=>{
+  ['overview','accounts','chars','override','rewards','sessions'].forEach(t=>{
     document.getElementById(`tab-${t}`).style.display=t===name?'block':'none';
     document.getElementById(`ntab-${t}`).classList.toggle('active',t===name);
   });
   if (name === 'rewards') rEnsureInit();
+  if (name === 'sessions') loadSessionsTab();
 }
 
 // ================================================================
@@ -1221,7 +1246,164 @@ function toast(msg,type='info'){const w=document.getElementById('toasts');const 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function makeStars(){const el=document.getElementById('stars');for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2+.4;s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;--dl:-${(Math.random()*5).toFixed(1)}s;opacity:${(Math.random()*.4+.08).toFixed(2)}`;el.appendChild(s);}}
 
+// ── Synchronous: render nav immediately ──
+(function() {
+  const _keys = ['admin_username','dm_username','dnd_username','session_dm_username'];
+  const saved = _keys.map(k => sessionStorage.getItem(k)).find(Boolean);
+  if (!saved) {
+    window.location.href = 'adventurers_hub.html';
+  } else {
+    if (typeof Nav !== 'undefined') Nav.init('admin');
+  }
+})();
+
 boot();
+// ================================================================
+//  SESSION MANAGEMENT
+// ================================================================
+
+async function loadSessionsTab() {
+  // Load users for DM dropdown
+  const sel = document.getElementById('assign-dm-select');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Choose a user —</option>';
+  try {
+    const snap = await db.collection('Users').get();
+    snap.docs.forEach(d => {
+      const data = d.data();
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = `${data.playerName || d.id} (${d.id})`;
+      sel.appendChild(opt);
+    });
+  } catch(e) { console.error(e); }
+
+  // Load active sessions
+  await loadActiveSessions();
+}
+
+async function loadActiveSessions() {
+  const wrap = document.getElementById('active-sessions-list');
+  if (!wrap) return;
+  try {
+    const snap = await db.collection('Sessions').where('isActive','==',true).get();
+    if (snap.empty) {
+      wrap.innerHTML = '<p style="font-size:.85rem;color:var(--silver-dim);padding:.5rem 0;">No active sessions.</p>';
+      return;
+    }
+    // For each session, also count combatants
+    const rows = await Promise.all(snap.docs.map(async d => {
+      const s = d.data();
+      let playerCount = 0;
+      try {
+        const combSnap = await db.collection('Sessions').doc(d.id).collection('combatants')
+          .where('type','==','player').get();
+        playerCount = combSnap.size;
+      } catch(e) {}
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem .8rem;border:1px solid rgba(180,110,40,.18);border-radius:4px;margin-bottom:.5rem;background:rgba(180,110,40,.04);">
+          <div>
+            <div style="font-family:'Cinzel',serif;font-size:.82rem;font-weight:700;color:var(--crystal);">${esc(s.sessionName||'Unnamed Session')}</div>
+            <div style="font-size:.76rem;color:var(--silver-dim);margin-top:.18rem;">
+              DM: <b style="color:var(--silver);">${esc(s.dmDisplayName||s.dmUserId||'?')}</b>
+              &nbsp;·&nbsp; ${playerCount} player${playerCount!==1?'s':''}
+              &nbsp;·&nbsp; Phase: ${esc(s.initiativePhase||'setup')}
+            </div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="revokeSession('${d.id}', '${esc(s.sessionName||'this session')}')">Revoke</button>
+        </div>`;
+    }));
+    wrap.innerHTML = rows.join('');
+  } catch(e) {
+    console.error(e);
+    wrap.innerHTML = '<p style="color:var(--red-sale);font-size:.85rem;">Failed to load sessions.</p>';
+  }
+}
+
+async function assignSessionDM() {
+  const userId = document.getElementById('assign-dm-select').value;
+  const customName = document.getElementById('assign-session-name').value.trim();
+  const errEl = document.getElementById('assign-dm-err');
+  errEl.style.display = 'none';
+
+  if (!userId) {
+    errEl.textContent = 'Please select a user.';
+    errEl.style.display = 'block'; return;
+  }
+
+  // Check user isn't already a DM for an active session
+  const existSnap = await db.collection('Sessions')
+    .where('dmUserId','==',userId).where('isActive','==',true).get();
+  if (!existSnap.empty) {
+    errEl.textContent = 'This user is already a DM for an active session.';
+    errEl.style.display = 'block'; return;
+  }
+
+  try {
+    const userDoc = await db.collection('Users').doc(userId).get();
+    const displayName = userDoc.data()?.playerName || userId;
+    const sessionName = customName || `${displayName}'s Session`;
+
+    await db.collection('Sessions').add({
+      sessionName,
+      dmUserId: userId,
+      dmDisplayName: displayName,
+      isActive: true,
+      createdByAdmin: dmUsername,
+      createdAt: new Date().toISOString(),
+      encounterNotes: '',
+      encounterImageUrl: '',
+      initiativePhase: 'none',
+      turnOrder: [],
+      currentTurnIdx: 0,
+    });
+
+    document.getElementById('assign-dm-select').value = '';
+    document.getElementById('assign-session-name').value = '';
+    toast(`Session created for ${displayName}`, 'success');
+    await loadActiveSessions();
+  } catch(e) {
+    console.error(e);
+    errEl.textContent = 'Failed to create session. Try again.';
+    errEl.style.display = 'block';
+  }
+}
+
+async function revokeSession(sessionId, sessionName) {
+  if (!confirm(`Revoke "${sessionName}"? This will remove all players from the session.`)) return;
+  try {
+    // Get all combatants so we can clear their currentSessionId
+    const combSnap = await db.collection('Sessions').doc(sessionId).collection('combatants').get();
+    const batch = db.batch();
+
+    // Clear currentSessionId for all players in this session
+    const playerUserIds = new Set();
+    combSnap.docs.forEach(d => {
+      batch.delete(d.ref);
+      if (d.data().playerId) playerUserIds.add(d.data().playerId);
+    });
+    playerUserIds.forEach(uid => {
+      batch.update(db.collection('Users').doc(uid), { currentSessionId: null });
+    });
+
+    // Also delete any pending requests for this session
+    const reqSnap = await db.collection('SessionRequests').where('sessionId','==',sessionId).get();
+    reqSnap.docs.forEach(d => batch.delete(d.ref));
+
+    // Mark session inactive
+    batch.update(db.collection('Sessions').doc(sessionId), {
+      isActive: false, endedAt: new Date().toISOString(), endedByAdmin: dmUsername
+    });
+
+    await batch.commit();
+    toast('Session revoked.', 'info');
+    await loadActiveSessions();
+  } catch(e) {
+    console.error(e);
+    toast('Failed to revoke session.', 'error');
+  }
+}
+
 </script>
 </body>
 </html>
