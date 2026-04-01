@@ -164,17 +164,19 @@ firebase.initializeApp({
 const db = firebase.firestore();
 
 // ── Boot ──
-let _shopReady = false;
-(async function() {
-  try { await firebase.auth().signInAnonymously(); } catch(e) {}
-  const _authKeys=['dnd_username','admin_username','session_dm_username','dm_username'];
-  if (!_authKeys.some(k => sessionStorage.getItem(k))) {
-    window.location.href = 'adventurers_hub.html';
-    return;
-  }
-  _shopReady = true;
+// 1. Nav renders immediately — no async needed, just reads sessionStorage
+const _authKeys = ['dnd_username','admin_username','session_dm_username','dm_username'];
+if (!_authKeys.some(k => sessionStorage.getItem(k))) {
+  window.location.href = 'adventurers_hub.html';
+} else {
   Nav.init('market');
-})();
+}
+
+// 2. Firebase anon auth in background (needed for Firestore reads)
+let _shopReady = false;
+firebase.auth().signInAnonymously()
+  .then(() => { _shopReady = true; })
+  .catch(e => { console.warn('Anon auth failed:', e); _shopReady = true; }); // still allow shop to open
 
 
 const SHOP_ITEMS = [
