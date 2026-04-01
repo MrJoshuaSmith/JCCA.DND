@@ -10,150 +10,126 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
-
-:root{--bg:#100c08;--bg-card:#1a1410;--border:rgba(180,110,40,.22);--gold:#c8952a;--gold-d:#7a5818;--red:#c41e1e;--text:#e0d8c8;--text-m:#a89880;--text-d:#6a5840;}
+:root{--bg:#100c08;--bg-card:#1a1410;--bg-card2:#201a14;--border:rgba(180,110,40,.22);--gold:#c8952a;--gold-d:#7a5818;--red:#c41e1e;--text:#e0d8c8;--text-m:#a89880;--text-d:#6a5840;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);background-image:radial-gradient(ellipse 90% 55% at 50% 0%,#1e1208,transparent 65%);min-height:100vh;font-family:'Crimson Pro',Georgia,serif;color:var(--text);overflow-x:hidden;}
 
+/* ── SHOP ATMOSPHERE ── */
+.shop-hero{min-height:calc(100vh - 54px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 2rem;position:relative;}
+@keyframes flicker{0%,100%{opacity:1;}45%{opacity:.85;}55%{opacity:.9;}}
+.lantern{font-size:3.5rem;display:block;margin-bottom:1.2rem;animation:flicker 3.5s ease-in-out infinite;filter:drop-shadow(0 0 14px rgba(200,140,30,.45));}
+.sign-plank{background:linear-gradient(135deg,#2a1a08,#1e1204);border:3px solid rgba(180,110,40,.5);border-radius:4px;padding:3rem 4.5rem;box-shadow:0 8px 40px rgba(0,0,0,.65),inset 0 0 60px rgba(180,110,40,.04);position:relative;text-align:center;max-width:580px;}
+.sign-plank::before{content:'';position:absolute;inset:10px;border:1px solid rgba(180,110,40,.1);border-radius:2px;pointer-events:none;}
+.sign-ornament{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.7em;color:rgba(200,149,42,.5);margin-bottom:.7rem;}
+.sign-title{font-family:'Cinzel',serif;font-size:clamp(1.8rem,5vw,3.2rem);font-weight:900;color:#e0d8c8;line-height:1.1;margin-bottom:.5rem;}
+.sign-title span{color:var(--gold);}
+.sign-sub{font-style:italic;color:#8a6838;font-size:1rem;margin-bottom:2.2rem;}
+.sign-divider{display:flex;align-items:center;gap:.8rem;margin:0 auto 2rem;max-width:240px;}
+.sign-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(180,110,40,.5),transparent);}
+.sign-gem{color:rgba(180,110,40,.6);font-size:.7rem;}
+.sign-tags{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;}
+.sign-tag{background:rgba(180,110,40,.1);border:1px solid rgba(180,110,40,.28);border-radius:3px;padding:.22rem .65rem;font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.1em;color:var(--text-d);}
 
-/* ── PURCHASE OVERLAY ── */
-#shop-overlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.82);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center;}
-#shop-overlay.open{display:flex;}
-.shop-panel{background:#1a1410;border:1px solid rgba(180,110,40,.35);border-bottom:none;border-radius:8px 8px 0 0;width:100%;max-width:920px;height:82vh;display:flex;flex-direction:column;box-shadow:0 -8px 48px rgba(0,0,0,.7);animation:panel-up .28s ease;}
-@keyframes panel-up{from{transform:translateY(100%);}to{transform:none;}}
-.sp-header{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.4rem;border-bottom:1px solid rgba(180,110,40,.2);flex-shrink:0;}
-.sp-title{font-family:'Cinzel',serif;font-size:.9rem;font-weight:700;color:#e0d8c8;}
-.sp-close{background:transparent;border:1px solid rgba(180,110,40,.3);border-radius:3px;color:#a89880;font-family:'Cinzel',serif;font-size:.72rem;padding:.25rem .7rem;cursor:pointer;transition:all .18s;}
-.sp-close:hover{border-color:#c41e1e;color:#c41e1e;}
-.sp-filter-row{display:flex;gap:.3rem;padding:.5rem 1.2rem;border-bottom:1px solid rgba(180,110,40,.15);flex-shrink:0;flex-wrap:wrap;}
-.sp-tab{font-family:'Cinzel',serif;font-size:.6rem;font-weight:600;letter-spacing:.07em;padding:.26rem .65rem;border-radius:3px;border:1px solid rgba(180,110,40,.2);background:transparent;color:#a89880;cursor:pointer;transition:all .18s;}
-.sp-tab:hover,.sp-tab.active{background:rgba(180,110,40,.18);border-color:rgba(180,110,40,.5);color:#c8952a;}
+/* ── OPEN SHOP BUTTON ── */
+.open-shop-wrap{position:fixed;bottom:2rem;right:2rem;z-index:50;}
+.open-shop-btn{font-family:'Cinzel',serif;font-size:.82rem;font-weight:700;letter-spacing:.12em;padding:.8rem 1.8rem;border-radius:4px;cursor:pointer;background:rgba(200,149,42,.38);border:2px solid var(--gold);color:#f0e8d8;transition:all .22s;box-shadow:0 4px 24px rgba(200,149,42,.35);}
+.open-shop-btn:hover{background:rgba(200,149,42,.55);border-color:#e0b040;color:#fff;box-shadow:0 6px 32px rgba(200,149,42,.55);}
+
+/* ── BACK LINK ── */
+.back-link{position:absolute;top:1.2rem;left:1.5rem;font-family:'Cinzel',serif;font-size:.65rem;font-weight:600;letter-spacing:.08em;padding:.3rem .75rem;border-radius:3px;border:1px solid rgba(180,110,40,.35);background:rgba(180,110,40,.1);color:var(--text-m);text-decoration:none;transition:all .18s;}
+.back-link:hover{color:var(--gold);border-color:rgba(180,110,40,.6);}
+
+/* ── SHOP OVERLAY ── */
+.shop-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.82);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center;}
+.shop-overlay.open{display:flex;}
+.shop-panel{background:#1a1410;border:2px solid rgba(180,110,40,.4);border-bottom:none;border-radius:8px 8px 0 0;width:100%;max-width:940px;height:85vh;display:flex;flex-direction:column;box-shadow:0 -8px 48px rgba(0,0,0,.7);animation:slideup .28s ease;}
+@keyframes slideup{from{transform:translateY(100%);}to{transform:none;}}
+.sp-hdr{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.4rem;border-bottom:1px solid rgba(180,110,40,.2);flex-shrink:0;}
+.sp-title{font-family:'Cinzel',serif;font-size:.9rem;font-weight:700;color:var(--text);}
+.sp-close{background:transparent;border:1px solid rgba(180,110,40,.3);border-radius:3px;color:var(--text-m);font-family:'Cinzel',serif;font-size:.7rem;padding:.25rem .7rem;cursor:pointer;transition:all .18s;}
+.sp-close:hover{border-color:var(--red);color:var(--red);}
+.sp-filters{display:flex;gap:.3rem;padding:.5rem 1.2rem;border-bottom:1px solid rgba(180,110,40,.15);flex-shrink:0;flex-wrap:wrap;}
+.sp-filter{font-family:'Cinzel',serif;font-size:.62rem;font-weight:600;letter-spacing:.07em;padding:.26rem .65rem;border-radius:3px;border:1px solid rgba(180,110,40,.2);background:transparent;color:var(--text-m);cursor:pointer;transition:all .18s;}
+.sp-filter:hover,.sp-filter.active{background:rgba(180,110,40,.18);border-color:rgba(180,110,40,.5);color:var(--gold);}
 .sp-body{flex:1;overflow-y:auto;padding:.9rem 1.2rem;}
 .sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:.75rem;}
-.sp-item{background:#201a14;border:1px solid rgba(180,110,40,.18);border-radius:4px;padding:.75rem .95rem;display:flex;flex-direction:column;gap:.32rem;transition:border-color .18s;}
-.sp-item:hover{border-color:rgba(180,110,40,.38);}
-.sp-item-name{font-family:'Cinzel',serif;font-size:.76rem;font-weight:700;color:#e0d8c8;}
-.sp-item-cat{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:#6a5840;}
-.sp-item-desc{font-size:.78rem;color:#a89880;line-height:1.58;flex:1;}
+.sp-item{background:#201a14;border:1px solid rgba(180,110,40,.18);border-radius:4px;padding:.75rem .95rem;display:flex;flex-direction:column;gap:.3rem;transition:border-color .18s;}
+.sp-item:hover{border-color:rgba(180,110,40,.4);}
+.sp-item-name{font-family:'Cinzel',serif;font-size:.76rem;font-weight:700;color:var(--text);}
+.sp-item-cat{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-d);}
+.sp-item-desc{font-size:.78rem;color:var(--text-m);line-height:1.58;flex:1;}
 .sp-item-foot{display:flex;align-items:center;justify-content:space-between;margin-top:.28rem;}
-.sp-price{font-family:'Cinzel',serif;font-size:.8rem;font-weight:700;color:#c8952a;}
-.sp-buy{font-family:'Cinzel',serif;font-size:.58rem;font-weight:600;letter-spacing:.07em;padding:.26rem .65rem;border-radius:3px;border:1px solid rgba(180,110,40,.42);background:rgba(180,110,40,.12);color:#c8952a;cursor:pointer;transition:all .18s;}
-.sp-buy:hover:not(:disabled){background:rgba(180,110,40,.26);}
+.sp-price{font-family:'Cinzel',serif;font-size:.8rem;font-weight:700;color:var(--gold);}
+.sp-buy{font-family:'Cinzel',serif;font-size:.6rem;font-weight:600;letter-spacing:.07em;padding:.26rem .65rem;border-radius:3px;border:1px solid rgba(180,110,40,.42);background:rgba(180,110,40,.12);color:var(--gold);cursor:pointer;transition:all .18s;}
+.sp-buy:hover:not(:disabled){background:rgba(180,110,40,.28);}
 .sp-buy:disabled{opacity:.38;cursor:default;}
-.sp-gold-bar{display:flex;align-items:center;gap:.5rem;font-family:'Cinzel',serif;font-size:.66rem;color:#a89880;padding:.4rem 1.2rem;border-top:1px solid rgba(180,110,40,.12);flex-shrink:0;}
-.sp-gold-val{color:#c8952a;font-weight:700;}
-.sp-empty{text-align:center;padding:2.5rem;color:#6a5840;font-style:italic;font-size:.85rem;}
-.open-shop-btn{position:fixed;bottom:1.5rem;right:1.5rem;z-index:300;font-family:'Cinzel',serif;font-size:.8rem;font-weight:700;letter-spacing:.12em;padding:.75rem 1.7rem;border-radius:4px;cursor:pointer;background:rgba(200,149,42,.35);border:2px solid #c8952a;color:#f0e8d8;transition:all .22s;box-shadow:0 4px 24px rgba(200,149,42,.35),0 0 0 1px rgba(200,149,42,.15);}
-.open-shop-btn:hover{background:rgba(200,149,42,.52);border-color:#e0b040;color:#fff;box-shadow:0 6px 32px rgba(200,149,42,.5),0 0 0 1px rgba(200,149,42,.3);}
+.sp-empty{text-align:center;padding:2.5rem;color:var(--text-d);font-style:italic;font-size:.85rem;}
+.sp-gold-bar{display:flex;align-items:center;gap:.5rem;font-family:'Cinzel',serif;font-size:.66rem;color:var(--text-m);padding:.4rem 1.2rem;border-top:1px solid rgba(180,110,40,.15);flex-shrink:0;}
+.sp-gold-val{color:var(--gold);font-weight:700;}
 
-/* ── SHOP ATMOSPHERE ── */
-.shop-hero{
-  min-height:100vh;
-  background:
-    radial-gradient(ellipse 60% 50% at 20% 30%,rgba(90,55,15,.35),transparent 55%),
-    radial-gradient(ellipse 50% 50% at 80% 70%,rgba(60,35,10,.4),transparent 55%),
-    linear-gradient(180deg,#120a04,#0e0804);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:5rem 2rem;position:relative;overflow:hidden;
-}
-.shop-hero::before{
-  content:'';position:absolute;inset:0;
-  background:repeating-linear-gradient(
-    0deg,transparent,transparent 38px,rgba(180,110,40,.025) 38px,rgba(180,110,40,.025) 39px
-  ),repeating-linear-gradient(
-    90deg,transparent,transparent 38px,rgba(180,110,40,.025) 38px,rgba(180,110,40,.025) 39px
-  );
-  pointer-events:none;
-}
-.shop-sign{
-  text-align:center;position:relative;z-index:1;max-width:600px;
-}
-.shop-sign-plank{
-  background:linear-gradient(135deg,#2a1a08,#1e1204);
-  border:3px solid rgba(180,110,40,.45);
-  border-radius:4px;padding:3rem 4rem;
-  box-shadow:0 8px 40px rgba(0,0,0,.6),inset 0 0 60px rgba(180,110,40,.04);
-  position:relative;
-}
-.shop-sign-plank::before{
-  content:'';position:absolute;inset:8px;border:1px solid rgba(180,110,40,.1);border-radius:2px;pointer-events:none;
-}
-.shop-sign-ornament{font-size:.6rem;letter-spacing:.65em;color:rgba(200,149,42,.5);font-family:'Cinzel',serif;margin-bottom:.8rem;}
-.shop-sign-title{font-family:'Cinzel',serif;font-size:clamp(1.8rem,5vw,3.2rem);font-weight:900;color:#e0d8c8;line-height:1.1;margin-bottom:.5rem;}
-.shop-sign-title span{color:#c8952a;}
-.shop-sign-sub{font-style:italic;color:#8a6838;font-size:1rem;margin-bottom:2rem;}
-.shop-divider{display:flex;align-items:center;gap:.8rem;margin:0 auto 2rem;max-width:280px;}
-.shop-divider-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(180,110,40,.5),transparent);}
-.shop-divider-gem{color:rgba(180,110,40,.6);font-size:.7rem;}
-.shop-hours{
-  display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;
-  font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.08em;color:#6a5030;
-}
-.shop-hours-badge{background:rgba(180,110,40,.08);border:1px solid rgba(180,110,40,.2);border-radius:3px;padding:.22rem .65rem;}
-@keyframes flicker{0%,100%{opacity:1;}45%{opacity:.9;}55%{opacity:.85;}}
-.shop-lantern{
-  font-size:3rem;display:block;margin-bottom:1rem;
-  animation:flicker 3.5s ease-in-out infinite;
-  filter:drop-shadow(0 0 12px rgba(200,140,30,.4));
-}
+/* ── TOAST ── */
+.toasts{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:600;display:flex;flex-direction:column;gap:.3rem;align-items:center;}
+.toast{background:#1a1410;border:1px solid;border-radius:4px;padding:.5rem 1rem;font-size:.8rem;animation:tin .22s ease;white-space:nowrap;}
+@keyframes tin{from{opacity:0;transform:translateY(6px);}to{opacity:1;}}
+.toast.success{border-color:#3d7018;color:#6ab840;}
+.toast.error{border-color:#8b1010;color:#c41e1e;}
+.toast.info{border-color:#7a5818;color:#c8952a;}
 </style>
 </head>
 <body>
 <div id="main-nav"></div>
 
 <div class="shop-hero">
-  <a href="marketplace.html" style="position:absolute;top:1.2rem;left:1.4rem;z-index:10;font-family:'Cinzel',serif;font-size:.65rem;font-weight:600;letter-spacing:.08em;padding:.3rem .75rem;border-radius:3px;border:1px solid rgba(180,110,40,.35);background:rgba(180,110,40,.1);color:#a89880;text-decoration:none;transition:all .18s;" onmouseover="this.style.color='#c8952a';this.style.borderColor='rgba(180,110,40,.6)'" onmouseout="this.style.color='#a89880';this.style.borderColor='rgba(180,110,40,.35)'">&#8592; Marketplace</a>
-  <div class="shop-sign">
-    <span class="shop-lantern">&#127976;</span>
-    <div class="shop-sign-plank">
-      <div class="shop-sign-ornament">&#9678; &nbsp;&nbsp; EST. THE REALM &nbsp;&nbsp; &#9678;</div>
-      <div class="shop-sign-title">The Adventurers<br><span>&amp;</span> Outfitters</div>
-      <div class="shop-sign-sub">Fine weapons, sturdy armour &amp; adventuring supplies</div>
-      <div class="shop-divider">
-        <div class="shop-divider-line"></div>
-        <div class="shop-divider-gem">&#9670;</div>
-        <div class="shop-divider-line"></div>
-      </div>
-      <div class="shop-hours">
-        <span class="shop-hours-badge">&#9876; Weapons &amp; Armour</span>
-        <span class="shop-hours-badge">&#127978; Gear &amp; Supplies</span>
-        <span class="shop-hours-badge">&#9673; Standard Rates</span>
-      </div>
+  <a href="marketplace.html" class="back-link">&#8592; Marketplace</a>
+  <span class="lantern">&#127976;</span>
+  <div class="sign-plank">
+    <div class="sign-ornament">&#9678; &nbsp;&nbsp; EST. THE REALM &nbsp;&nbsp; &#9678;</div>
+    <div class="sign-title">The Adventurers<br><span>&amp;</span> Outfitters</div>
+    <div class="sign-sub">Fine weapons, sturdy armour &amp; adventuring supplies</div>
+    <div class="sign-divider"><div class="sign-line"></div><div class="sign-gem">&#9670;</div><div class="sign-line"></div></div>
+    <div class="sign-tags">
+      <span class="sign-tag">&#9876; Weapons &amp; Armour</span>
+      <span class="sign-tag">&#127978; Gear &amp; Supplies</span>
+      <span class="sign-tag">&#9673; Standard Rates</span>
     </div>
   </div>
 </div>
 
-<!-- ── PURCHASE OVERLAY ── -->
-<div id="shop-overlay">
+<div class="open-shop-wrap">
+  <button class="open-shop-btn" id="open-btn" onclick="openShop()">&#128717; Open Shop</button>
+</div>
+
+<!-- SHOP OVERLAY -->
+<div class="shop-overlay" id="shop-overlay">
   <div class="shop-panel">
-    <div class="sp-header">
-      <div class="sp-title" id="sp-shop-title">&#9876; Adventurers Outfitters</div>
+    <div class="sp-hdr">
+      <div class="sp-title">&#9876; Adventurers Outfitters</div>
       <button class="sp-close" onclick="closeShop()">&#10005; Close</button>
     </div>
-    <div class="sp-filter-row" id="sp-filters">
-      <button class="sp-tab active" onclick="filterShop('All',this)">All</button>
-      <button class="sp-tab" onclick="filterShop('Weapons',this)">Weapons</button>
-      <button class="sp-tab" onclick="filterShop('Armour',this)">Armour</button>
-      <button class="sp-tab" onclick="filterShop('Adventuring Gear',this)">Gear</button>
-      <button class="sp-tab" onclick="filterShop('Ammunition',this)">Ammunition</button>
-      <button class="sp-tab" onclick="filterShop('Consumables',this)">Consumables</button>
+    <div class="sp-filters">
+      <button class="sp-filter active" onclick="filterShop('All',this)">All</button>
+      <button class="sp-filter" onclick="filterShop('Weapons',this)">Weapons</button>
+      <button class="sp-filter" onclick="filterShop('Armour',this)">Armour</button>
+      <button class="sp-filter" onclick="filterShop('Adventuring Gear',this)">Gear</button>
+      <button class="sp-filter" onclick="filterShop('Ammunition',this)">Ammunition</button>
+      <button class="sp-filter" onclick="filterShop('Consumables',this)">Consumables</button>
     </div>
     <div class="sp-body">
-      <div class="sp-grid" id="sp-grid">
-        <div class="sp-empty">Loading stock...</div>
-      </div>
+      <div class="sp-grid" id="sp-grid"></div>
     </div>
     <div class="sp-gold-bar">
-      &#9672; Your gold: <span class="sp-gold-val" id="sp-gold">— gp</span>
-      &nbsp;|&nbsp; Active character: <span id="sp-charname" style="color:#e0d8c8;">—</span>
+      &#9672; Gold: <span class="sp-gold-val" id="sp-gold">— gp</span>
+      &nbsp;|&nbsp; Character: <span id="sp-char" style="color:var(--text);">—</span>
     </div>
   </div>
 </div>
-<button class="open-shop-btn" onclick="openShop()">&#128717; Open Shop</button>
 
-<div id="sp-toasts" style="position:fixed;top:70px;right:1rem;z-index:600;display:flex;flex-direction:column;gap:.3rem;"></div>
+<div class="toasts" id="toasts"></div>
 
 <script>
+// ════════════════════════════════════════════════════
+//  FIREBASE
+// ════════════════════════════════════════════════════
 firebase.initializeApp({
   apiKey:'AIzaSyAWpUnUirhcI3nhW9WF_7aqDInOCvIbsIY',
   authDomain:'jcca-dnd.firebaseapp.com',projectId:'jcca-dnd',
@@ -163,109 +139,80 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-// ── Boot ──
-// 1. Nav renders immediately — no async needed, just reads localStorage
-const _authKeys = ['dnd_username','admin_username','session_dm_username','dm_username'];
-if (!_authKeys.some(k => localStorage.getItem(k))) {
+// ════════════════════════════════════════════════════
+//  AUTH — synchronous, no async needed
+// ════════════════════════════════════════════════════
+const AUTH_KEYS = ['dnd_username','admin_username','session_dm_username','dm_username'];
+const loggedUser = AUTH_KEYS.map(k=>localStorage.getItem(k)).find(Boolean);
+if (!loggedUser) {
   window.location.href = 'adventurers_hub.html';
 } else {
   Nav.init('market');
 }
 
-// 2. Firebase anon auth in background (needed for Firestore reads)
-let _shopReady = false;
-firebase.auth().signInAnonymously()
-  .then(() => { _shopReady = true; })
-  .catch(e => { console.warn('Anon auth failed:', e); _shopReady = true; }); // still allow shop to open
+// Firebase auth in background (needed for Firestore writes)
+firebase.auth().signInAnonymously().catch(e=>console.warn('anon auth:', e));
 
-
+// ════════════════════════════════════════════════════
+//  SHOP ITEMS (local — no Firebase needed to render)
+// ════════════════════════════════════════════════════
 const SHOP_ITEMS = [
-  {name:'Longsword',cat:'Weapons',price:15,desc:'A versatile blade. 1d8 slashing (1d10 two-handed). Versatile.'},
-  {name:'Shortsword',cat:'Weapons',price:10,desc:'A nimble blade. 1d6 piercing. Finesse, Light.'},
+  {name:'Longsword',cat:'Weapons',price:15,desc:'1d8 slashing (1d10 two-handed). Versatile.'},
+  {name:'Shortsword',cat:'Weapons',price:10,desc:'1d6 piercing. Finesse, Light.'},
   {name:'Handaxe',cat:'Weapons',price:5,desc:'1d6 slashing. Light, Thrown (20/60 ft).'},
   {name:'Dagger',cat:'Weapons',price:2,desc:'1d4 piercing. Finesse, Light, Thrown (20/60 ft).'},
   {name:'Quarterstaff',cat:'Weapons',price:0.2,desc:'1d6 bludgeoning (1d8 two-handed). Versatile.'},
   {name:'Greataxe',cat:'Weapons',price:30,desc:'1d12 slashing. Heavy, Two-Handed.'},
   {name:'Greatsword',cat:'Weapons',price:50,desc:'2d6 slashing. Heavy, Two-Handed.'},
-  {name:'Rapier',cat:'Weapons',price:25,desc:'1d8 piercing. Finesse. An elegant thrusting sword.'},
-  {name:'Shortbow',cat:'Weapons',price:25,desc:'1d6 piercing. Ammunition, Range 80/320, Two-Handed.'},
-  {name:'Longbow',cat:'Weapons',price:50,desc:'1d8 piercing. Ammunition, Heavy, Range 150/600, Two-Handed.'},
-  {name:'Light Crossbow',cat:'Weapons',price:25,desc:'1d8 piercing. Ammunition, Range 80/320, Loading, Two-Handed.'},
-  {name:'Handcrossbow',cat:'Weapons',price:75,desc:'1d6 piercing. Ammunition, Range 30/120, Light, Loading.'},
+  {name:'Rapier',cat:'Weapons',price:25,desc:'1d8 piercing. Finesse.'},
+  {name:'Shortbow',cat:'Weapons',price:25,desc:'1d6 piercing. Range 80/320, Two-Handed.'},
+  {name:'Longbow',cat:'Weapons',price:50,desc:'1d8 piercing. Heavy, Range 150/600, Two-Handed.'},
+  {name:'Light Crossbow',cat:'Weapons',price:25,desc:'1d8 piercing. Range 80/320, Loading, Two-Handed.'},
   {name:'Javelin',cat:'Weapons',price:0.5,desc:'1d6 piercing. Thrown (30/120 ft).'},
   {name:'Spear',cat:'Weapons',price:1,desc:'1d6 piercing. Thrown (20/60 ft), Versatile (1d8).'},
   {name:'Warhammer',cat:'Weapons',price:15,desc:'1d8 bludgeoning. Versatile (1d10).'},
-  {name:'Trident',cat:'Weapons',price:5,desc:'1d6 piercing. Thrown (20/60), Versatile (1d8).'},
   {name:'Glaive',cat:'Weapons',price:20,desc:'1d10 slashing. Heavy, Reach, Two-Handed.'},
-  {name:'Halberd',cat:'Weapons',price:20,desc:'1d10 slashing. Heavy, Reach, Two-Handed.'},
-  {name:'Pike',cat:'Weapons',price:5,desc:'1d10 piercing. Heavy, Reach, Two-Handed.'},
-  {name:'War Pick',cat:'Weapons',price:5,desc:'1d8 piercing. A pick designed for combat.'},
-  // Armour
+  {name:'War Pick',cat:'Weapons',price:5,desc:'1d8 piercing.'},
   {name:'Leather Armour',cat:'Armour',price:10,desc:'AC 11 + Dex modifier. Light armour.'},
   {name:'Studded Leather',cat:'Armour',price:45,desc:'AC 12 + Dex modifier. Light armour.'},
   {name:'Chain Shirt',cat:'Armour',price:50,desc:'AC 13 + Dex (max 2). Medium armour.'},
   {name:'Scale Mail',cat:'Armour',price:50,desc:'AC 14 + Dex (max 2). Medium armour. Disadvantage on Stealth.'},
   {name:'Breastplate',cat:'Armour',price:400,desc:'AC 14 + Dex (max 2). Medium armour.'},
-  {name:'Half Plate',cat:'Armour',price:750,desc:'AC 15 + Dex (max 2). Medium armour. Disadvantage on Stealth.'},
-  {name:'Ring Mail',cat:'Armour',price:30,desc:'AC 14. Heavy armour. Disadvantage on Stealth.'},
-  {name:'Chain Mail',cat:'Armour',price:75,desc:'AC 16. Heavy armour. Str 13 required. Disadvantage on Stealth.'},
-  {name:'Shield',cat:'Armour',price:10,desc:'+2 AC bonus. Requires one free hand.'},
-  // Gear
-  {name:'Backpack',cat:'Adventuring Gear',price:2,desc:'Holds 30 lbs or 1 cubic foot of gear.'},
-  {name:'Rope (50 ft hempen)',cat:'Adventuring Gear',price:1,desc:'Has 2 hit points and can be burst with a DC 17 Strength check.'},
-  {name:'Rope (50 ft silk)',cat:'Adventuring Gear',price:10,desc:'Has 2 hit points and can be burst with a DC 17 Strength check.'},
-  {name:'Torch',cat:'Adventuring Gear',price:0.01,desc:'Burns for 1 hour, bright light 20 ft, dim 20 ft more.'},
-  {name:'Torch ×10',cat:'Adventuring Gear',price:0.1,desc:'Ten torches. Each burns 1 hour.'},
+  {name:'Chain Mail',cat:'Armour',price:75,desc:'AC 16. Heavy armour. Str 13 required.'},
+  {name:'Shield',cat:'Armour',price:10,desc:'+2 AC. Requires one free hand.'},
+  {name:'Backpack',cat:'Adventuring Gear',price:2,desc:'Holds 30 lbs or 1 cubic foot.'},
+  {name:'Rope (50 ft hempen)',cat:'Adventuring Gear',price:1,desc:'2 HP, DC 17 Strength to burst.'},
+  {name:'Rope (50 ft silk)',cat:'Adventuring Gear',price:10,desc:'2 HP, DC 17 Strength to burst.'},
+  {name:'Torch x10',cat:'Adventuring Gear',price:0.1,desc:'Each burns 1 hour, 20 ft bright light.'},
   {name:'Tinderbox',cat:'Adventuring Gear',price:0.5,desc:'Flint and steel for starting fires.'},
-  {name:'Lantern (hooded)',cat:'Adventuring Gear',price:5,desc:'Bright light 30 ft, dim 30 ft more. Can be shuttered.'},
-  {name:'Oil (flask)',cat:'Adventuring Gear',price:0.1,desc:'Fuel for a lantern (6 hours). Can be thrown.'},
-  {name:'Crowbar',cat:'Adventuring Gear',price:2,desc:'+2 to Strength checks to force open doors.'},
-  {name:'Grappling Hook',cat:'Adventuring Gear',price:2,desc:'Thrown to anchor a rope. Range 20 ft.'},
-  {name:'Pouch',cat:'Adventuring Gear',price:0.5,desc:'Holds 6 lbs or 1/5 cubic foot.'},
-  {name:'Sack',cat:'Adventuring Gear',price:0.01,desc:'Holds 30 lbs or 1 cubic foot.'},
-  {name:'Blanket',cat:'Adventuring Gear',price:0.5,desc:'A warm woollen blanket.'},
+  {name:"Healer's Kit",cat:'Adventuring Gear',price:5,desc:'10 uses. Stabilise at 0 HP (no check).'},
+  {name:"Thieves' Tools",cat:'Adventuring Gear',price:25,desc:'Pick locks and disarm traps.'},
+  {name:"Climber's Kit",cat:'Adventuring Gear',price:25,desc:'Pitons, gloves, harness.'},
+  {name:'Crowbar',cat:'Adventuring Gear',price:2,desc:'+2 to Strength checks to force open.'},
+  {name:'Grappling Hook',cat:'Adventuring Gear',price:2,desc:'Range 20 ft to anchor a rope.'},
   {name:'Rations (1 day)',cat:'Adventuring Gear',price:0.5,desc:'Dry food for 1 day of travel.'},
-  {name:'Waterskin',cat:'Adventuring Gear',price:0.2,desc:'Holds 4 pints (half gallon) of liquid.'},
-  {name:'Manacles',cat:'Adventuring Gear',price:2,desc:'Escape DC 20. AC 19, 15 HP.'},
-  {name:'Healer's Kit',cat:'Adventuring Gear',price:5,desc:'10 uses. Stabilise a creature at 0 HP (no check needed).'},
-  {name:'Thieves' Tools',cat:'Adventuring Gear',price:25,desc:'Pick locks and disarm traps. Requires proficiency.'},
-  {name:'Climber's Kit',cat:'Adventuring Gear',price:25,desc:'Pitons, boot tips, gloves, harness. Grant advantage on certain Athletics checks.'},
-  {name:'Disguise Kit',cat:'Adventuring Gear',price:25,desc:'Includes cosmetics, hair dye, props. Used with Deception or Performance.'},
-  {name:'Case (map or scroll)',cat:'Adventuring Gear',price:1,desc:'Cylindrical leather case for storing maps or scrolls.'},
-  // Ammunition
-  {name:'Arrows ×20',cat:'Ammunition',price:1,desc:'Standard arrows for a shortbow or longbow.'},
-  {name:'Crossbow Bolts ×20',cat:'Ammunition',price:1,desc:'Standard bolts for a crossbow.'},
-  {name:'Blowgun Needles ×50',cat:'Ammunition',price:1,desc:'Standard needles for a blowgun.'},
-  // Consumables
-  {name:'Potion of Healing',cat:'Consumables',price:50,desc:'Drink to regain 2d4+2 hit points. Standard healing potion.'},
-  {name:'Antitoxin (vial)',cat:'Consumables',price:50,desc:'Advantage on Constitution saving throws against poison for 1 hour.'},
-  {name:'Alchemist's Fire',cat:'Consumables',price:50,desc:'Throw (Range 20 ft). 1d4 fire damage per turn until DC 10 Dex check (action).'},
+  {name:'Waterskin',cat:'Adventuring Gear',price:0.2,desc:'Holds 4 pints of liquid.'},
+  {name:'Arrows x20',cat:'Ammunition',price:1,desc:'Standard arrows for bows.'},
+  {name:'Crossbow Bolts x20',cat:'Ammunition',price:1,desc:'Standard bolts for crossbows.'},
+  {name:'Potion of Healing',cat:'Consumables',price:50,desc:'Drink to regain 2d4+2 hit points.'},
+  {name:'Antitoxin (vial)',cat:'Consumables',price:50,desc:'Advantage on Constitution saves vs poison for 1 hour.'},
+  {name:"Alchemist's Fire",cat:'Consumables',price:50,desc:'Thrown (20 ft). 1d4 fire damage per turn.'},
 ];
 
+// ════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════
 let spFilter = 'All';
-let spActiveChar = null;
+let spChar = null;  // active character for gold display
 
-async function loadShopData() {
-  // Load active character from localStorage
-  const keys = ['dnd_username','admin_username','session_dm_username','dm_username'];
-  const username = keys.map(k=>localStorage.getItem(k)).find(Boolean);
-  if (!username) return;
-  try {
-    const snap = await db.collection('Characters').where('playerId','==',username).where('status','==','Active').get();
-    if (!snap.empty) {
-      spActiveChar = {id:snap.docs[0].id,...snap.docs[0].data()};
-      document.getElementById('sp-charname').textContent = spActiveChar.characterName || username;
-      document.getElementById('sp-gold').textContent = (spActiveChar.gold??0) + ' gp';
-    }
-  } catch(e) { console.error(e); }
-}
-
+// ════════════════════════════════════════════════════
+//  OPEN / CLOSE SHOP
+// ════════════════════════════════════════════════════
 function openShop() {
-  // Open the overlay immediately — SHOP_ITEMS is a local array, no Firebase needed
   document.getElementById('shop-overlay').classList.add('open');
-  renderShopItems(spFilter);
-  // Load character gold data in the background (needs Firebase, show when ready)
-  loadShopData().then(() => renderShopItems(spFilter)).catch(e => console.warn('loadShopData:', e));
+  renderItems();
+  // Load character gold in background
+  loadCharGold();
 }
 
 function closeShop() {
@@ -274,62 +221,77 @@ function closeShop() {
 
 function filterShop(cat, btn) {
   spFilter = cat;
-  document.querySelectorAll('.sp-tab').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  renderShopItems(cat);
+  document.querySelectorAll('.sp-filter').forEach(b=>b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderItems();
 }
 
-function renderShopItems(cat) {
+function renderItems() {
   const grid = document.getElementById('sp-grid');
-  const items = cat === 'All' ? SHOP_ITEMS : SHOP_ITEMS.filter(i=>i.cat===cat);
-  if (!items.length) { grid.innerHTML='<div class="sp-empty">No items in this category.</div>'; return; }
-  const gold = spActiveChar ? (spActiveChar.gold??0) : 0;
-  grid.innerHTML = items.map((item,i)=>`
-    <div class="sp-item">
+  const items = spFilter === 'All' ? SHOP_ITEMS : SHOP_ITEMS.filter(i=>i.cat===spFilter);
+  const gold = spChar ? (spChar.gold ?? 0) : null;
+  if (!items.length) { grid.innerHTML = '<div class="sp-empty">No items in this category.</div>'; return; }
+  grid.innerHTML = items.map((item,i) => {
+    const canBuy = gold === null || gold >= item.price;
+    return `<div class="sp-item">
       <div class="sp-item-name">${esc(item.name)}</div>
       <div class="sp-item-cat">${esc(item.cat)}</div>
       <div class="sp-item-desc">${esc(item.desc)}</div>
       <div class="sp-item-foot">
         <span class="sp-price">${item.price} gp</span>
-        <button class="sp-buy" ${!spActiveChar||gold<item.price?'disabled':''} onclick="buyItem(${i})">Buy</button>
+        <button class="sp-buy" ${!spChar||!canBuy?'disabled':''} onclick="buyItem(${i})">${!spChar?'Loading...':!canBuy?'Insufficient gold':'Buy'}</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
+async function loadCharGold() {
+  try {
+    const snap = await db.collection('Characters')
+      .where('playerId','==',loggedUser).where('status','==','Active').get();
+    if (!snap.empty) {
+      spChar = {id:snap.docs[0].id,...snap.docs[0].data()};
+      document.getElementById('sp-gold').textContent = (spChar.gold??0) + ' gp';
+      document.getElementById('sp-char').textContent = spChar.characterName || loggedUser;
+      renderItems(); // re-render with buy buttons enabled
+    } else {
+      document.getElementById('sp-char').textContent = 'No active character';
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ════════════════════════════════════════════════════
+//  BUY ITEM
+// ════════════════════════════════════════════════════
 async function buyItem(idx) {
-  const item = spFilter === 'All' ? SHOP_ITEMS[idx] : SHOP_ITEMS.filter(i=>i.cat===spFilter)[idx];
-  if (!item || !spActiveChar) return;
-  const gold = spActiveChar.gold ?? 0;
-  if (gold < item.price) { spToast('Not enough gold.','error'); return; }
+  const allItems = spFilter==='All' ? SHOP_ITEMS : SHOP_ITEMS.filter(i=>i.cat===spFilter);
+  const item = allItems[idx];
+  if (!item || !spChar) return;
+  if ((spChar.gold??0) < item.price) { toast('Not enough gold.','error'); return; }
   if (!confirm(`Buy ${item.name} for ${item.price} gp?`)) return;
   try {
-    const newGold = gold - item.price;
-    await db.collection('Characters').doc(spActiveChar.id).update({gold: newGold});
+    const newGold = (spChar.gold??0) - item.price;
+    await db.collection('Characters').doc(spChar.id).update({gold:newGold});
     await db.collection('Inventory').add({
-      characterId: spActiveChar.id,
-      itemName: item.name,
-      quantity: 1,
-      source: 'Adventurers Outfitters',
-      acquiredDate: new Date().toISOString(),
-      pricePaid: item.price,
+      characterId:spChar.id,
+      itemName:item.name,
+      quantity:1,
+      source:'Adventurers Outfitters',
+      acquiredDate:new Date().toISOString(),
+      pricePaid:item.price,
     });
-    spActiveChar.gold = newGold;
+    spChar.gold = newGold;
     document.getElementById('sp-gold').textContent = newGold + ' gp';
-    renderShopItems(spFilter);
-    spToast(`${item.name} purchased!`,'success');
-  } catch(e) { console.error(e); spToast('Purchase failed.','error'); }
+    renderItems();
+    toast(`${item.name} purchased!`,'success');
+  } catch(e) { console.error(e); toast('Purchase failed.','error'); }
 }
 
+// ════════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════════
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function spToast(msg,type){
-  const w=document.getElementById('sp-toasts');
-  const el=document.createElement('div');
-  el.style.cssText='background:#1a1410;border:1px solid;border-radius:4px;padding:.5rem 1rem;font-family:Cinzel,serif;font-size:.75rem;margin-bottom:.3rem;animation:tin .22s ease;white-space:nowrap;';
-  el.style.borderColor=type==='success'?'#3d7018':'#8b1010';
-  el.style.color=type==='success'?'#80c060':'#e06060';
-  el.textContent=msg;w.appendChild(el);setTimeout(()=>el.remove(),4000);
-}
-
+function toast(msg,type='info'){const w=document.getElementById('toasts'),el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;w.appendChild(el);setTimeout(()=>el.remove(),4500);}
 </script>
 </body>
 </html>
