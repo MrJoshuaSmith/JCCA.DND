@@ -1592,7 +1592,7 @@ async function openUseItemModal(){
   document.getElementById('m-use-item').classList.add('open');
 
   if(!myChar){
-    body.innerHTML='<div class="mc-info" style="color:var(--red);">No active character found.</div><div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-use-item').classList.remove('open')">Close</button></div>';
+    body.innerHTML=`<div class="mc-info" style="color:var(--red);">No active character found.</div><div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-use-item').classList.remove('open')">Close</button></div>`;
     return;
   }
   try{
@@ -1627,7 +1627,7 @@ async function openUseItemModal(){
       </div>`;
   }catch(e){
     console.error(e);
-    body.innerHTML='<div class="mc-info" style="color:var(--red);">Failed to load inventory.</div><div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-use-item').classList.remove('open')">Close</button></div>';
+    body.innerHTML=`<div class="mc-info" style="color:var(--red);">Failed to load inventory.</div><div class="mc-btn-row"><button class="mc-btn mc-ghost" onclick="document.getElementById('m-use-item').classList.remove('open')">Close</button></div>`;
   }
 }
 

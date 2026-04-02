@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Quest Board — D&D Club</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<script src="nav.js"></script>
+<script src="nav.js?v=20260402"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -598,7 +601,7 @@ async function loadNotices(){
 
 async function loadSessions(){
   try{
-    const snap=await db.collection('Sessions').get();
+    const snap=await db.collection('ScheduledSessions').get();
     sessions=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>new Date(a.date)-new Date(b.date));
     const ns=getNextSession();
     if(ns)await loadRsvps(ns.id);
@@ -876,7 +879,7 @@ async function submitSession(){
   const errEl=document.getElementById('ss-err');errEl.style.display='none';
   if(!date){errEl.textContent='Please pick a date.';errEl.style.display='block';return;}
   try{
-    await db.collection('Sessions').add({title:title||'D&D Session',date,time,location:loc,notes,createdAt:new Date().toISOString(),createdBy:user});
+    await db.collection('ScheduledSessions').add({title:title||'D&D Session',date,time,location:loc,notes,createdAt:new Date().toISOString(),createdBy:user});
     closeModal('m-session');toast('Session scheduled!','success');loadSessions();
   }catch(e){errEl.textContent='Failed.';errEl.style.display='block';}
 }
@@ -884,7 +887,7 @@ async function submitSession(){
 async function deleteSession(id){
   if(role!=='admin')return;
   if(!confirm('Remove this session?'))return;
-  try{await db.collection('Sessions').doc(id).delete();toast('Session removed.','info');loadSessions();}
+  try{await db.collection('ScheduledSessions').doc(id).delete();toast('Session removed.','info');loadSessions();}
   catch(e){toast('Failed.','error');}
 }
 
