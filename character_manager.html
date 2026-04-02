@@ -128,8 +128,6 @@ body{background:var(--bg);background-image:radial-gradient(ellipse 80% 50% at 50
 .toast.error{border-color:var(--red-d);color:var(--red);}
 .toast.info{border-color:var(--gold-d);color:var(--gold);}
 
-/* ── BACK HUB BUTTON ── */
-#btn-hub{position:fixed;top:.6rem;right:1rem;z-index:510;display:none;}
 
 /* ── CHARACTER CREATION WIZARD ── */
 .wizard-wrap{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:1rem;}
@@ -166,7 +164,7 @@ body{background:var(--bg);background-image:radial-gradient(ellipse 80% 50% at 50
 <body>
 <div id="stars"></div>
 <div id="main-nav"></div>
-<a href="adventurers_hub.html" id="btn-hub" class="btn btn-ghost btn-sm">&#8962; Hub</a>
+<a href="adventurers_hub.html" id="btn-hub" style="position:fixed;top:.55rem;right:1rem;z-index:510;font-family:'Cinzel',serif;font-size:.62rem;font-weight:600;letter-spacing:.07em;padding:.28rem .7rem;border-radius:3px;border:1px solid rgba(180,110,40,.35);background:rgba(13,8,4,.9);color:#a89880;text-decoration:none;transition:all .18s;display:none;" onmouseover="this.style.color='#c8952a';this.style.borderColor='rgba(180,110,40,.6)'" onmouseout="this.style.color='#a89880';this.style.borderColor='rgba(180,110,40,.35)'">&#8962; Hub</a>
 
 <div id="screen-loading">
   <div style="text-align:center;">
@@ -359,7 +357,6 @@ if (!loggedUser) {
   window.location.href = 'adventurers_hub.html';
 } else {
   Nav.init('portal');
-  document.getElementById('btn-hub').style.display = 'inline-flex';
 }
 
 // ════════════════════════════════════════════════════

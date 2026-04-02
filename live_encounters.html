@@ -560,38 +560,45 @@ let unsubSessionDoc=null,unsubCombatants=null,unsubActions=null,unsubMyAction=nu
 // ════════════════════════════════════════════════════════════
 //  BOOT
 // ════════════════════════════════════════════════════════════
+function hideLoader(){document.getElementById('screen-loading').style.display='none';}
+
 async function boot(){
-  try{await firebase.auth().signInAnonymously();}catch(e){}
+  // Safety net: always show something after 8 seconds regardless
+  const loadTimeout=setTimeout(()=>{hideLoader();showBrowser();},8000);
+  try{
+    // Race Firebase anon auth against a 5s timeout
+    await Promise.race([
+      firebase.auth().signInAnonymously(),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('auth timeout')),5000))
+    ]);
+  }catch(e){console.warn('anon auth:',e.message);}
+
   const keys=['dnd_username','admin_username','session_dm_username','dm_username'];
   const saved=keys.map(k=>localStorage.getItem(k)).find(Boolean);
-  if(!saved){window.location.href='adventurers_hub.html';return;}
+  if(!saved){clearTimeout(loadTimeout);window.location.href='adventurers_hub.html';return;}
   try{
     const userDoc=await db.collection('Users').doc(saved).get();
-    if(!userDoc.exists){window.location.href='adventurers_hub.html';return;}
+    if(!userDoc.exists){clearTimeout(loadTimeout);window.location.href='adventurers_hub.html';return;}
     const d=userDoc.data();
     loggedUser=saved;loggedRole=d.role;loggedName=d.playerName||saved;
     Nav.init('encounters');
     await loadMyChar();
     buildTemplateDropdown();
-    // Check if already in a session
     const currentSid=d.currentSessionId||null;
-    // Check if this user is a DM for an active session
-    const dmSnap=await db.collection('Sessions').where('dmUserId','==',loggedUser).where('isActive','==',true).get();
-    if(!dmSnap.empty){
-      // This user is the DM — load their session
-      const sdoc=dmSnap.docs[0];
-      activeSessionId=sdoc.id; sessionData=sdoc.data();
-      isDMForSession=true;
-      showHUD(); listenSessionDoc(); listenCombatants(); listenPendingActions(); listenJoinRequests();
+    // Query only by isActive to avoid needing a composite Firestore index
+    const allActiveSessions=await db.collection('Sessions').where('isActive','==',true).get();
+    const myDMSession=allActiveSessions.docs.find(d=>d.data().dmUserId===loggedUser);
+    clearTimeout(loadTimeout);
+    if(myDMSession){
+      const sdoc=myDMSession;
+      activeSessionId=sdoc.id;sessionData=sdoc.data();isDMForSession=true;
+      showHUD();listenSessionDoc();listenCombatants();listenPendingActions();listenJoinRequests();
     }else if(currentSid){
-      // Player is already in a session
       const sdoc=await db.collection('Sessions').doc(currentSid).get();
       if(sdoc.exists&&sdoc.data().isActive){
-        activeSessionId=currentSid; sessionData=sdoc.data();
-        isDMForSession=false;
-        showHUD(); listenSessionDoc(); listenCombatants();
+        activeSessionId=currentSid;sessionData=sdoc.data();isDMForSession=false;
+        showHUD();listenSessionDoc();listenCombatants();
       }else{
-        // Session ended
         await db.collection('Users').doc(loggedUser).update({currentSessionId:null});
         showBrowser();
       }
@@ -599,11 +606,10 @@ async function boot(){
       showBrowser();
     }
   }catch(e){
-    console.error('boot error:', e);
-    toast('Connection error — retrying...','error');
-    // Always show browser so the page isn't a blank black screen
-    document.getElementById('screen-loading').style.display='none';
-    showBrowser();
+    clearTimeout(loadTimeout);
+    console.error('boot error:',e);
+    toast('Connection error.','error');
+    hideLoader();showBrowser();
   }
 }
 

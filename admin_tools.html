@@ -1310,7 +1310,7 @@ async function loadActiveSessions() {
               &nbsp;·&nbsp; Phase: ${esc(s.initiativePhase||'setup')}
             </div>
           </div>
-          <button class="btn btn-danger btn-sm" onclick="revokeSession('${d.id}', '${esc(s.sessionName||'this session')}')">Revoke</button>
+          <button class="btn btn-danger btn-sm" data-sid="${d.id}" data-sname="${esc(s.sessionName||'this session')}" onclick="revokeSession(this.dataset.sid, this.dataset.sname)">Revoke</button>
         </div>`;
     }));
     wrap.innerHTML = rows.join('');
@@ -1386,16 +1386,23 @@ async function revokeSession(sessionId, sessionName) {
       batch.update(db.collection('Users').doc(uid), { currentSessionId: null });
     });
 
-    // Also delete any pending requests for this session
-    const reqSnap = await db.collection('SessionRequests').where('sessionId','==',sessionId).get();
-    reqSnap.docs.forEach(d => batch.delete(d.ref));
-
     // Mark session inactive
     batch.update(db.collection('Sessions').doc(sessionId), {
       isActive: false, endedAt: new Date().toISOString(), endedByAdmin: dmUsername
     });
 
     await batch.commit();
+
+    // Clean up SessionRequests separately (avoids index requirement in batch)
+    try {
+      const reqSnap = await db.collection('SessionRequests').where('sessionId','==',sessionId).get();
+      if (!reqSnap.empty) {
+        const reqBatch = db.batch();
+        reqSnap.docs.forEach(d => reqBatch.delete(d.ref));
+        await reqBatch.commit();
+      }
+    } catch(e2) { console.warn('Could not clean session requests:', e2); }
+
     toast('Session revoked.', 'info');
     await loadActiveSessions();
   } catch(e) {

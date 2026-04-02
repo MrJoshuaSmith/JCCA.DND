@@ -13,14 +13,16 @@ body{background:var(--bg);background-image:radial-gradient(ellipse 80% 55% at 50
 .page{max-width:1060px;margin:0 auto;padding:2.5rem 1.2rem 5rem;}
 .page-title{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:900;color:var(--text);text-align:center;margin-bottom:.35rem;}
 .page-sub{text-align:center;font-style:italic;color:var(--text-m);font-size:1rem;margin-bottom:3rem;}
-.resources-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.6rem;}
+.resources-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.6rem;align-items:stretch;}
+@media(max-width:640px){.resources-grid{grid-template-columns:1fr;}}
 
 /* ── RESOURCE CARD ── */
 .rc{
   border-radius:5px;overflow:hidden;cursor:pointer;
   transition:transform .22s,box-shadow .22s;
-  text-decoration:none;display:block;
+  text-decoration:none;display:flex;flex-direction:column;
   box-shadow:0 6px 28px rgba(0,0,0,.45);
+  height:100%;
 }
 .rc:hover{transform:translateY(-4px);box-shadow:0 14px 44px rgba(0,0,0,.6);}
 .rc-banner{
@@ -32,8 +34,8 @@ body{background:var(--bg);background-image:radial-gradient(ellipse 80% 55% at 50
 .rc-banner-icon{position:absolute;top:1rem;right:1.3rem;font-size:2.6rem;opacity:.25;z-index:1;user-select:none;}
 .rc-title{position:relative;z-index:2;font-family:'Cinzel',serif;font-size:1.1rem;font-weight:900;color:#f0e8d8;line-height:1.15;text-shadow:0 2px 8px rgba(0,0,0,.8);}
 .rc-tag{position:relative;z-index:2;font-family:'Cinzel',serif;font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(240,232,216,.45);align-self:flex-start;margin-top:.4rem;}
-.rc-body{background:var(--bg-card);border:1px solid var(--border);border-top:none;padding:1.1rem 1.5rem 1.3rem;display:flex;align-items:flex-end;justify-content:space-between;gap:.8rem;}
-.rc-desc{font-size:.86rem;color:var(--text-m);line-height:1.65;flex:1;}
+.rc-body{background:var(--bg-card);border:1px solid var(--border);border-top:none;padding:1.1rem 1.5rem 1.3rem;display:flex;align-items:flex-end;justify-content:space-between;gap:.8rem;flex:1;}
+.rc-desc{font-size:.86rem;color:var(--text-m);line-height:1.65;flex:1;min-height:3rem;}
 .rc-cta{flex-shrink:0;font-family:'Cinzel',serif;font-size:.65rem;font-weight:700;letter-spacing:.09em;padding:.45rem 1.1rem;border-radius:3px;border:1px solid;cursor:pointer;transition:all .18s;text-decoration:none;display:inline-block;white-space:nowrap;}
 
 /* Guide theme: parchment/gold */
