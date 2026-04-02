@@ -286,16 +286,8 @@ async function doLogin(){
   if(!username||!password){errEl.textContent='Please enter your username and password.';errEl.style.display='block';return;}
   btn.disabled=true;btn.textContent='Signing in…';
   try{
-    // Try exact case first, then lowercase — makes usernames case-insensitive
     let userDoc=await db.collection('Users').doc(username).get();
-    let resolvedUsername=username;
-    if(!userDoc.exists){
-      const lower=username.toLowerCase();
-      if(lower!==username){
-        userDoc=await db.collection('Users').doc(lower).get();
-        resolvedUsername=lower;
-      }
-    }
+    const resolvedUsername=username;
     if(!userDoc.exists){
       errEl.textContent='Username not found. Check your spelling or ask your DM.';
       errEl.style.display='block';btn.disabled=false;btn.textContent='Enter the Realm →';return;
