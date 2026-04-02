@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Live Encounters — D&D Club</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<script src="nav.js"></script>
+<script src="nav.js?v=20260402"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -501,16 +504,41 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
 
 <script>
 // ════════════════════════════════════════════════════════════
-//  FIREBASE
+//  FIREBASE — wrapped in try/catch so CDN failures don't freeze the page
 // ════════════════════════════════════════════════════════════
-firebase.initializeApp({
-  apiKey:'AIzaSyAWpUnUirhcI3nhW9WF_7aqDInOCvIbsIY',
-  authDomain:'jcca-dnd.firebaseapp.com',projectId:'jcca-dnd',
-  storageBucket:'jcca-dnd.firebasestorage.app',
-  messagingSenderId:'128758977152',
-  appId:'1:128758977152:web:f43ef158eedf82614ccc65'
-});
-const db = firebase.firestore();
+
+// Absolute last-resort: if NOTHING has run after 10s, show an error
+const _absoluteTimeout = setTimeout(()=>{
+  const el = document.getElementById('screen-loading');
+  if(el && el.style.display !== 'none'){
+    el.innerHTML = '<div style="text-align:center;padding:2rem;font-family:Cinzel,serif;">' +
+      '<div style="color:#c41e1e;font-size:1rem;margin-bottom:.8rem;">&#9888; Connection Failed</div>' +
+      '<div style="color:#a89880;font-size:.78rem;margin-bottom:1.2rem;">Could not connect to the server. Check your internet connection and try again.</div>' +
+      '<a href="adventurers_hub.html" style="font-family:Cinzel,serif;font-size:.7rem;color:#c8952a;border:1px solid rgba(200,149,42,.4);padding:.4rem 1rem;border-radius:3px;text-decoration:none;">&#8592; Back to Hub</a>' +
+      '</div>';
+  }
+}, 10000);
+
+let db;
+try {
+  firebase.initializeApp({
+    apiKey:'AIzaSyAWpUnUirhcI3nhW9WF_7aqDInOCvIbsIY',
+    authDomain:'jcca-dnd.firebaseapp.com',projectId:'jcca-dnd',
+    storageBucket:'jcca-dnd.firebasestorage.app',
+    messagingSenderId:'128758977152',
+    appId:'1:128758977152:web:f43ef158eedf82614ccc65'
+  });
+  db = firebase.firestore();
+} catch(e) {
+  clearTimeout(_absoluteTimeout);
+  console.error('Firebase init failed:', e);
+  const el = document.getElementById('screen-loading');
+  if(el) el.innerHTML = '<div style="text-align:center;padding:2rem;font-family:Cinzel,serif;">' +
+    '<div style="color:#c41e1e;font-size:1rem;margin-bottom:.8rem;">&#9888; Connection Failed</div>' +
+    '<div style="color:#a89880;font-size:.78rem;margin-bottom:1.2rem;">Could not initialise the connection. Please refresh the page.</div>' +
+    '<button onclick="location.reload()" style="font-family:Cinzel,serif;font-size:.7rem;color:#c8952a;border:1px solid rgba(200,149,42,.4);padding:.4rem 1rem;border-radius:3px;background:transparent;cursor:pointer;">&#8635; Refresh</button>' +
+    '</div>';
+}
 
 // ════════════════════════════════════════════════════════════
 //  CONSTANTS
@@ -606,7 +634,7 @@ async function boot(){
       showBrowser();
     }
   }catch(e){
-    clearTimeout(loadTimeout);
+    clearTimeout(loadTimeout);clearTimeout(_absoluteTimeout);
     console.error('boot error:',e);
     toast('Connection error.','error');
     hideLoader();showBrowser();
