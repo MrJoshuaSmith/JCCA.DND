@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Tools — Admin Panel</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<script src="nav.js"></script>
+<script src="nav.js?v=20260402"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -540,14 +543,20 @@ async function doLogin() {
   if (!username||!password){errEl.textContent='Please enter username and password.';errEl.style.display='block';return;}
   btn.disabled=true;btn.textContent='Checking...';
   try {
-    const doc=await db.collection('Users').doc(username).get();
+    // Case-insensitive: try exact then lowercase
+    let doc=await db.collection('Users').doc(username).get();
+    let resolvedUser=username;
+    if(!doc.exists){
+      const lower=username.toLowerCase();
+      if(lower!==username){doc=await db.collection('Users').doc(lower).get();resolvedUser=lower;}
+    }
     if (!doc.exists){errEl.textContent='Username not found.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter Admin Tools →';return;}
     const data=doc.data();
     if (data.role!=='admin'){errEl.textContent='This account does not have admin access.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter Admin Tools →';return;}
     const ok=await verifyPassword(password,data.passwordHash);
     if (!ok){errEl.textContent='Incorrect password.';errEl.style.display='block';btn.disabled=false;btn.textContent='Enter Admin Tools →';return;}
-    localStorage.setItem('admin_username',username);
-    dmUsername=username;
+    localStorage.setItem('admin_username',resolvedUser);
+    dmUsername=resolvedUser;
     showApp();
     loadAll();
   } catch(e){

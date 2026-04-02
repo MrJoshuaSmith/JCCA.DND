@@ -286,7 +286,16 @@ async function doLogin(){
   if(!username||!password){errEl.textContent='Please enter your username and password.';errEl.style.display='block';return;}
   btn.disabled=true;btn.textContent='Signing in…';
   try{
-    const userDoc=await db.collection('Users').doc(username).get();
+    // Try exact case first, then lowercase — makes usernames case-insensitive
+    let userDoc=await db.collection('Users').doc(username).get();
+    let resolvedUsername=username;
+    if(!userDoc.exists){
+      const lower=username.toLowerCase();
+      if(lower!==username){
+        userDoc=await db.collection('Users').doc(lower).get();
+        resolvedUsername=lower;
+      }
+    }
     if(!userDoc.exists){
       errEl.textContent='Username not found. Check your spelling or ask your DM.';
       errEl.style.display='block';btn.disabled=false;btn.textContent='Enter the Realm →';return;
@@ -298,12 +307,12 @@ async function doLogin(){
       errEl.style.display='block';btn.disabled=false;btn.textContent='Enter the Realm →';return;
     }
     // Store role-based session key
-    loggedUser=username;loggedRole=d.role;
-    if(d.role==='admin'){localStorage.setItem('admin_username',username);}
-    else if(d.role==='session_dm'){localStorage.setItem('session_dm_username',username);}
-    else if(d.role==='dm'){localStorage.setItem('dm_username',username);}
-    else{localStorage.setItem('dnd_username',username);}
-    await showApp(username);
+    loggedUser=resolvedUsername;loggedRole=d.role;
+    if(d.role==='admin'){localStorage.setItem('admin_username',resolvedUsername);}
+    else if(d.role==='session_dm'){localStorage.setItem('session_dm_username',resolvedUsername);}
+    else if(d.role==='dm'){localStorage.setItem('dm_username',resolvedUsername);}
+    else{localStorage.setItem('dnd_username',resolvedUsername);}
+    await showApp(resolvedUsername);
   }catch(e){
     console.error(e);
     errEl.textContent='Login failed — please try again.';

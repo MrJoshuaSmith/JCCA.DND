@@ -588,58 +588,72 @@ let unsubSessionDoc=null,unsubCombatants=null,unsubActions=null,unsubMyAction=nu
 // ════════════════════════════════════════════════════════════
 //  BOOT
 // ════════════════════════════════════════════════════════════
-function hideLoader(){document.getElementById('screen-loading').style.display='none';}
+function hideLoader(){
+  const el=document.getElementById('screen-loading');
+  if(el) el.style.display='none';
+}
 
 async function boot(){
-  // Safety net: always show something after 8 seconds regardless
-  const loadTimeout=setTimeout(()=>{hideLoader();showBrowser();},8000);
-  try{
-    // Race Firebase anon auth against a 5s timeout
-    await Promise.race([
-      firebase.auth().signInAnonymously(),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('auth timeout')),5000))
-    ]);
-  }catch(e){console.warn('anon auth:',e.message);}
+  // Phase 1: Authenticate and get user — show browser immediately on success
+  // This means the page ALWAYS shows something within one Firestore round trip.
+  try{ await firebase.auth().signInAnonymously(); }catch(e){}
 
   const keys=['dnd_username','admin_username','session_dm_username','dm_username'];
   const saved=keys.map(k=>localStorage.getItem(k)).find(Boolean);
-  if(!saved){clearTimeout(loadTimeout);window.location.href='adventurers_hub.html';return;}
+  if(!saved){ window.location.href='adventurers_hub.html'; return; }
+
   try{
     const userDoc=await db.collection('Users').doc(saved).get();
-    if(!userDoc.exists){clearTimeout(loadTimeout);window.location.href='adventurers_hub.html';return;}
+    if(!userDoc.exists){ window.location.href='adventurers_hub.html'; return; }
     const d=userDoc.data();
-    loggedUser=saved;loggedRole=d.role;loggedName=d.playerName||saved;
+    loggedUser=saved; loggedRole=d.role; loggedName=d.playerName||saved;
     Nav.init('encounters');
     await loadMyChar();
     buildTemplateDropdown();
-    const currentSid=d.currentSessionId||null;
-    // Query only by isActive to avoid needing a composite Firestore index
-    const allActiveSessions=await db.collection('Sessions').where('isActive','==',true).get();
-    const myDMSession=allActiveSessions.docs.find(d=>d.data().dmUserId===loggedUser);
-    clearTimeout(loadTimeout);
-    if(myDMSession){
-      const sdoc=myDMSession;
-      activeSessionId=sdoc.id;sessionData=sdoc.data();isDMForSession=true;
-      showHUD();listenSessionDoc();listenCombatants();listenPendingActions();listenJoinRequests();
-    }else if(currentSid){
-      const sdoc=await db.collection('Sessions').doc(currentSid).get();
-      if(sdoc.exists&&sdoc.data().isActive){
-        activeSessionId=currentSid;sessionData=sdoc.data();isDMForSession=false;
-        showHUD();listenSessionDoc();listenCombatants();
-      }else{
-        await db.collection('Users').doc(loggedUser).update({currentSessionId:null});
-        showBrowser();
-      }
-    }else{
-      showBrowser();
-    }
+
+    // Always show the browser first — page is now interactive
+    clearTimeout(_absoluteTimeout);
+    hideLoader();
+    showBrowser();
+
+    // Phase 2: Check for an existing session in the background
+    // This transitions to HUD silently if the user is already in a session
+    checkExistingSession(d).catch(e=>console.warn('Session check:',e));
+
   }catch(e){
-    clearTimeout(loadTimeout);clearTimeout(_absoluteTimeout);
+    clearTimeout(_absoluteTimeout);
     console.error('boot error:',e);
-    toast('Connection error.','error');
-    hideLoader();showBrowser();
+    hideLoader();
+    showBrowser();
   }
 }
+
+async function checkExistingSession(userData){
+  const currentSid=userData.currentSessionId||null;
+  try{
+    // Single query: get all active sessions (no composite index needed)
+    const allActive=await db.collection('Sessions').where('isActive','==',true).get();
+    const myDM=allActive.docs.find(d=>d.data().dmUserId===loggedUser);
+    if(myDM){
+      activeSessionId=myDM.id; sessionData=myDM.data(); isDMForSession=true;
+      showHUD(); listenSessionDoc(); listenCombatants(); listenPendingActions(); listenJoinRequests();
+      return;
+    }
+    if(currentSid){
+      const sdoc=await db.collection('Sessions').doc(currentSid).get();
+      if(sdoc.exists&&sdoc.data().isActive){
+        activeSessionId=currentSid; sessionData=sdoc.data(); isDMForSession=false;
+        showHUD(); listenSessionDoc(); listenCombatants();
+      }else{
+        await db.collection('Users').doc(loggedUser).update({currentSessionId:null}).catch(()=>{});
+      }
+    }
+  }catch(e){
+    // Session query failed (likely permissions) — user stays on browser, no problem
+    console.warn('Session check failed:',e.message);
+  }
+}
+
 
 async function loadMyChar(){
   const snap=await db.collection('Characters').where('playerId','==',loggedUser).where('status','==','Active').get();
