@@ -258,6 +258,15 @@ body{background:var(--bg);min-height:100vh;font-family:'Crimson Pro',Georgia,ser
 <body>
 <div id="main-nav"></div>
 
+<!-- ══ DEBUG PANEL — remove once working ══ -->
+<div id="dbg" style="position:fixed;top:54px;left:0;right:0;z-index:9999;background:rgba(0,0,0,.92);border-bottom:2px solid #c8952a;padding:.5rem .8rem;font-family:monospace;font-size:.72rem;color:#80c060;max-height:40vh;overflow-y:auto;display:block;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;">
+    <span style="color:#c8952a;font-weight:bold;">⚙ DEBUG LOG</span>
+    <button onclick="document.getElementById('dbg').style.display='none'" style="background:transparent;border:1px solid #666;color:#999;padding:.1rem .4rem;cursor:pointer;font-size:.65rem;">✕ hide</button>
+  </div>
+  <div id="dbg-log"></div>
+</div>
+
 
 <!-- ═══════════════════════════════════════════════════════
      SCREEN: SESSION BROWSER (not yet in a session)
@@ -1733,6 +1742,65 @@ async function toggleCondition(combId, condName){
     // Re-render the adjust modal to reflect change
     openDmAdjust(combId);
   } catch(e){ toast('Failed to update conditions.','error'); }
+}
+
+// ══ DEBUG HELPERS ══
+function dbg(msg, col){
+  const el=document.getElementById('dbg-log');
+  if(!el)return;
+  const ts=new Date().toLocaleTimeString('en-AU',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const line=document.createElement('div');
+  line.style.color=col||'#80c060';
+  line.style.borderBottom='1px solid rgba(255,255,255,.05)';
+  line.style.padding='.1rem 0';
+  line.textContent=ts+' '+msg;
+  el.appendChild(line);
+  el.scrollTop=el.scrollHeight;
+  console.log('[ENC]',msg);
+}
+
+// Override boot() with debug version
+const _origBoot = boot;
+async function boot(){
+  dbg('boot() started');
+  dbg('Checking localStorage keys...');
+  const keys=['dnd_username','admin_username','session_dm_username','dm_username'];
+  const found = keys.map(k=>{const v=localStorage.getItem(k);return v?k+'='+v:null}).filter(Boolean);
+  if(found.length){dbg('Auth keys found: '+found.join(', '),'#80c060');}
+  else{dbg('⚠ NO auth keys in localStorage — will redirect to hub','#e06060');}
+
+  dbg('Calling signInAnonymously...');
+  try{
+    await firebase.auth().signInAnonymously();
+    dbg('signInAnonymously OK','#80c060');
+  }catch(e){dbg('signInAnonymously failed: '+e.message,'#e8a040');}
+
+  const saved=keys.map(k=>localStorage.getItem(k)).find(Boolean);
+  if(!saved){dbg('No saved user → redirecting','#e06060');window.location.href='adventurers_hub.html';return;}
+  dbg('Saved user: '+saved);
+
+  try{
+    dbg('Fetching Users/'+saved+'...');
+    const userDoc=await db.collection('Users').doc(saved).get();
+    if(!userDoc.exists){dbg('⚠ User doc not found → redirecting','#e06060');window.location.href='adventurers_hub.html';return;}
+    const d=userDoc.data();
+    dbg('User doc found. role='+d.role+' currentSessionId='+(d.currentSessionId||'none'),'#80c060');
+    loggedUser=saved;loggedRole=d.role;loggedName=d.playerName||saved;
+    Nav.init('encounters');
+    dbg('Nav.init done');
+    await loadMyChar();
+    dbg('loadMyChar done. myChar='+(myChar?myChar.characterName:'none'));
+    buildTemplateDropdown();
+    dbg('Calling showBrowser()...');
+    showBrowser();
+    dbg('showBrowser() called — page should be visible now','#f0c860');
+    dbg('Starting checkExistingSession in background...');
+    checkExistingSession(d).then(()=>dbg('checkExistingSession complete','#80c060')).catch(e=>dbg('checkExistingSession error: '+e.message,'#e06060'));
+  }catch(e){
+    dbg('BOOT ERROR: '+e.message,'#e06060');
+    dbg(e.stack||'no stack','#886666');
+    showBrowser();
+  }
 }
 
 boot();
